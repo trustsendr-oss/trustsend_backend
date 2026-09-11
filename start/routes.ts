@@ -67,6 +67,10 @@ router.get('/', () => {
   return { hello: 'world' }
 })
 
+router.get('/health', () => {
+  return { status: 'ok' }
+})
+
 router.get('/assets/flags/usd.svg', [AssetsController, 'usdFlag'])
 
 router
