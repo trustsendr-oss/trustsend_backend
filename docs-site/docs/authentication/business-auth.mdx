@@ -1,0 +1,100 @@
+---
+sidebar_position: 1
+title: Authentification
+---
+
+# Authentification — Business
+
+Un business a **deux moyens d'accès indépendants vers le même compte** :
+
+| Accès | Identifiant | Usage |
+|---|---|---|
+| **Clé API** | `Authorization: Bearer biz_live_...` / `biz_sandbox_...` | Intégration serveur-à-serveur (backend e-commerce tiers) |
+| **Session dashboard** | Token obtenu via login humain | Interface web du dashboard marchand |
+
+Les deux exécutent **exactement les mêmes contrôleurs** pour dépôt/retrait/wallet/transactions/webhooks — aucune logique dupliquée. Seuls `overview`, `api-keys` (self-service), `profile`, `pin`, `kyc`, `notifications` sont propres au dashboard.
+
+## Session dashboard
+
+### `POST /api/v1/business/auth/signup`
+Public, self-service.
+
+**Body**
+```json
+{
+  "name": "Ma Boutique SARL",
+  "email": "contact@maboutique.com",
+  "phone": "260763456789",
+  "password": "motdepasse123",
+  "code": "MABOUTIQUE"
+}
+```
+`code` optionnel (auto-généré `BIZ...` sinon). Le business démarre en `pending_approval`.
+
+**Réponse `201`**
+```json
+{
+  "data": {
+    "id": 55,
+    "code": "MABOUTIQUE",
+    "name": "Ma Boutique SARL",
+    "email": "contact@maboutique.com",
+    "status": "pending_approval",
+    "message": "Account created. You can log in now to submit your KYC verification, but deposits, payouts, and API keys require admin approval first."
+  }
+}
+```
+
+### `POST /api/v1/business/auth/login`
+
+**Body**
+```json
+{ "email": "contact@maboutique.com", "password": "motdepasse123" }
+```
+
+**Réponse `200`**
+```json
+{
+  "data": {
+    "business": { "id": 55, "code": "MABOUTIQUE", "name": "Ma Boutique SARL", "email": "contact@maboutique.com" },
+    "token": "oat_...",
+    "expires_in": 3600
+  }
+}
+```
+
+:::info Le login fonctionne même en `pending_approval`
+Un business peut se connecter **avant** d'être approuvé — il doit pouvoir soumettre son KYC. Seul `suspended`/`terminated` bloque le login (`403`). Voir [KYC](/kyc/submitting-documents) pour la suite du parcours, et [ci-dessous](#accès-financier-conditionné-par-lapprobation) pour ce qui reste bloqué en attendant.
+:::
+
+**Erreurs**
+- `400` — identifiants invalides
+- `403` — `suspended` ou `terminated`
+- `429` — verrouillé 15 min après 5 échecs
+
+### `POST /api/v1/business/auth/refresh` 🔒
+### `POST /api/v1/business/auth/logout` 🔒
+### `POST /api/v1/business/auth/change-password` 🔒
+**Body** : `{ "current_password": "...", "new_password": "..." }`
+
+## Accès financier conditionné par l'approbation
+
+Toutes les routes `business/dashboard/*` **qui touchent à l'argent ou aux identifiants** (dépôts, retraits, wallet, transactions, webhooks, clés API, overview) exigent en plus `status === 'active'` — middleware `businessActive`. Tant que le business n'est pas approuvé :
+
+```json
+{ "message": "This action requires an active business account (current status: pending_approval)" }
+```
+→ `403`
+
+**Restent accessibles dès la connexion, même en `pending_approval`** : profil, PIN, KYC (soumission/statut), notifications.
+
+**Devenir `active`** exige, dans l'ordre :
+1. Soumission du KYC business (voir [KYC](/kyc/submitting-documents))
+2. Revue et approbation du KYC par l'équipe TumaPlus
+3. Activation du compte business par l'équipe TumaPlus (bloquée tant que l'étape 2 n'est pas faite)
+
+Ces deux dernières étapes sont effectuées côté TumaPlus, pas par vous — comptez sur les [notifications in-app](/business/overview) pour être averti de la décision.
+
+## Clé API
+
+Générée en self-service depuis le dashboard : `POST /business/dashboard/api-keys` → `{"api_key": "biz_sandbox_...", "message": "Store this key now — it cannot be retrieved again."}`. Format `biz_(live|sandbox)_<64 caractères hex>`, jamais récupérable après génération (seul le hash est stocké). Vérifiée à chaque requête, sans mise en cache — une révocation prend effet immédiatement.

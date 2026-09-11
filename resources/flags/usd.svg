@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 100">
+  <defs>
+    <polygon id="star" points="0,-3 0.71,-0.93 2.85,-0.93 1.13,0.35 1.76,2.43 0,1.15 -1.76,2.43 -1.13,0.35 -2.85,-0.93 -0.71,-0.93" fill="#FFFFFF"/>
+  </defs>
+  <rect width="190" height="100" fill="#FFFFFF"/>
+  <g fill="#B22234">
+    <rect y="0" width="190" height="7.69"/>
+    <rect y="15.38" width="190" height="7.69"/>
+    <rect y="30.77" width="190" height="7.69"/>
+    <rect y="46.15" width="190" height="7.69"/>
+    <rect y="61.54" width="190" height="7.69"/>
+    <rect y="76.92" width="190" height="7.69"/>
+    <rect y="92.31" width="190" height="7.69"/>
+  </g>
+  <rect width="76" height="53.85" fill="#3C3B6E"/>
+  <g transform="translate(8,8)">
+    <use href="#star" x="0" y="0"/><use href="#star" x="12" y="0"/><use href="#star" x="24" y="0"/><use href="#star" x="36" y="0"/><use href="#star" x="48" y="0"/><use href="#star" x="60" y="0"/>
+    <use href="#star" x="6" y="9"/><use href="#star" x="18" y="9"/><use href="#star" x="30" y="9"/><use href="#star" x="42" y="9"/><use href="#star" x="54" y="9"/>
+    <use href="#star" x="0" y="18"/><use href="#star" x="12" y="18"/><use href="#star" x="24" y="18"/><use href="#star" x="36" y="18"/><use href="#star" x="48" y="18"/><use href="#star" x="60" y="18"/>
+    <use href="#star" x="6" y="27"/><use href="#star" x="18" y="27"/><use href="#star" x="30" y="27"/><use href="#star" x="42" y="27"/><use href="#star" x="54" y="27"/>
+    <use href="#star" x="0" y="36"/><use href="#star" x="12" y="36"/><use href="#star" x="24" y="36"/><use href="#star" x="36" y="36"/><use href="#star" x="48" y="36"/><use href="#star" x="60" y="36"/>
+  </g>
+</svg>

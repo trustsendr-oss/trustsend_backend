@@ -1,0 +1,52 @@
+---
+sidebar_position: 4
+title: Wallet
+---
+
+# Wallet — Business
+
+Disponible dans les deux groupes : `/business/wallet` (clé API) et `/business/dashboard/wallet` (session, requiert `active`).
+
+## `POST /api/v1/business/wallet`
+Crée un wallet dans une nouvelle devise (un seul wallet USD est créé automatiquement à l'inscription).
+
+**Body**
+```json
+{ "currency_code": "CDF" }
+```
+
+**Réponse `201`** (nouveau) ou **`200`** (idempotent, wallet déjà existant pour cette devise)
+```json
+{
+  "data": { "id": 38, "currency_code": "CDF", "balance": "0", "status": "active", "created_at": "..." },
+  "message": "Wallet created"
+}
+```
+
+## `GET /api/v1/business/wallet`
+Liste tous les wallets.
+
+```json
+{
+  "data": [
+    {
+      "id": 30, "currency_code": "USD", "flag_url": "http://localhost:3333/assets/flags/usd.svg",
+      "balance": "11000", "status": "active", "created_at": "...", "updated_at": "..."
+    }
+  ]
+}
+```
+
+`flag_url` : pour `USD`, sert **notre propre** icône (`/assets/flags/usd.svg`) plutôt que le drapeau PawaPay — `USD` n'étant pas rattaché à un seul pays. Pour les autres devises, drapeau du pays via PawaPay (`/v2/active-conf`), premier pays configuré trouvé — approximatif pour une devise multi-pays.
+
+## `GET /api/v1/business/wallet/:currency`
+```json
+{
+  "data": {
+    "id": 30, "currency_code": "USD", "flag_url": "...", "balance": "11000", "status": "active",
+    "per_transaction_limit": null, "daily_limit": null, "monthly_limit": null,
+    "created_at": "...", "updated_at": "..."
+  }
+}
+```
+`404` si aucun wallet pour cette devise.

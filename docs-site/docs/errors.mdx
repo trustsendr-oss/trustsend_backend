@@ -1,0 +1,26 @@
+---
+sidebar_position: 7
+title: Référence des erreurs
+---
+
+# Codes d'erreur — référence transverse
+
+| Code | Signification | Où le rencontrer |
+|---|---|---|
+| `400` | Payload invalide, identifiants incorrects, règle métier non satisfaite | Login, combinaison KYC incomplète, transitions de statut invalides |
+| `401` | Token/clé absent, invalide, révoqué, ou PIN incorrect/non configuré | Toute route protégée |
+| `402` | Solde insuffisant | Payout mobile money |
+| `403` | Authentifié mais action refusée (statut du compte, IDOR, permissions) | Compte `pending_approval`/`suspended`, accès à une ressource d'un autre acteur |
+| `404` | Ressource introuvable — ou n'appartenant pas à l'appelant (pas de fuite d'existence) | Wallet, transaction, webhook |
+| `409` | Conflit d'idempotency key | Dépôt/retrait mobile money |
+| `422` | Validation métier (devise/provider non supportés, montant hors bornes, fichier invalide) | Dépôts/retraits, upload KYC |
+| `429` | Compte verrouillé après trop d'échecs de connexion/PIN | Login (5 échecs/15 min), PIN (3 échecs/15 min) |
+| `503` | PawaPay temporairement indisponible | Dépôts/retraits, moyens de paiement |
+
+## Format standard
+
+```json
+{ "message": "Description lisible de l'erreur" }
+```
+
+Certaines erreurs de validation renvoient un détail structuré via VineJS — toujours au moins un champ `message`.

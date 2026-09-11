@@ -1,0 +1,39 @@
+---
+sidebar_position: 2
+title: PIN
+---
+
+# PIN — Business
+
+Le PIN est **obligatoire uniquement pour les opérations financières déclenchées depuis le dashboard** (session humaine) — jamais requis pour un appel via clé API, où la clé elle-même est le seul credential.
+
+## `POST /api/v1/business/dashboard/pin` 🔒
+
+**Body**
+```json
+{ "pin": "1234" }
+```
+4 chiffres exactement. `400` si un PIN existe déjà (utiliser `pin/change`).
+
+## `POST /api/v1/business/dashboard/pin/change` 🔒
+
+**Body**
+```json
+{ "current_pin": "1234", "new_pin": "5678" }
+```
+`401` si `current_pin` incorrect.
+
+## Comportement au dépôt/retrait
+
+| Chemin | PIN requis ? |
+|---|---|
+| `POST /business/mobile-money/deposits` (clé API) | Non |
+| `POST /business/dashboard/mobile-money/deposits` (session) | **Oui** |
+
+Si le PIN n'est pas encore configuré :
+```json
+{ "message": "PIN not set. Please set a PIN first." }
+```
+→ `401`
+
+Mauvais PIN → `401`, compteur décompté, **verrouillage 15 min après 3 échecs**.

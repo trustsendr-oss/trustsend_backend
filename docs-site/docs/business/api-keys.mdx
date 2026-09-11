@@ -1,0 +1,33 @@
+---
+sidebar_position: 3
+title: Clés API
+---
+
+# Clés API — self-service
+
+## `GET /api/v1/business/dashboard/api-keys` 🔒
+Liste les clés (jamais la clé en clair — seulement `key_prefix`/statut/dates).
+
+```json
+{
+  "data": [
+    { "id": 1, "key_prefix": "biz_sandbox_a1b2c3d4", "status": "active", "last_used_at": "...", "created_at": "...", "revoked_at": null }
+  ]
+}
+```
+
+## `POST /api/v1/business/dashboard/api-keys` 🔒
+Génère une nouvelle clé. **La clé en clair n'est renvoyée qu'ici, une seule fois.**
+
+```json
+{
+  "data": {
+    "key_id": 4,
+    "api_key": "biz_sandbox_9f8e7d6c5b4a...",
+    "message": "Store this key now — it cannot be retrieved again. Only its hash is kept."
+  }
+}
+```
+
+## `DELETE /api/v1/business/dashboard/api-keys/:id` 🔒
+Révoque immédiatement (prochain appel avec cette clé → `401`).

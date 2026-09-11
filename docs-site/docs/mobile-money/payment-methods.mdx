@@ -1,0 +1,38 @@
+---
+sidebar_position: 2
+title: Moyens de paiement
+---
+
+# Moyens de paiement disponibles
+
+Interroge PawaPay pour savoir quels opérateurs sont réellement disponibles avant de tenter un dépôt/retrait — évite un `422` surprise.
+
+Disponible sous `/business/mobile-money/*` (clé API) et `/business/dashboard/mobile-money/*` (session).
+
+## `GET .../mobile-money/payment-methods`
+
+**Query** : `currency_code` (requis, 3 lettres), `operation_type` (`DEPOSIT` par défaut ou `PAYOUT`)
+
+```json
+{
+  "data": [
+    { "provider": "MTN_MOMO_ZMB", "display_name": "MTN Mobile Money", "status": "OPERATIONAL", "min_amount": "500", "max_amount": "500000000" }
+  ]
+}
+```
+
+`status` combine la config du compte (`/v2/active-conf`) et la disponibilité temps réel (`/v2/availability`) — le plus pessimiste des deux l'emporte. `min_amount`/`max_amount` en plus petite unité, déjà convertis depuis le format décimal PawaPay.
+
+## `GET .../mobile-money/payment-methods/raw`
+
+Aucun filtre — renvoie l'intégralité des deux payloads PawaPay bruts (tous pays/providers/devises/types d'opération, plus tous les champs que l'endpoint filtré n'expose pas : logo, instructions USSD, drapeau du pays...).
+
+```json
+{
+  "data": {
+    "active_configuration": { "countries": [ "..." ] },
+    "availability": [ "..." ]
+  }
+}
+```
+

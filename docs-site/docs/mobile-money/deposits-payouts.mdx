@@ -1,0 +1,80 @@
+---
+sidebar_position: 1
+title: Dépôts & Retraits
+---
+
+# Dépôts & Retraits mobile money
+
+Intégration PawaPay. Deux chemins équivalents (mêmes contrôleurs, même logique) selon comment vous êtes authentifié :
+
+| Préfixe | Authentification | PIN requis |
+|---|---|---|
+| `/business/mobile-money/*` | Clé API | Non |
+| `/business/dashboard/mobile-money/*` | Session dashboard | Oui |
+
+## `POST .../mobile-money/deposits`
+
+**Body**
+```json
+{
+  "amount": "50000",
+  "currency_code": "CDF",
+  "phone_number": "243813456789",
+  "provider": "VODACOM_MPESA_COD",
+  "pin": "1234",
+  "idempotency_key": "7d6b1da7-654f-4760-915c-0a48e677316f"
+}
+```
+
+| Champ | Requis | Règles |
+|---|---|---|
+| `amount` | oui | entier positif, plus petite unité, sans zéro initial |
+| `currency_code` | oui | 3 lettres |
+| `phone_number` | oui | MSISDN, 8–15 chiffres, sans zéro initial |
+| `provider` | oui | code opérateur PawaPay (ex. `MTN_MOMO_ZMB`) — voir [Moyens de paiement](/mobile-money/payment-methods) |
+| `pin` | oui (format) | 4 chiffres. **Non vérifié** via clé API (la clé est le seul credential) — **vérifié réellement** via session dashboard, voir [PIN](/business/pin) |
+| `idempotency_key` | oui | UUID unique par tentative — un retry avec la même clé rejoue la même réponse |
+
+**Réponse `202`**
+```json
+{ "data": { "deposit_id": "TXN-VSWC4SQ2", "status": "processing", "created_at": "..." } }
+```
+
+**Erreurs**
+- `404` — pas de wallet actif pour cette devise → créer un wallet d'abord ([Wallet](/business/wallet))
+- `409` — conflit d'idempotency key
+- `422` — devise/provider non supportés, ou montant hors des bornes `min`/`max` (voir [Moyens de paiement](/mobile-money/payment-methods))
+- `503` — PawaPay indisponible
+
+## `POST .../mobile-money/payouts`
+Même body/règles que le dépôt. Erreurs supplémentaires :
+- `402` — solde insuffisant
+- `400` — limite de transaction dépassée
+
+**Réponse `202`**
+```json
+{ "data": { "payout_id": "TXN-...", "status": "processing", "created_at": "..." } }
+```
+
+## `GET .../mobile-money/deposits/:id` et `.../payouts/:id`
+Statut **stocké chez nous** (mis à jour par webhook ou réconciliation périodique).
+```json
+{ "data": { "deposit_id": "TXN-...", "status": "completed", "created_at": "...", "completed_at": "..." } }
+```
+`403` si la transaction n'appartient pas à l'appelant (IDOR bloqué), `404` sinon.
+
+## `GET .../mobile-money/deposits/:id/live-status` et `.../payouts/:id/live-status`
+Interroge **PawaPay en direct**, à l'instant — et **met à jour notre base** si PawaPay répond un statut final (`COMPLETED`/`FAILED`), via le même mécanisme idempotent que le webhook.
+
+```json
+{
+  "data": {
+    "deposit_id": "TXN-...",
+    "local_status": "completed",
+    "live_status": "COMPLETED",
+    "provider_transaction_id": "...",
+    "failure_reason": null
+  }
+}
+```
+Utile quand une transaction reste bloquée en `processing` (webhook manqué) — rappeler plusieurs fois ne crédite/débite jamais deux fois (idempotent).

@@ -1,0 +1,59 @@
+---
+sidebar_position: 1
+title: Introduction
+slug: /
+---
+
+# API TumaPlus — Intégration Business
+
+Documentation destinée aux **développeurs intégrant un compte business TumaPlus** (marchand utilisant les APIs mobile money). Elle ne couvre que les endpoints accessibles à un compte business — pas les APIs internes réservées aux utilisateurs finaux de l'app ou à l'équipe TumaPlus.
+
+## URL de base
+
+```
+http://localhost:3333/api/v1
+```
+
+## Conventions
+
+### Montants
+Tous les montants sont exprimés en **plus petite unité de la devise** (équivalent centimes), sous forme de chaîne (`string`) pour éviter toute perte de précision — jamais de `number` flottant.
+
+```json
+{ "amount": "50000", "currency_code": "USD" }
+```
+
+### Format des erreurs
+```json
+{ "message": "Description de l'erreur" }
+```
+
+### Codes de statut HTTP
+| Code | Signification |
+|---|---|
+| `200` / `201` / `202` | Succès (`202` = traitement asynchrone lancé, ex. dépôt mobile money) |
+| `400` | Requête invalide (règle métier non satisfaite) |
+| `401` | Authentification absente ou invalide |
+| `403` | Authentifié mais action refusée (statut du compte, permissions) |
+| `404` | Ressource introuvable (ou n'appartenant pas à l'appelant — pas de fuite d'existence) |
+| `409` | Conflit (ex. clé d'idempotence déjà utilisée avec un payload différent) |
+| `422` | Validation échouée (format, bornes de montant, type de fichier...) |
+| `429` | Trop de tentatives (verrouillage anti-bruteforce) |
+| `503` | Service externe indisponible (PawaPay) |
+
+## Deux façons d'appeler ces APIs
+
+| Accès | Identifiant | Usage |
+|---|---|---|
+| **Clé API** | `Authorization: Bearer biz_live_...` / `biz_sandbox_...` | Intégration serveur-à-serveur — c'est ce que vous utiliserez en production |
+| **Session dashboard** | Token de connexion humaine | Actions déclenchées depuis l'interface du dashboard marchand |
+
+Les deux exécutent exactement les mêmes contrôleurs — le choix dépend de qui déclenche l'action (votre backend, ou un humain dans le dashboard).
+
+## Par où commencer
+
+1. [Authentification](/authentication/business-auth) — créer un compte, obtenir une clé API ou un token
+2. [KYC](/kyc/submitting-documents) — soumettre les documents requis pour activer le compte
+3. [Wallet](/business/wallet) — créer un wallet dans la devise voulue
+4. [Mobile Money](/mobile-money/deposits-payouts) — dépôts/retraits via PawaPay
+5. [Webhooks](/mobile-money/webhooks) — être notifié des événements sans polling
