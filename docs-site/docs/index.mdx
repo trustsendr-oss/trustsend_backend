@@ -6,17 +6,66 @@ slug: /
 
 # API TrustSend — Intégration Business
 
-Documentation destinée aux **développeurs intégrant un compte business TrustSend** (marchand utilisant les APIs mobile money). Elle ne couvre que les endpoints accessibles à un compte business — pas les APIs internes réservées aux utilisateurs finaux de l'app ou à l'équipe TrustSend.
+<div className="ts-lead">
+Encaissez, payez et suivez l'argent de vos clients depuis votre propre backend : mobile money,
+wallets multi-devises, cartes et webhooks, derrière une seule clé API.
+</div>
 
-## URL de base
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">Base</span>
+  <span className="ts-endpoint__url">{'https://api.trustsend.africa/api/v1'}</span>
+</div>
 
-```
-https://api.trustsend.africa/api/v1
-```
+Cette documentation s'adresse aux **développeurs intégrant un compte business TrustSend**. Elle ne couvre que les endpoints accessibles à un compte business — pas les APIs internes réservées aux utilisateurs finaux de l'application ou à l'équipe TrustSend.
+
+## Par où commencer
+
+<ul className="ts-steps">
+  <li>
+    <a href="/authentication/business-auth">
+      <strong>Authentification</strong>
+      <span>Créer le compte, obtenir une clé API ou un token de session.</span>
+    </a>
+  </li>
+  <li>
+    <a href="/kyc/submitting-documents">
+      <strong>KYC</strong>
+      <span>Soumettre les documents requis pour activer le compte.</span>
+    </a>
+  </li>
+  <li>
+    <a href="/business/wallet">
+      <strong>Wallet</strong>
+      <span>Créer un portefeuille dans la devise voulue et suivre son solde.</span>
+    </a>
+  </li>
+  <li>
+    <a href="/mobile-money/deposits-payouts">
+      <strong>Mobile Money</strong>
+      <span>Dépôts et retraits via PawaPay, côté collecte comme côté payout.</span>
+    </a>
+  </li>
+  <li>
+    <a href="/mobile-money/webhooks">
+      <strong>Webhooks</strong>
+      <span>Être notifié des événements en temps réel, sans polling.</span>
+    </a>
+  </li>
+</ul>
+
+## Deux façons d'appeler ces APIs
+
+| Accès | Identifiant | Usage |
+|---|---|---|
+| **Clé API** | `Authorization: Bearer biz_live_...` / `biz_sandbox_...` | Intégration serveur-à-serveur — c'est ce que vous utiliserez en production |
+| **Session dashboard** | Token de connexion humaine | Actions déclenchées depuis l'interface du dashboard marchand |
+
+Les deux exécutent exactement les mêmes contrôleurs — le choix dépend de qui déclenche l'action (votre backend, ou un humain dans le dashboard).
 
 ## Conventions
 
 ### Montants
+
 Tous les montants sont exprimés en **plus petite unité de la devise** (équivalent centimes), sous forme de chaîne (`string`) pour éviter toute perte de précision — jamais de `number` flottant.
 
 ```json
@@ -24,11 +73,13 @@ Tous les montants sont exprimés en **plus petite unité de la devise** (équiva
 ```
 
 ### Format des erreurs
+
 ```json
 { "message": "Description de l'erreur" }
 ```
 
 ### Codes de statut HTTP
+
 | Code | Signification |
 |---|---|
 | `200` / `201` / `202` | Succès (`202` = traitement asynchrone lancé, ex. dépôt mobile money) |
@@ -40,20 +91,3 @@ Tous les montants sont exprimés en **plus petite unité de la devise** (équiva
 | `422` | Validation échouée (format, bornes de montant, type de fichier...) |
 | `429` | Trop de tentatives (verrouillage anti-bruteforce) |
 | `503` | Service externe indisponible (PawaPay) |
-
-## Deux façons d'appeler ces APIs
-
-| Accès | Identifiant | Usage |
-|---|---|---|
-| **Clé API** | `Authorization: Bearer biz_live_...` / `biz_sandbox_...` | Intégration serveur-à-serveur — c'est ce que vous utiliserez en production |
-| **Session dashboard** | Token de connexion humaine | Actions déclenchées depuis l'interface du dashboard marchand |
-
-Les deux exécutent exactement les mêmes contrôleurs — le choix dépend de qui déclenche l'action (votre backend, ou un humain dans le dashboard).
-
-## Par où commencer
-
-1. [Authentification](/authentication/business-auth) — créer un compte, obtenir une clé API ou un token
-2. [KYC](/kyc/submitting-documents) — soumettre les documents requis pour activer le compte
-3. [Wallet](/business/wallet) — créer un wallet dans la devise voulue
-4. [Mobile Money](/mobile-money/deposits-payouts) — dépôts/retraits via PawaPay
-5. [Webhooks](/mobile-money/webhooks) — être notifié des événements sans polling

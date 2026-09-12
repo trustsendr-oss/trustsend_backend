@@ -1,30 +1,676 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Thème TrustSend pour la documentation API.
+ * Les jetons reprennent ceux du site principal (src/index.css de trustsend_web) : même bleu
+ * d'accent, même encre, mêmes familles typographiques, pour que la doc soit reconnue comme
+ * faisant partie du produit et non comme un site Docusaurus générique.
  */
 
-/* You can override the default Infima variables here. */
+/* ------------------------------------------------------------------ Jetons */
+
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  /* Marque */
+  --ts-navy: #020d30;
+  --ts-accent: #0035dd;
+  --ts-accent-hover: #0029ad;
+  --ts-accent-soft: #eaf0ff;
+  --ts-ink: #192839;
+  --ts-muted: #5d6d86;
+  --ts-surface: #f8fafc;
+  --ts-surface-2: #f1f5fa;
+  --ts-line: rgba(25, 40, 57, 0.1);
+  --ts-line-strong: rgba(25, 40, 57, 0.16);
+  --ts-shadow: 0 1px 2px rgba(2, 13, 48, 0.04), 0 8px 24px -12px rgba(2, 13, 48, 0.18);
+
+  /* Infima — couleurs */
+  --ifm-color-primary: #0035dd;
+  --ifm-color-primary-dark: #0030c7;
+  --ifm-color-primary-darker: #002dbc;
+  --ifm-color-primary-darkest: #00259b;
+  --ifm-color-primary-light: #0a41f3;
+  --ifm-color-primary-lighter: #1a4ef7;
+  --ifm-color-primary-lightest: #4470ff;
+
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: var(--ts-surface);
+  --ifm-font-color-base: var(--ts-ink);
+  --ifm-heading-color: var(--ts-navy);
+  --ifm-link-color: var(--ts-accent);
+  --ifm-link-hover-color: var(--ts-accent-hover);
+  --ifm-toc-border-color: var(--ts-line);
+  --ifm-hr-border-color: var(--ts-line);
+
+  /* Infima — typographie */
+  --ifm-font-family-base: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --ifm-heading-font-family: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --ifm-font-family-monospace: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.7;
+  --ifm-heading-font-weight: 700;
+  --ifm-heading-line-height: 1.2;
+  --ifm-h1-font-size: 2.35rem;
+  --ifm-h2-font-size: 1.6rem;
+  --ifm-h3-font-size: 1.2rem;
+  --ifm-h4-font-size: 1.05rem;
+  --ifm-code-font-size: 0.875em;
+
+  /* Infima — structure */
+  --ifm-global-radius: 10px;
+  --ifm-navbar-height: 64px;
+  --ifm-navbar-padding-horizontal: 1.5rem;
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.82);
+  --ifm-spacing-horizontal: 1.5rem;
+  --ifm-container-width-xl: 1360px;
+  --ifm-code-background: var(--ts-surface-2);
+  --ifm-pre-background: #fbfcfe;
+  --ifm-menu-color: var(--ts-muted);
+  --ifm-menu-color-active: var(--ts-accent);
+  --ifm-menu-color-background-active: var(--ts-accent-soft);
+  --ifm-menu-color-background-hover: var(--ts-surface-2);
+  --ifm-toc-padding-vertical: 0.5rem;
+  --ifm-alert-border-left-width: 0;
+  --ifm-alert-border-width: 1px;
+  --ifm-alert-border-radius: 12px;
+  --ifm-alert-padding-horizontal: 1.15rem;
+  --ifm-alert-padding-vertical: 1rem;
+  --ifm-table-border-color: var(--ts-line);
+  --ifm-table-head-background: var(--ts-surface);
+  --ifm-table-stripe-background: transparent;
+  --ifm-blockquote-color: var(--ts-muted);
+  --ifm-blockquote-border-color: var(--ts-line-strong);
+  --ifm-breadcrumb-item-background-active: var(--ts-surface-2);
+  --ifm-breadcrumb-padding-horizontal: 0.65rem;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 53, 221, 0.08);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+[data-theme="dark"] {
+  --ts-ink: #e7edfa;
+  --ts-muted: #94a3be;
+  --ts-surface: #0c1430;
+  --ts-surface-2: #121c3d;
+  --ts-line: rgba(255, 255, 255, 0.1);
+  --ts-line-strong: rgba(255, 255, 255, 0.18);
+  --ts-accent: #7d9bff;
+  --ts-accent-hover: #a3b8ff;
+  --ts-accent-soft: rgba(125, 155, 255, 0.14);
+  --ts-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.7);
+
+  --ifm-color-primary: #7d9bff;
+  --ifm-color-primary-dark: #5a80ff;
+  --ifm-color-primary-darker: #4872ff;
+  --ifm-color-primary-darkest: #1449ff;
+  --ifm-color-primary-light: #a0b6ff;
+  --ifm-color-primary-lighter: #b2c4ff;
+  --ifm-color-primary-lightest: #e6ecff;
+
+  --ifm-background-color: #060c1f;
+  --ifm-background-surface-color: #0a1228;
+  --ifm-font-color-base: var(--ts-ink);
+  --ifm-heading-color: #f4f7ff;
+  --ifm-navbar-background-color: rgba(6, 12, 31, 0.78);
+  --ifm-code-background: rgba(255, 255, 255, 0.07);
+  --ifm-pre-background: #0a1228;
+  --ifm-table-head-background: rgba(255, 255, 255, 0.04);
+  --docusaurus-highlighted-code-line-bg: rgba(125, 155, 255, 0.14);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--ts-accent-soft);
+  color: var(--ts-navy);
+}
+
+[data-theme="dark"] ::selection {
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ts-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------------------------------------------------------- Barre de nav */
+
+.navbar {
+  border-bottom: 1px solid var(--ts-line);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+}
+
+.navbar__logo {
+  height: 1.75rem;
+  margin-right: 0.55rem;
+}
+
+.navbar__logo img {
+  border-radius: 7px;
+}
+
+.navbar__title {
+  font-family: var(--ifm-heading-font-family);
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: -0.02em;
+  color: var(--ifm-heading-color);
+}
+
+.navbar__title::after {
+  content: "API";
+  margin-left: 0.45rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 5px;
+  background: var(--ts-accent-soft);
+  color: var(--ts-accent);
+  font-family: var(--ifm-font-family-base);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  vertical-align: 0.18em;
+}
+
+.navbar__link {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.navbar__link--active {
+  color: var(--ifm-heading-color);
+}
+
+.navbar__items--right .navbar__link.navbar__cta {
+  padding: 0.42rem 0.95rem;
+  border-radius: 999px;
+  background: var(--ts-accent);
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+
+.navbar__items--right .navbar__link.navbar__cta:hover {
+  background: var(--ts-accent-hover);
+}
+
+[data-theme="dark"] .navbar__items--right .navbar__link.navbar__cta {
+  color: var(--ts-navy);
+}
+
+/* ---------------------------------------------------------------- Sidebar */
+
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--ts-line) !important;
+}
+
+.menu {
+  padding: 1.25rem 0.85rem !important;
+  font-size: 0.875rem;
+}
+
+.menu__list .menu__list {
+  margin-top: 0.15rem;
+  padding-left: 0.55rem;
+  border-left: 1px solid var(--ts-line);
+}
+
+.menu__link,
+.menu__list-item-collapsible > .menu__link {
+  border-radius: 8px;
+  padding: 0.42rem 0.6rem;
+  font-weight: 500;
+  line-height: 1.45;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.menu__link--active {
+  font-weight: 600;
+}
+
+.menu__list-item-collapsible > .menu__link--sublist {
+  font-family: var(--ifm-heading-font-family);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ts-muted);
+}
+
+.menu__list-item-collapsible:hover {
+  background: transparent;
+}
+
+.menu__caret:before,
+.menu__link--sublist-caret:after {
+  opacity: 0.5;
+}
+
+/* ------------------------------------------------------------ Contenu doc */
+
+.theme-doc-markdown {
+  font-size: 0.975rem;
+}
+
+.markdown > p,
+.markdown > ul,
+.markdown > ol,
+.markdown > blockquote {
+  max-width: 72ch;
+}
+
+.markdown h1:first-child {
+  font-size: clamp(2rem, 1.4rem + 2vw, 2.6rem);
+  letter-spacing: -0.035em;
+  margin-bottom: 1.25rem;
+}
+
+.markdown > h2 {
+  margin-top: 3.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ts-line);
+  letter-spacing: -0.025em;
+}
+
+.markdown > h3 {
+  margin-top: 2.25rem;
+  letter-spacing: -0.015em;
+}
+
+.markdown a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--ts-accent) 35%, transparent);
+  text-underline-offset: 3px;
+  font-weight: 500;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.markdown a:hover {
+  text-decoration-color: var(--ts-accent);
+}
+
+.markdown li + li {
+  margin-top: 0.35rem;
+}
+
+.markdown strong {
+  font-weight: 600;
+  color: var(--ifm-heading-color);
+}
+
+.markdown blockquote {
+  border-left-width: 2px;
+  border-radius: 0 8px 8px 0;
+  background: var(--ts-surface);
+  padding: 0.85rem 1.15rem;
+  font-size: 0.94rem;
+}
+
+.header-anchor {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+h2:hover > .header-anchor,
+h3:hover > .header-anchor,
+h4:hover > .header-anchor {
+  opacity: 0.45;
+}
+
+/* -------------------------------------------------------------- Tableaux */
+
+.markdown table {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--ts-line);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 0.9rem;
+  box-shadow: var(--ts-shadow);
+}
+
+.markdown table thead tr {
+  border: 0;
+}
+
+.markdown table th {
+  font-family: var(--ifm-heading-font-family);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ts-muted);
+  border: 0;
+  border-bottom: 1px solid var(--ts-line);
+  padding: 0.7rem 1rem;
+}
+
+.markdown table td {
+  border: 0;
+  border-bottom: 1px solid var(--ts-line);
+  padding: 0.75rem 1rem;
+  vertical-align: top;
+}
+
+.markdown table tr:last-child td {
+  border-bottom: 0;
+}
+
+.markdown table tbody tr:hover {
+  background: var(--ts-surface);
+}
+
+/* ------------------------------------------------------------------ Code */
+
+.markdown code {
+  border: 1px solid var(--ts-line);
+  border-radius: 6px;
+  padding: 0.12em 0.36em;
+  font-weight: 500;
+}
+
+.theme-code-block {
+  border: 1px solid var(--ts-line);
+  border-radius: 14px !important;
+  box-shadow: var(--ts-shadow) !important;
+  overflow: hidden;
+}
+
+.theme-code-block code {
+  border: 0;
+  padding: 0;
+  font-size: 0.845rem;
+  line-height: 1.65;
+}
+
+.theme-code-block pre {
+  padding: 1.1rem 1.25rem;
+}
+
+div[class*="codeBlockTitle"] {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  color: var(--ts-muted);
+  border-bottom: 1px solid var(--ts-line) !important;
+  padding: 0.6rem 1.25rem !important;
+}
+
+button[class*="copyButton"] {
+  border-radius: 8px !important;
+  border: 1px solid var(--ts-line);
+  background: var(--ifm-background-color) !important;
+}
+
+/* ------------------------------------------------------------ Admonitions */
+
+.theme-admonition {
+  box-shadow: none;
+  background: var(--ts-surface);
+  border: 1px solid var(--ts-line) !important;
+}
+
+.theme-admonition div[class*="admonitionHeading"] {
+  font-family: var(--ifm-heading-font-family);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+/* --------------------------------------------------- Table des matières */
+
+.table-of-contents {
+  font-size: 0.82rem;
+  border-left: 1px solid var(--ts-line);
+  padding-left: 1rem;
+}
+
+.table-of-contents__link {
+  color: var(--ts-muted);
+  padding: 0.18rem 0;
+  display: block;
+}
+
+/* Titres d'endpoint (POST /api/v1/...) : sans pastille dans la TDM, coupure aux « / » */
+.table-of-contents code {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 0.76rem;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.table-of-contents__link--active,
+.table-of-contents__link:hover {
+  color: var(--ts-accent);
+  font-weight: 500;
+}
+
+/* --------------------------------------------- Navigation de bas de page */
+
+.pagination-nav__link {
+  border: 1px solid var(--ts-line);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.pagination-nav__link:hover {
+  border-color: color-mix(in srgb, var(--ts-accent) 45%, transparent);
+  transform: translateY(-2px);
+  box-shadow: var(--ts-shadow);
+}
+
+.pagination-nav__sublabel {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ts-muted);
+}
+
+.pagination-nav__label {
+  font-family: var(--ifm-heading-font-family);
+  letter-spacing: -0.015em;
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+  color: var(--ifm-heading-color);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------- Pied de page */
+
+.footer--dark {
+  --ifm-footer-background-color: var(--ts-navy);
+  --ifm-footer-color: rgba(255, 255, 255, 0.62);
+  --ifm-footer-link-color: rgba(255, 255, 255, 0.72);
+  --ifm-footer-title-color: #fff;
+  border-top: 1px solid var(--ts-line);
+}
+
+.footer__title {
+  font-family: var(--ifm-heading-font-family);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+.footer__link-item {
+  font-size: 0.88rem;
+}
+
+.footer__copyright {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* ------------------------------------------- Éléments propres à la doc */
+
+/* Chapô de la page d'accueil */
+.ts-lead,
+.ts-lead p {
+  font-size: 1.12rem;
+  line-height: 1.65;
+  color: var(--ts-muted);
+  max-width: 62ch;
+}
+
+.ts-lead p:last-child {
+  margin-bottom: 0;
+}
+
+/* Panneau « URL de base » */
+.ts-endpoint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0 2rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--ts-line);
+  border-radius: 12px;
+  background: var(--ts-surface);
+  box-shadow: var(--ts-shadow);
+}
+
+.ts-endpoint__label {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ts-accent);
+  background: var(--ts-accent-soft);
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem;
+}
+
+.ts-endpoint__url {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.92rem;
+  color: var(--ifm-heading-color);
+  word-break: break-all;
+}
+
+/* Parcours de démarrage : lignes typographiques, pas un mur de cartes */
+.ts-steps {
+  counter-reset: ts-step;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: none !important;
+  border-top: 1px solid var(--ts-line);
+}
+
+.ts-steps li {
+  margin: 0 !important;
+  border-bottom: 1px solid var(--ts-line);
+}
+
+.ts-steps li:last-child {
+  border-bottom: 0;
+}
+
+.ts-steps a {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: baseline;
+  gap: 0 1rem;
+  padding: 0.95rem 0.5rem 0.95rem 0;
+  text-decoration: none !important;
+  color: inherit;
+  transition: background-color 0.15s ease;
+}
+
+.ts-steps a:hover {
+  background: var(--ts-surface);
+}
+
+.ts-steps a::before {
+  counter-increment: ts-step;
+  content: counter(ts-step, decimal-leading-zero);
+  grid-column: 1;
+  grid-row: 1;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  color: var(--ts-muted);
+}
+
+.ts-steps strong {
+  grid-column: 2;
+  grid-row: 1;
+  font-family: var(--ifm-heading-font-family);
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  color: var(--ifm-heading-color);
+}
+
+.ts-steps span {
+  grid-column: 2;
+  grid-row: 2;
+  display: block;
+  font-size: 0.9rem;
+  color: var(--ts-muted);
+  margin-top: 0.15rem;
+}
+
+.ts-steps a::after {
+  content: "→";
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--ts-muted);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.ts-steps a:hover::after {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--ts-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ts-steps a,
+  .ts-steps a::after,
+  .pagination-nav__link {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------- Mobile */
+
+@media (max-width: 996px) {
+  :root {
+    --ifm-h1-font-size: 1.95rem;
+    --ifm-h2-font-size: 1.4rem;
+  }
+
+  .markdown > h2 {
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+  }
+
+  .ts-steps a {
+    grid-template-columns: 1.75rem 1fr;
+    gap: 0 0.75rem;
+  }
+
+  .ts-steps a::after {
+    content: none;
+  }
+
+  .ts-steps a::after {
+    display: none;
+  }
+
+  .navbar__title::after {
+    display: none;
+  }
 }
