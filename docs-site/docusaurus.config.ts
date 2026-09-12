@@ -11,7 +11,7 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://docs.tumaplus.example.com',
+  url: 'https://docs.trustsend.africa',
   baseUrl: '/',
 
   organizationName: 'tumaplus',
