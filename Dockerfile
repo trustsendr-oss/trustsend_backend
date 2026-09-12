@@ -75,4 +75,5 @@ ENV PORT=3330
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "const req = require('http').get('http://127.0.0.1:3330/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));"
 
-CMD ["node", "bin/server.js"]
+# Applique les migrations en attente avant de demarrer le serveur
+CMD ["sh", "-c", "node ace migration:run --force && node bin/server.js"]
