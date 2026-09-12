@@ -3,8 +3,8 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'TumaPlus API',
-  tagline: 'Documentation des APIs backend TumaPlus',
+  title: 'TrustSend API',
+  tagline: 'Documentation des APIs backend TrustSend',
   favicon: 'img/favicon.ico',
 
   future: {
@@ -14,8 +14,8 @@ const config: Config = {
   url: 'https://docs.trustsend.africa',
   baseUrl: '/',
 
-  organizationName: 'tumaplus',
-  projectName: 'tumaplus-api-docs',
+  organizationName: 'trustsend',
+  projectName: 'trustsend-api-docs',
 
   onBrokenLinks: 'throw',
 
@@ -46,9 +46,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'TumaPlus API',
+      title: 'TrustSend API',
       logo: {
-        alt: 'TumaPlus Logo',
+        alt: 'TrustSend Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -63,7 +63,7 @@ const config: Config = {
     footer: {
       style: 'dark',
       links: [],
-      copyright: `TumaPlus — documentation API interne, générée le ${new Date().toLocaleDateString('fr-FR')}.`,
+      copyright: `TrustSend — documentation API interne, générée le ${new Date().toLocaleDateString('fr-FR')}.`,
     },
     prism: {
       theme: prismThemes.github,

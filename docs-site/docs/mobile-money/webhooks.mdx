@@ -9,14 +9,14 @@ Différent des [notifications in-app](/business/overview) : ceci envoie une requ
 
 ## `GET /api/v1/business/webhooks` (ou `/business/dashboard/webhooks`) 🔒
 ```json
-{ "data": [ { "id": 3, "url": "https://maboutique.com/webhooks/tumaplus", "events": ["mobile_money_deposit.completed"], "active": true, "created_at": "..." } ] }
+{ "data": [ { "id": 3, "url": "https://maboutique.com/webhooks/trustsend", "events": ["mobile_money_deposit.completed"], "active": true, "created_at": "..." } ] }
 ```
 
 ## `POST /api/v1/business/webhooks` 🔒
 **Body**
 ```json
 {
-  "url": "https://maboutique.com/webhooks/tumaplus",
+  "url": "https://maboutique.com/webhooks/trustsend",
   "events": ["mobile_money_deposit.completed", "mobile_money_payout.failed"]
 }
 ```

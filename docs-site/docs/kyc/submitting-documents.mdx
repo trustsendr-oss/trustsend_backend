@@ -36,7 +36,7 @@ Endpoint : `POST /api/v1/business/dashboard/kyc/submit` — accessible même en 
 ## Exemple
 
 ```bash
-curl -X POST http://localhost:3333/api/v1/business/dashboard/kyc/submit \
+curl -X POST https://api.trustsend.africa/api/v1/business/dashboard/kyc/submit \
   -H "Authorization: Bearer <token>" \
   -F "verification_type=identity" \
   -F "id_card_front=@/chemin/recto.jpg" \
@@ -77,7 +77,7 @@ Renvoie le **dossier le plus récent**.
 
 ## Sécurité
 
-Chaque pièce est **chiffrée individuellement** au repos (AES-256-GCM), stockée hors de `public/`, sous un identifiant aléatoire opaque — jamais accessible par URL directe. Seule l'équipe TumaPlus peut consulter les documents soumis, pour la revue.
+Chaque pièce est **chiffrée individuellement** au repos (AES-256-GCM), stockée hors de `public/`, sous un identifiant aléatoire opaque — jamais accessible par URL directe. Seule l'équipe TrustSend peut consulter les documents soumis, pour la revue.
 
 :::caution Ce que ça ne couvre pas
 C'est une **collecte de preuve protégée**, pas une **vérification d'authenticité** — personne ne contrôle qu'un document n'est pas falsifié. Pour ça, il faudrait intégrer un vrai prestataire KYC/KYB (Smile Identity, Sumsub...).
