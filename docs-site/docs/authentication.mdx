@@ -1,0 +1,53 @@
+---
+sidebar_position: 2
+title: Authentification
+slug: /authentication
+---
+
+# Authentification
+
+Toutes les requêtes à l'API TrustSend sont authentifiées par une **clé API**, transmise dans l'en-tête `Authorization`. Une clé est rattachée à votre compte business et donne accès à l'ensemble de ses ressources : conservez-la exclusivement côté serveur, jamais dans une application mobile ni dans un navigateur.
+
+## Obtenir une clé API
+
+1. Connectez-vous à votre [Espace client](https://business.trustsend.africa).
+2. Ouvrez la section **Clés API** et générez une nouvelle clé.
+3. Copiez-la immédiatement : elle n'est affichée qu'une seule fois. TrustSend n'en conserve qu'une empreinte et ne peut pas la retrouver pour vous.
+
+:::info Compte activé requis
+La génération de clés API est disponible une fois votre compte business vérifié et activé par l'équipe TrustSend. La vérification se fait entièrement depuis l'Espace client.
+:::
+
+## Utiliser la clé
+
+Transmettez la clé avec le schéma `Bearer` :
+
+```bash
+curl https://api.trustsend.africa/api/v1/business/wallet \
+  -H "Authorization: Bearer biz_live_xxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+La clé est vérifiée à chaque requête. Une clé révoquée est refusée dès l'appel suivant.
+
+## Environnements
+
+Le préfixe de la clé indique l'environnement auquel elle appartient.
+
+| Préfixe | Environnement | Usage |
+|---|---|---|
+| `biz_sandbox_` | Sandbox | Développement et tests d'intégration |
+| `biz_live_` | Production | Opérations réelles |
+
+## Bonnes pratiques
+
+- Stockez la clé dans une variable d'environnement ou un gestionnaire de secrets, jamais dans le code source.
+- Utilisez une clé distincte par environnement et par service.
+- En cas d'exposition, révoquez la clé depuis l'Espace client et générez-en une nouvelle.
+
+## Erreurs d'authentification
+
+| Code | Message | Cause |
+|---|---|---|
+| `401` | `Missing API key` | En-tête `Authorization` absent ou mal formé |
+| `401` | `Invalid or revoked API key` | Clé inconnue ou révoquée |
+| `403` | `Your current plan (…) does not include this feature: …` | Fonctionnalité non incluse dans votre offre — voir [Erreurs](/errors#fonctionnalités-et-offre) |

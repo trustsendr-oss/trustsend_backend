@@ -1,0 +1,58 @@
+---
+sidebar_position: 2
+title: Transactions
+---
+
+# Transactions
+
+Historique paginé des opérations de votre compte, de la plus récente à la plus ancienne.
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/transactions'}</span>
+</div>
+
+| Paramètre | Emplacement | Requis | Description |
+|---|---|---|---|
+| `page` | Query | Non | Numéro de page, `1` par défaut |
+| `limit` | Query | Non | Éléments par page, `20` par défaut, `100` au maximum |
+
+```bash
+curl "https://api.trustsend.africa/api/v1/business/transactions?page=1&limit=20" \
+  -H "Authorization: Bearer $TRUSTSEND_API_KEY"
+```
+
+**Réponse `200`**
+
+```json
+{
+  "data": [
+    {
+      "transaction_id": "TXN-VSWC4SQ2",
+      "type": "mobile_money_deposit",
+      "status": "completed",
+      "metadata": {},
+      "created_at": "2026-09-12T10:00:00.000+00:00",
+      "completed_at": "2026-09-12T10:00:42.000+00:00"
+    }
+  ],
+  "meta": { "total": 37, "page": 1, "limit": 20 }
+}
+```
+
+## Types de transaction
+
+| `type` | Description |
+|---|---|
+| `mobile_money_deposit` | Dépôt mobile money crédité sur un wallet |
+| `mobile_money_payout` | Retrait mobile money débité d'un wallet |
+| `business_plan_subscription` | Souscription à une offre |
+| `business_plan_maintenance_fee` | Frais de maintenance périodiques de l'offre |
+
+## Statuts
+
+| `status` | Signification |
+|---|---|
+| `processing` | Opération en cours de traitement |
+| `completed` | Opération réussie, solde mis à jour |
+| `failed` | Opération échouée, aucun mouvement de fonds |

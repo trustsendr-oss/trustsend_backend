@@ -1,26 +1,53 @@
 ---
 sidebar_position: 7
-title: Référence des erreurs
+title: Erreurs
 ---
 
-# Codes d'erreur — référence transverse
+# Erreurs
 
-| Code | Signification | Où le rencontrer |
-|---|---|---|
-| `400` | Payload invalide, identifiants incorrects, règle métier non satisfaite | Login, combinaison KYC incomplète, transitions de statut invalides |
-| `401` | Token/clé absent, invalide, révoqué, ou PIN incorrect/non configuré | Toute route protégée |
-| `402` | Solde insuffisant | Payout mobile money |
-| `403` | Authentifié mais action refusée (statut du compte, IDOR, permissions) | Compte `pending_approval`/`suspended`, accès à une ressource d'un autre acteur |
-| `404` | Ressource introuvable — ou n'appartenant pas à l'appelant (pas de fuite d'existence) | Wallet, transaction, webhook |
-| `409` | Conflit d'idempotency key | Dépôt/retrait mobile money |
-| `422` | Validation métier (devise/provider non supportés, montant hors bornes, fichier invalide) | Dépôts/retraits, upload KYC |
-| `429` | Compte verrouillé après trop d'échecs de connexion/PIN | Login (5 échecs/15 min), PIN (3 échecs/15 min) |
-| `503` | PawaPay temporairement indisponible | Dépôts/retraits, moyens de paiement |
-
-## Format standard
+L'API TrustSend utilise les codes de statut HTTP standards. Toute erreur renvoie un objet JSON contenant au minimum un champ `message` lisible.
 
 ```json
-{ "message": "Description lisible de l'erreur" }
+{ "message": "Insufficient balance" }
 ```
 
-Certaines erreurs de validation renvoient un détail structuré via VineJS — toujours au moins un champ `message`.
+Les erreurs de validation peuvent inclure un détail supplémentaire par champ ; le champ `message` reste toujours présent.
+
+## Codes de statut
+
+| Code | Signification | Que faire |
+|---|---|---|
+| `200` / `201` | Requête traitée avec succès | — |
+| `202` | Opération acceptée, traitement asynchrone en cours | Attendre le [webhook](/webhooks) de résultat |
+| `400` | Règle métier non satisfaite | Corriger la requête selon le `message` |
+| `401` | Clé API absente, invalide ou révoquée | Vérifier l'en-tête `Authorization` |
+| `402` | Solde insuffisant | Approvisionner le wallet concerné |
+| `403` | Action refusée : ressource d'un autre compte ou fonctionnalité hors offre | Voir [Fonctionnalités et offre](#fonctionnalités-et-offre) |
+| `404` | Ressource introuvable | Vérifier l'identifiant ; une ressource d'un autre compte renvoie aussi `404` |
+| `409` | Conflit d'idempotence | Générer une nouvelle `idempotency_key` pour une nouvelle opération |
+| `422` | Paramètres invalides : format, devise, opérateur ou montant | Corriger les paramètres de la requête |
+| `429` | Trop de requêtes | Ralentir et réessayer plus tard |
+| `503` | Service de paiement temporairement indisponible | Réessayer avec la même `idempotency_key` |
+
+## Réessayer une requête
+
+Les erreurs `503` et les coupures réseau sont temporaires. Réessayez avec un délai croissant entre les tentatives, en conservant la **même** `idempotency_key` : l'API renvoie alors le résultat de la première tentative au lieu de créer une seconde opération.
+
+## Fonctionnalités et offre
+
+Chaque fonctionnalité de l'API dépend de l'offre associée à votre compte. Lorsqu'une fonctionnalité n'y est pas incluse, l'API renvoie `403` :
+
+```json
+{ "message": "Your current plan (Starter) does not include this feature: webhooks. Contact support to upgrade." }
+```
+
+| Fonctionnalité | Endpoints concernés |
+|---|---|
+| `mobile_money.deposits` | Dépôts mobile money |
+| `mobile_money.payouts` | Retraits mobile money |
+| `mobile_money.toolkit` | Moyens de paiement |
+| `wallet.multi_currency` | Création de wallets |
+| `webhooks` | Abonnements et livraisons de webhooks |
+| `cards.issuing` | Cartes virtuelles |
+
+Pour faire évoluer votre offre, contactez l'équipe TrustSend depuis l'Espace client.

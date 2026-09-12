@@ -93,7 +93,7 @@ const config: Config = {
           title: 'Documentation',
           items: [
             {label: 'Introduction', to: '/'},
-            {label: 'Authentification', to: '/authentication/business-auth'},
+            {label: 'Authentification', to: '/authentication'},
             {label: 'Mobile Money', to: '/mobile-money/deposits-payouts'},
             {label: 'Erreurs', to: '/errors'},
           ],

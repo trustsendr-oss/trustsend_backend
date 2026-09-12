@@ -1,52 +1,114 @@
 ---
-sidebar_position: 4
-title: Wallet
+sidebar_position: 1
+title: Wallets
 ---
 
-# Wallet — Business
+# Wallets
 
-Disponible dans les deux groupes : `/business/wallet` (clé API) et `/business/dashboard/wallet` (session, requiert `active`).
+Un wallet détient le solde de votre compte dans une devise. Un wallet **USD** est créé automatiquement à l'ouverture du compte ; créez un wallet supplémentaire pour chaque devise dans laquelle vous encaissez ou payez.
 
-## `POST /api/v1/business/wallet`
-Crée un wallet dans une nouvelle devise (un seul wallet USD est créé automatiquement à l'inscription).
+Les soldes sont exprimés dans la plus petite unité de la devise, sous forme de chaîne de caractères.
 
-**Body**
-```json
-{ "currency_code": "CDF" }
+## Créer un wallet
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/wallet'}</span>
+</div>
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `currency_code` | string | Oui | Code de devise ISO 4217 à 3 lettres, par exemple `CDF` |
+
+```bash
+curl -X POST https://api.trustsend.africa/api/v1/business/wallet \
+  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "currency_code": "CDF" }'
 ```
 
-**Réponse `201`** (nouveau) ou **`200`** (idempotent, wallet déjà existant pour cette devise)
+**Réponse `201`**
+
 ```json
 {
-  "data": { "id": 38, "currency_code": "CDF", "balance": "0", "status": "active", "created_at": "..." },
+  "data": {
+    "id": 38,
+    "currency_code": "CDF",
+    "balance": "0",
+    "status": "active",
+    "created_at": "2026-09-12T10:00:00.000+00:00"
+  },
   "message": "Wallet created"
 }
 ```
 
-## `GET /api/v1/business/wallet`
-Liste tous les wallets.
+Si un wallet existe déjà pour cette devise, l'API renvoie `200` avec le wallet existant : la requête peut être rejouée sans risque.
+
+:::note
+Nécessite la fonctionnalité `wallet.multi_currency` dans votre offre.
+:::
+
+## Lister les wallets
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/wallet'}</span>
+</div>
+
+**Réponse `200`**
 
 ```json
 {
   "data": [
     {
-      "id": 30, "currency_code": "USD", "flag_url": "https://api.trustsend.africa/assets/flags/usd.svg",
-      "balance": "11000", "status": "active", "created_at": "...", "updated_at": "..."
+      "id": 30,
+      "currency_code": "USD",
+      "flag_url": "https://api.trustsend.africa/assets/flags/usd.svg",
+      "balance": "11000",
+      "status": "active",
+      "created_at": "2026-09-01T08:00:00.000+00:00",
+      "updated_at": "2026-09-12T10:00:00.000+00:00"
     }
   ]
 }
 ```
 
-`flag_url` : pour `USD`, sert **notre propre** icône (`/assets/flags/usd.svg`) plutôt que le drapeau PawaPay — `USD` n'étant pas rattaché à un seul pays. Pour les autres devises, drapeau du pays via PawaPay (`/v2/active-conf`), premier pays configuré trouvé — approximatif pour une devise multi-pays.
+`flag_url` renvoie une icône de drapeau associée à la devise, utile pour l'affichage.
 
-## `GET /api/v1/business/wallet/:currency`
+## Consulter un wallet
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/wallet/:currency'}</span>
+</div>
+
+| Paramètre | Emplacement | Description |
+|---|---|---|
+| `currency` | Chemin | Code de devise du wallet, par exemple `USD` |
+
+**Réponse `200`**
+
 ```json
 {
   "data": {
-    "id": 30, "currency_code": "USD", "flag_url": "...", "balance": "11000", "status": "active",
-    "per_transaction_limit": null, "daily_limit": null, "monthly_limit": null,
-    "created_at": "...", "updated_at": "..."
+    "id": 30,
+    "currency_code": "USD",
+    "flag_url": "https://api.trustsend.africa/assets/flags/usd.svg",
+    "balance": "11000",
+    "status": "active",
+    "per_transaction_limit": null,
+    "daily_limit": null,
+    "monthly_limit": null,
+    "created_at": "2026-09-01T08:00:00.000+00:00",
+    "updated_at": "2026-09-12T10:00:00.000+00:00"
   }
 }
 ```
-`404` si aucun wallet pour cette devise.
+
+| Champ | Description |
+|---|---|
+| `per_transaction_limit` | Montant maximal par opération, `null` si aucun plafond |
+| `daily_limit` | Montant maximal cumulé par jour, `null` si aucun plafond |
+| `monthly_limit` | Montant maximal cumulé par mois, `null` si aucun plafond |
+
+**Erreurs** : `404` si aucun wallet n'existe pour cette devise.

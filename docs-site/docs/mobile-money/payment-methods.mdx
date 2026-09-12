@@ -1,38 +1,55 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 title: Moyens de paiement
 ---
 
-# Moyens de paiement disponibles
+# Moyens de paiement
 
-Interroge PawaPay pour savoir quels opérateurs sont réellement disponibles avant de tenter un dépôt/retrait — évite un `422` surprise.
+Avant d'initier un dépôt ou un retrait, récupérez la liste des opérateurs disponibles pour la devise concernée. Pour chaque opérateur, vous obtenez le code à transmettre dans le champ `provider`, sa disponibilité en temps réel et les montants acceptés.
 
-Disponible sous `/business/mobile-money/*` (clé API) et `/business/dashboard/mobile-money/*` (session).
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/mobile-money/payment-methods'}</span>
+</div>
 
-## `GET .../mobile-money/payment-methods`
+| Paramètre | Emplacement | Requis | Description |
+|---|---|---|---|
+| `currency_code` | Query | Oui | Code de devise ISO 4217, par exemple `CDF` |
+| `operation_type` | Query | Non | `DEPOSIT` (par défaut) ou `PAYOUT` |
 
-**Query** : `currency_code` (requis, 3 lettres), `operation_type` (`DEPOSIT` par défaut ou `PAYOUT`)
+```bash
+curl "https://api.trustsend.africa/api/v1/business/mobile-money/payment-methods?currency_code=CDF&operation_type=DEPOSIT" \
+  -H "Authorization: Bearer $TRUSTSEND_API_KEY"
+```
+
+**Réponse `200`**
 
 ```json
 {
   "data": [
-    { "provider": "MTN_MOMO_ZMB", "display_name": "MTN Mobile Money", "status": "OPERATIONAL", "min_amount": "500", "max_amount": "500000000" }
+    {
+      "provider": "VODACOM_MPESA_COD",
+      "display_name": "Vodacom M-Pesa",
+      "status": "OPERATIONAL",
+      "min_amount": "500",
+      "max_amount": "500000000"
+    }
   ]
 }
 ```
 
-`status` combine la config du compte (`/v2/active-conf`) et la disponibilité temps réel (`/v2/availability`) — le plus pessimiste des deux l'emporte. `min_amount`/`max_amount` en plus petite unité, déjà convertis depuis le format décimal PawaPay.
+| Champ | Description |
+|---|---|
+| `provider` | Code opérateur à utiliser lors d'un dépôt ou d'un retrait |
+| `display_name` | Nom de l'opérateur, à afficher à vos clients |
+| `status` | `OPERATIONAL` lorsque l'opérateur accepte les opérations ; toute autre valeur signale une indisponibilité temporaire |
+| `min_amount` | Montant minimal accepté, en plus petite unité de la devise |
+| `max_amount` | Montant maximal accepté, en plus petite unité de la devise |
 
-## `GET .../mobile-money/payment-methods/raw`
+:::tip
+Interrogez cet endpoint au moment d'afficher le choix de l'opérateur à votre client, et n'initiez pas d'opération vers un opérateur dont le statut n'est pas `OPERATIONAL`.
+:::
 
-Aucun filtre — renvoie l'intégralité des deux payloads PawaPay bruts (tous pays/providers/devises/types d'opération, plus tous les champs que l'endpoint filtré n'expose pas : logo, instructions USSD, drapeau du pays...).
-
-```json
-{
-  "data": {
-    "active_configuration": { "countries": [ "..." ] },
-    "availability": [ "..." ]
-  }
-}
-```
-
+:::note
+Nécessite la fonctionnalité `mobile_money.toolkit` dans votre offre.
+:::

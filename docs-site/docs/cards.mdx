@@ -1,0 +1,205 @@
+---
+sidebar_position: 5
+title: Cartes virtuelles
+---
+
+# Cartes virtuelles
+
+Émettez des cartes Visa ou Mastercard virtuelles en USD, financées depuis votre wallet USD. Chaque carte peut être rechargée, vidée, gelée ou résiliée à tout moment.
+
+- Les cartes sont libellées exclusivement en **USD** ; les montants sont exprimés en cents.
+- Toute opération qui modifie une carte exige une `idempotency_key` (UUID) — voir [Idempotence](/#idempotence).
+- Nécessite la fonctionnalité `cards.issuing` dans votre offre.
+
+## Créer une carte
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/cards'}</span>
+</div>
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `wallet_id` | number | Oui | Identifiant du wallet USD qui finance la carte |
+| `brand` | string | Oui | `VISA` ou `MASTERCARD` |
+| `amount` | string | Oui | Montant initial chargé sur la carte, en cents |
+| `idempotency_key` | string (UUID) | Oui | Identifiant unique de la tentative |
+
+```bash
+curl -X POST https://api.trustsend.africa/api/v1/business/cards \
+  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wallet_id": 30,
+    "brand": "VISA",
+    "amount": "2500",
+    "idempotency_key": "b3f1e0a2-6c1d-4e9b-8f27-5a4c3d2e1f00"
+  }'
+```
+
+**Réponse `201`**
+
+```json
+{
+  "data": {
+    "id": 12,
+    "brand": "VISA",
+    "card_type": "virtual",
+    "currency_code": "USD",
+    "status": "active",
+    "first_six": "424242",
+    "last_four": "4242",
+    "masked": "424242******4242",
+    "balance": "2500",
+    "details": {
+      "number": "4242424242424242",
+      "ccv": "123",
+      "expiry": "09/29"
+    }
+  }
+}
+```
+
+`details` contient les données complètes de la carte. Il vaut `null` lorsque ces données ne sont pas disponibles pour le compte.
+
+:::warning Données sensibles
+Le numéro, le code de sécurité et la date d'expiration sont transmis à la volée et ne sont jamais conservés par TrustSend. Ne les journalisez pas et ne les stockez pas sans être conforme à la norme PCI DSS.
+:::
+
+**Erreurs**
+
+| Code | Cause |
+|---|---|
+| `400` | Wallet invalide ou non éligible au financement de la carte |
+| `402` | Solde du wallet insuffisant |
+| `409` | `idempotency_key` déjà utilisée avec un contenu de requête différent |
+| `503` | Service d'émission de cartes temporairement indisponible |
+
+## Lister les cartes
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/cards'}</span>
+</div>
+
+**Réponse `200`**
+
+```json
+{
+  "data": [
+    {
+      "id": 12,
+      "provider_card_id": "c_01J8ZK3Q7W",
+      "brand": "VISA",
+      "card_type": "virtual",
+      "currency_code": "USD",
+      "status": "active",
+      "first_six": "424242",
+      "last_four": "4242",
+      "masked": "424242******4242",
+      "balance": "2500",
+      "created_at": "2026-09-12T10:00:00.000+00:00"
+    }
+  ]
+}
+```
+
+La liste ne contient jamais les données complètes des cartes.
+
+## Consulter une carte
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/cards/:id'}</span>
+</div>
+
+Renvoie la carte avec ses données complètes dans `details`, au même format que lors de la création.
+
+## Recharger une carte
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">PATCH</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/cards/:id/topup'}</span>
+</div>
+
+Transfère des fonds du wallet de financement vers la carte.
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `amount` | string | Oui | Montant à ajouter, en cents |
+| `idempotency_key` | string (UUID) | Oui | Identifiant unique de la tentative |
+
+**Réponse `200`**
+
+```json
+{ "data": { "id": 12, "balance": "5000", "status": "active" } }
+```
+
+**Erreurs** : `402` si le solde du wallet est insuffisant.
+
+## Retirer des fonds d'une carte
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">PATCH</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/cards/:id/withdraw'}</span>
+</div>
+
+Transfère des fonds de la carte vers son wallet de financement. Mêmes paramètres et même réponse que la recharge.
+
+## Geler et dégeler une carte
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">PATCH</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/cards/:id/freeze'}</span>
+</div>
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">PATCH</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/cards/:id/unfreeze'}</span>
+</div>
+
+Une carte gelée refuse tout paiement jusqu'à son dégel. Corps de la requête : `{ "idempotency_key": "…" }`.
+
+**Réponse `200`**
+
+```json
+{ "data": { "id": 12, "status": "frozen" } }
+```
+
+## Résilier une carte
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/cards/:id/terminate'}</span>
+</div>
+
+Résilie définitivement la carte. Le solde restant est reversé sur le wallet de financement avant la résiliation. Corps de la requête : `{ "idempotency_key": "…" }`.
+
+:::danger
+La résiliation est irréversible : une carte résiliée ne peut plus être réactivée.
+:::
+
+## Opérations d'une carte
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/cards/:id/transactions'}</span>
+</div>
+
+Renvoie les opérations effectuées avec la carte sur une période donnée.
+
+| Paramètre | Emplacement | Requis | Description |
+|---|---|---|---|
+| `start_date` | Query | Oui | Date de début, au format `AAAA-MM-JJ` |
+| `end_date` | Query | Oui | Date de fin, au format `AAAA-MM-JJ` |
+| `page` | Query | Non | Numéro de page |
+| `page_size` | Query | Non | Éléments par page, `100` au maximum |
+
+## Erreurs communes
+
+| Code | Cause |
+|---|---|
+| `400` | Action incompatible avec le statut actuel de la carte |
+| `403` | La carte appartient à un autre compte |
+| `404` | Carte introuvable |
+| `503` | Service d'émission de cartes temporairement indisponible |

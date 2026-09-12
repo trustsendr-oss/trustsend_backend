@@ -4,11 +4,10 @@ title: Introduction
 slug: /
 ---
 
-# API TrustSend — Intégration Business
+# API TrustSend
 
 <div className="ts-lead">
-Encaissez, payez et suivez l'argent de vos clients depuis votre propre backend : mobile money,
-wallets multi-devises, cartes et webhooks, derrière une seule clé API.
+Intégrez les paiements mobile money, les wallets multi-devises et les cartes virtuelles à votre plateforme, à travers une API REST unique.
 </div>
 
 <div className="ts-endpoint">
@@ -16,78 +15,77 @@ wallets multi-devises, cartes et webhooks, derrière une seule clé API.
   <span className="ts-endpoint__url">{'https://api.trustsend.africa/api/v1'}</span>
 </div>
 
-Cette documentation s'adresse aux **développeurs intégrant un compte business TrustSend**. Elle ne couvre que les endpoints accessibles à un compte business — pas les APIs internes réservées aux utilisateurs finaux de l'application ou à l'équipe TrustSend.
+Cette documentation s'adresse aux équipes techniques qui connectent leur backend à TrustSend. Elle décrit les endpoints accessibles avec une clé API business, leurs paramètres, leurs réponses et les erreurs à gérer.
+
+## Avant de commencer
+
+- Un **compte business TrustSend** vérifié et activé, ouvert depuis l'[Espace client](https://business.trustsend.africa).
+- Une **clé API**, générée depuis l'Espace client — voir [Authentification](/authentication).
+- Un **endpoint HTTPS** sur votre serveur pour recevoir les [webhooks](/webhooks).
 
 ## Par où commencer
 
 <ul className="ts-steps">
   <li>
-    <a href="/authentication/business-auth">
+    <a href="/authentication">
       <strong>Authentification</strong>
-      <span>Créer le compte, obtenir une clé API ou un token de session.</span>
-    </a>
-  </li>
-  <li>
-    <a href="/kyc/submitting-documents">
-      <strong>KYC</strong>
-      <span>Soumettre les documents requis pour activer le compte.</span>
+      <span>Obtenir une clé API et authentifier vos requêtes.</span>
     </a>
   </li>
   <li>
     <a href="/business/wallet">
-      <strong>Wallet</strong>
-      <span>Créer un portefeuille dans la devise voulue et suivre son solde.</span>
+      <strong>Wallets</strong>
+      <span>Ouvrir un wallet dans chaque devise que vous utilisez.</span>
+    </a>
+  </li>
+  <li>
+    <a href="/mobile-money/payment-methods">
+      <strong>Moyens de paiement</strong>
+      <span>Récupérer les opérateurs disponibles et leurs montants limites.</span>
     </a>
   </li>
   <li>
     <a href="/mobile-money/deposits-payouts">
-      <strong>Mobile Money</strong>
-      <span>Dépôts et retraits via PawaPay, côté collecte comme côté payout.</span>
+      <strong>Dépôts & retraits</strong>
+      <span>Encaisser vos clients et payer vos bénéficiaires par mobile money.</span>
     </a>
   </li>
   <li>
-    <a href="/mobile-money/webhooks">
+    <a href="/webhooks">
       <strong>Webhooks</strong>
-      <span>Être notifié des événements en temps réel, sans polling.</span>
+      <span>Recevoir le résultat de chaque opération en temps réel.</span>
     </a>
   </li>
 </ul>
 
-## Deux façons d'appeler ces APIs
+## Principes de l'API
 
-| Accès | Identifiant | Usage |
-|---|---|---|
-| **Clé API** | `Authorization: Bearer biz_live_...` / `biz_sandbox_...` | Intégration serveur-à-serveur — c'est ce que vous utiliserez en production |
-| **Session dashboard** | Token de connexion humaine | Actions déclenchées depuis l'interface du dashboard marchand |
+### Requêtes et réponses
 
-Les deux exécutent exactement les mêmes contrôleurs — le choix dépend de qui déclenche l'action (votre backend, ou un humain dans le dashboard).
+Les requêtes et les réponses sont au format JSON, encodées en UTF-8. Envoyez l'en-tête `Content-Type: application/json` avec chaque requête comportant un corps.
 
-## Conventions
+Une réponse réussie place la ressource dans un champ `data`. Une erreur renvoie un champ `message` — voir [Erreurs](/errors).
+
+```json
+{ "data": { "id": 38, "currency_code": "CDF", "balance": "0" } }
+```
 
 ### Montants
 
-Tous les montants sont exprimés en **plus petite unité de la devise** (équivalent centimes), sous forme de chaîne (`string`) pour éviter toute perte de précision — jamais de `number` flottant.
+Les montants sont exprimés dans la **plus petite unité de la devise** et transmis sous forme de chaîne de caractères, afin d'éviter toute perte de précision liée aux nombres décimaux.
 
 ```json
 { "amount": "50000", "currency_code": "USD" }
 ```
 
-### Format des erreurs
+Dans cet exemple, `"50000"` correspond à 500,00 USD.
 
-```json
-{ "message": "Description de l'erreur" }
-```
+### Idempotence
 
-### Codes de statut HTTP
+Les opérations qui déplacent des fonds exigent une `idempotency_key` au format UUID, unique pour chaque tentative. Si une requête est rejouée avec la même clé — après un délai d'attente dépassé par exemple — l'API renvoie le résultat de la première tentative au lieu de créer une nouvelle opération.
 
-| Code | Signification |
-|---|---|
-| `200` / `201` / `202` | Succès (`202` = traitement asynchrone lancé, ex. dépôt mobile money) |
-| `400` | Requête invalide (règle métier non satisfaite) |
-| `401` | Authentification absente ou invalide |
-| `403` | Authentifié mais action refusée (statut du compte, permissions) |
-| `404` | Ressource introuvable (ou n'appartenant pas à l'appelant — pas de fuite d'existence) |
-| `409` | Conflit (ex. clé d'idempotence déjà utilisée avec un payload différent) |
-| `422` | Validation échouée (format, bornes de montant, type de fichier...) |
-| `429` | Trop de tentatives (verrouillage anti-bruteforce) |
-| `503` | Service externe indisponible (PawaPay) |
+Réutiliser une clé avec un contenu de requête différent renvoie `409`.
+
+### Opérations asynchrones
+
+Les dépôts et les retraits sont traités de façon asynchrone. L'API répond immédiatement `202` avec une opération au statut `processing`, puis vous notifie de son résultat final par [webhook](/webhooks).

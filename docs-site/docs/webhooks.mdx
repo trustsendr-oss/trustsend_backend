@@ -1,0 +1,178 @@
+---
+sidebar_position: 6
+title: Webhooks
+---
+
+# Webhooks
+
+Les webhooks envoient une requête HTTP à votre serveur dès qu'une opération atteint un statut final. C'est le moyen recommandé pour mettre à jour vos commandes et vos soldes, sans interroger l'API en boucle.
+
+## Événements
+
+| Événement | Déclenché lorsque |
+|---|---|
+| `mobile_money_deposit.completed` | Un dépôt a abouti et votre wallet est crédité |
+| `mobile_money_deposit.failed` | Un dépôt a échoué |
+| `mobile_money_payout.completed` | Un retrait a abouti |
+| `mobile_money_payout.failed` | Un retrait a échoué |
+
+## Format d'une livraison
+
+Chaque livraison est une requête `POST` dont le corps est au format JSON.
+
+| En-tête | Valeur |
+|---|---|
+| `Content-Type` | `application/json` |
+| `X-Webhook-Event` | Nom de l'événement, par exemple `mobile_money_deposit.completed` |
+| `X-Webhook-Signature` | Signature HMAC-SHA256 du corps de la requête, encodée en hexadécimal |
+
+```json
+{
+  "transaction_id": "TXN-VSWC4SQ2",
+  "type": "mobile_money_deposit",
+  "status": "completed",
+  "metadata": {}
+}
+```
+
+Répondez avec un code `2xx` dès réception. Toute autre réponse, un délai dépassé ou une redirection est traité comme un échec, et la livraison est retentée automatiquement.
+
+## Vérifier la signature
+
+Calculez le HMAC-SHA256 du **corps brut** de la requête avec le secret de votre abonnement, puis comparez-le à l'en-tête `X-Webhook-Signature` à l'aide d'une comparaison à temps constant. Rejetez toute requête dont la signature ne correspond pas.
+
+```js title="verify-webhook.js"
+import crypto from 'node:crypto';
+import express from 'express';
+
+const app = express();
+
+app.post('/webhooks/trustsend', express.raw({ type: 'application/json' }), (req, res) => {
+  const expected = crypto
+    .createHmac('sha256', process.env.TRUSTSEND_WEBHOOK_SECRET)
+    .update(req.body)
+    .digest('hex');
+
+  const received = Buffer.from(req.get('X-Webhook-Signature') ?? '', 'utf8');
+  const computed = Buffer.from(expected, 'utf8');
+
+  if (received.length !== computed.length || !crypto.timingSafeEqual(received, computed)) {
+    return res.status(401).end();
+  }
+
+  const event = JSON.parse(req.body.toString('utf8'));
+  // Traitez l'événement, idéalement de façon asynchrone
+  res.status(200).end();
+});
+```
+
+:::warning
+Calculez la signature sur le corps tel qu'il a été reçu, avant tout parsing JSON : un corps re-sérialisé ne produit pas la même signature.
+:::
+
+## Créer un abonnement
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/webhooks'}</span>
+</div>
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `url` | string | Oui | URL de votre serveur, accessible publiquement ; les adresses privées ou internes sont refusées |
+| `events` | string[] | Oui | Liste des [événements](#événements) à recevoir |
+
+```json
+{
+  "url": "https://api.maboutique.com/webhooks/trustsend",
+  "events": ["mobile_money_deposit.completed", "mobile_money_payout.failed"]
+}
+```
+
+**Réponse `201`**
+
+```json
+{
+  "data": {
+    "url": "https://api.maboutique.com/webhooks/trustsend",
+    "events": ["mobile_money_deposit.completed", "mobile_money_payout.failed"],
+    "active": true,
+    "secret": "whsec_4f1c…",
+    "message": "Webhook subscribed. Store the secret securely — used to verify X-Webhook-Signature on delivery."
+  }
+}
+```
+
+:::caution
+Le `secret` n'est renvoyé qu'à la création de l'abonnement. Stockez-le de façon sécurisée : il sert à vérifier chaque livraison.
+:::
+
+## Lister les abonnements
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/webhooks'}</span>
+</div>
+
+**Réponse `200`**
+
+```json
+{
+  "data": [
+    {
+      "id": 3,
+      "url": "https://api.maboutique.com/webhooks/trustsend",
+      "events": ["mobile_money_deposit.completed"],
+      "active": true,
+      "created_at": "2026-09-12T10:00:00.000+00:00"
+    }
+  ]
+}
+```
+
+## Supprimer un abonnement
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">DELETE</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/webhooks/:id'}</span>
+</div>
+
+Supprime l'abonnement ainsi que son historique de livraisons.
+
+## Historique des livraisons
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/webhooks/:id/deliveries'}</span>
+</div>
+
+Renvoie les 50 dernières tentatives de livraison, utiles pour diagnostiquer une intégration.
+
+**Réponse `200`**
+
+```json
+{
+  "data": [
+    {
+      "id": 100,
+      "event_type": "mobile_money_deposit.completed",
+      "status": "success",
+      "retry_count": 0,
+      "last_error": null,
+      "created_at": "2026-09-12T10:00:43.000+00:00",
+      "updated_at": "2026-09-12T10:00:43.000+00:00"
+    }
+  ]
+}
+```
+
+| `status` | Signification |
+|---|---|
+| `pending` | Livraison en attente d'envoi |
+| `retrying` | Tentative échouée, nouvel essai programmé |
+| `success` | Livraison acceptée par votre serveur |
+| `failed` | Livraison abandonnée ; `last_error` indique la dernière cause |
+
+:::note
+Nécessite la fonctionnalité `webhooks` dans votre offre.
+:::

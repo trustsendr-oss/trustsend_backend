@@ -1,80 +1,187 @@
 ---
-sidebar_position: 1
-title: Dépôts & Retraits
+sidebar_position: 2
+title: Dépôts & retraits
 ---
 
-# Dépôts & Retraits mobile money
+# Dépôts & retraits
 
-Intégration PawaPay. Deux chemins équivalents (mêmes contrôleurs, même logique) selon comment vous êtes authentifié :
+Un **dépôt** débite le compte mobile money d'un client et crédite votre wallet. Un **retrait** débite votre wallet et crédite le compte mobile money d'un bénéficiaire.
 
-| Préfixe | Authentification | PIN requis |
-|---|---|---|
-| `/business/mobile-money/*` | Clé API | Non |
-| `/business/dashboard/mobile-money/*` | Session dashboard | Oui |
+Les deux opérations sont asynchrones : l'API répond immédiatement `202` avec une transaction `processing`, puis vous notifie du résultat final par [webhook](/webhooks).
 
-## `POST .../mobile-money/deposits`
+| Statut | Signification |
+|---|---|
+| `processing` | L'opération est transmise à l'opérateur, en attente de confirmation |
+| `completed` | L'opération a abouti, le solde du wallet est mis à jour |
+| `failed` | L'opération a échoué, aucun mouvement de fonds |
 
-**Body**
-```json
-{
-  "amount": "50000",
-  "currency_code": "CDF",
-  "phone_number": "243813456789",
-  "provider": "VODACOM_MPESA_COD",
-  "pin": "1234",
-  "idempotency_key": "7d6b1da7-654f-4760-915c-0a48e677316f"
-}
+## Initier un dépôt
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/mobile-money/deposits'}</span>
+</div>
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `amount` | string | Oui | Montant en plus petite unité de la devise, entier positif sans zéro initial |
+| `currency_code` | string | Oui | Code de devise ISO 4217 ; un wallet actif doit exister dans cette devise |
+| `phone_number` | string | Oui | Numéro du payeur au format international, chiffres uniquement, sans `+` (8 à 15 chiffres) |
+| `provider` | string | Oui | Code opérateur obtenu via [Moyens de paiement](/mobile-money/payment-methods) |
+| `idempotency_key` | string (UUID) | Oui | Identifiant unique de la tentative — voir [Idempotence](/#idempotence) |
+| `pin` | string | Oui | Quatre chiffres ; attendu par le format de la requête mais non vérifié pour un appel authentifié par clé API |
+| `country_code` | string | Non | Code pays ISO 3166-1 alpha-3, par exemple `COD` |
+
+```bash
+curl -X POST https://api.trustsend.africa/api/v1/business/mobile-money/deposits \
+  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "50000",
+    "currency_code": "CDF",
+    "phone_number": "243813456789",
+    "provider": "VODACOM_MPESA_COD",
+    "idempotency_key": "7d6b1da7-654f-4760-915c-0a48e677316f",
+    "pin": "0000"
+  }'
 ```
-
-| Champ | Requis | Règles |
-|---|---|---|
-| `amount` | oui | entier positif, plus petite unité, sans zéro initial |
-| `currency_code` | oui | 3 lettres |
-| `phone_number` | oui | MSISDN, 8–15 chiffres, sans zéro initial |
-| `provider` | oui | code opérateur PawaPay (ex. `MTN_MOMO_ZMB`) — voir [Moyens de paiement](/mobile-money/payment-methods) |
-| `pin` | oui (format) | 4 chiffres. **Non vérifié** via clé API (la clé est le seul credential) — **vérifié réellement** via session dashboard, voir [PIN](/business/pin) |
-| `idempotency_key` | oui | UUID unique par tentative — un retry avec la même clé rejoue la même réponse |
 
 **Réponse `202`**
-```json
-{ "data": { "deposit_id": "TXN-VSWC4SQ2", "status": "processing", "created_at": "..." } }
-```
-
-**Erreurs**
-- `404` — pas de wallet actif pour cette devise → créer un wallet d'abord ([Wallet](/business/wallet))
-- `409` — conflit d'idempotency key
-- `422` — devise/provider non supportés, ou montant hors des bornes `min`/`max` (voir [Moyens de paiement](/mobile-money/payment-methods))
-- `503` — PawaPay indisponible
-
-## `POST .../mobile-money/payouts`
-Même body/règles que le dépôt. Erreurs supplémentaires :
-- `402` — solde insuffisant
-- `400` — limite de transaction dépassée
-
-**Réponse `202`**
-```json
-{ "data": { "payout_id": "TXN-...", "status": "processing", "created_at": "..." } }
-```
-
-## `GET .../mobile-money/deposits/:id` et `.../payouts/:id`
-Statut **stocké chez nous** (mis à jour par webhook ou réconciliation périodique).
-```json
-{ "data": { "deposit_id": "TXN-...", "status": "completed", "created_at": "...", "completed_at": "..." } }
-```
-`403` si la transaction n'appartient pas à l'appelant (IDOR bloqué), `404` sinon.
-
-## `GET .../mobile-money/deposits/:id/live-status` et `.../payouts/:id/live-status`
-Interroge **PawaPay en direct**, à l'instant — et **met à jour notre base** si PawaPay répond un statut final (`COMPLETED`/`FAILED`), via le même mécanisme idempotent que le webhook.
 
 ```json
 {
   "data": {
-    "deposit_id": "TXN-...",
+    "deposit_id": "TXN-VSWC4SQ2",
+    "status": "processing",
+    "created_at": "2026-09-12T10:00:00.000+00:00",
+    "authorization": null
+  }
+}
+```
+
+`authorization` contient, lorsque l'opérateur l'exige, les instructions de validation à présenter au payeur (confirmation par code, étapes USSD, lien rapide). Il vaut `null` si aucune action particulière n'est nécessaire.
+
+```json
+"authorization": {
+  "pinPrompt": "MANUAL",
+  "pinPromptRevivable": false,
+  "channels": [
+    {
+      "type": "USSD",
+      "displayName": { "fr": "Code USSD" },
+      "quickLink": null,
+      "steps": { "fr": ["Composez *150#", "Choisissez « Paiements en attente »", "Confirmez avec votre code secret"] }
+    }
+  ]
+}
+```
+
+**Erreurs**
+
+| Code | Cause |
+|---|---|
+| `403` | Fonctionnalité `mobile_money.deposits` non incluse dans votre offre |
+| `404` | Aucun wallet actif dans la devise demandée — [créez-en un](/business/wallet#créer-un-wallet) |
+| `409` | `idempotency_key` déjà utilisée avec un contenu de requête différent |
+| `422` | Devise ou opérateur non pris en charge, ou montant en dehors des bornes de l'opérateur |
+| `503` | Réseau de paiement temporairement indisponible — réessayez avec la même `idempotency_key` |
+
+## Initier un retrait
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/mobile-money/payouts'}</span>
+</div>
+
+Les paramètres sont identiques à ceux du dépôt ; `phone_number` désigne le numéro du bénéficiaire.
+
+**Réponse `202`**
+
+```json
+{
+  "data": {
+    "payout_id": "TXN-K2P9QD7M",
+    "status": "processing",
+    "created_at": "2026-09-12T10:05:00.000+00:00"
+  }
+}
+```
+
+**Erreurs** — en plus de celles du dépôt :
+
+| Code | Cause |
+|---|---|
+| `400` | Plafond de transaction du wallet dépassé |
+| `402` | Solde du wallet insuffisant |
+
+## Consulter une opération
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/mobile-money/deposits/:id'}</span>
+</div>
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/mobile-money/payouts/:id'}</span>
+</div>
+
+Renvoie le statut enregistré par TrustSend.
+
+**Réponse `200`**
+
+```json
+{
+  "data": {
+    "deposit_id": "TXN-VSWC4SQ2",
+    "status": "completed",
+    "created_at": "2026-09-12T10:00:00.000+00:00",
+    "completed_at": "2026-09-12T10:00:42.000+00:00"
+  }
+}
+```
+
+**Erreurs** : `403` si l'opération appartient à un autre compte, `404` si elle est introuvable.
+
+## Vérifier le statut en temps réel
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/mobile-money/deposits/:id/live-status'}</span>
+</div>
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/mobile-money/payouts/:id/live-status'}</span>
+</div>
+
+Interroge le réseau de paiement à l'instant de l'appel. Lorsqu'un statut final est obtenu, la transaction est mise à jour immédiatement. L'appel est idempotent : il ne crédite ni ne débite jamais deux fois.
+
+À utiliser lorsqu'une opération reste `processing` plus longtemps que prévu, par exemple si un webhook n'a pas été reçu.
+
+**Réponse `200`**
+
+```json
+{
+  "data": {
+    "deposit_id": "TXN-VSWC4SQ2",
     "local_status": "completed",
     "live_status": "COMPLETED",
-    "provider_transaction_id": "...",
+    "provider_transaction_id": "8f3c2a91-4b7e-4d2a-9c61-0e5d7b1a2f44",
     "failure_reason": null
   }
 }
 ```
-Utile quand une transaction reste bloquée en `processing` (webhook manqué) — rappeler plusieurs fois ne crédite/débite jamais deux fois (idempotent).
+
+| Champ | Description |
+|---|---|
+| `local_status` | Statut enregistré par TrustSend après la vérification |
+| `live_status` | Statut remonté en temps réel par le réseau de paiement |
+| `provider_transaction_id` | Référence de l'opération côté opérateur, utile en cas de réclamation |
+| `failure_reason` | Motif de l'échec, `null` si l'opération n'a pas échoué |
+
+**Erreurs** : `503` si le réseau de paiement est indisponible ou n'a pas encore enregistré l'opération.
+
+:::tip
+Appuyez-vous en priorité sur les webhooks pour connaître le résultat d'une opération. Réservez cet endpoint aux vérifications ponctuelles plutôt qu'à une interrogation en boucle.
+:::
