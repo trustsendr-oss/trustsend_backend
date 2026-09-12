@@ -9,7 +9,7 @@ test.group('Security: Permission Bypass Protection', (group) => {
   let agentId: number
 
   group.setup(async () => {
-    api = new ApiClient({ baseURL: 'http://localhost:3333' })
+    api = new ApiClient({ baseURL: 'http://localhost:3330' })
   })
 
   group.each.setup(async () => {

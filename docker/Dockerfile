@@ -15,11 +15,11 @@ COPY . .
 
 # Compile TypeScript into build/ (AdonisJS validates env variables at build time)
 RUN NODE_ENV=production \
-    PORT=3333 \
+    PORT=3330 \
     HOST=0.0.0.0 \
     LOG_LEVEL=info \
     APP_KEY=dummy_build_key_32_characters_long_! \
-    APP_URL=http://localhost:3333 \
+    APP_URL=http://localhost:3330 \
     SESSION_DRIVER=cookie \
     DB_CONNECTION=pg \
     ENCRYPTION_KEY=dummy_build_key_32_characters_long_! \
@@ -65,14 +65,14 @@ RUN mkdir -p /app/storage/kyc_documents /app/storage/card_art /app/tmp \
 
 USER nodejs
 
-EXPOSE 3333
+EXPOSE 3330
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
-ENV PORT=3333
+ENV PORT=3330
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD node -e "const req = require('http').get('http://127.0.0.1:3333/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));"
+  CMD node -e "const req = require('http').get('http://127.0.0.1:3330/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));"
 
 CMD ["node", "bin/server.js"]

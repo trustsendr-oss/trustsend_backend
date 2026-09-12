@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api/v1'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3330/api/v1'
 const USER_KEY = 'tumaplus_admin_user'
 
 /**

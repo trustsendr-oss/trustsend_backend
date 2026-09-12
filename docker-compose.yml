@@ -81,9 +81,9 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      - PORT=3333
+      - PORT=3330
       - HOST=0.0.0.0
-      - APP_URL=${APP_URL:-http://localhost:3333}
+      - APP_URL=${APP_URL:-http://localhost:3330}
       - DB_CONNECTION=pg
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -93,8 +93,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     ports:
-      # Maps to host 3334 by default (can be overridden with APP_PORT=3333)
-      - '${APP_PORT:-3334}:3333'
+      # Maps to host 3334 by default (can be overridden with APP_PORT=3330)
+      - '${APP_PORT:-3334}:3330'
     volumes:
       - storage_data:/app/storage
     depends_on:
@@ -105,7 +105,7 @@ services:
       migration:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "node", "-e", "const req = require('http').get('http://127.0.0.1:3333/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));"]
+      test: ["CMD", "node", "-e", "const req = require('http').get('http://127.0.0.1:3330/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));"]
       interval: 15s
       timeout: 5s
       retries: 3
