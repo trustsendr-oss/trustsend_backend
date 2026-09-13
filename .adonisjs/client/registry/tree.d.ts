@@ -235,6 +235,7 @@ export interface ApiDefinition {
       suspend: typeof routes['internal_users.internal_users.suspend']
       deactivate: typeof routes['internal_users.internal_users.deactivate']
       resetPassword: typeof routes['internal_users.internal_users.reset_password']
+      resetMfa: typeof routes['internal_users.internal_users.reset_mfa']
     }
   }
   admin: {
@@ -407,6 +408,9 @@ export interface ApiDefinition {
         login: typeof routes['internal.auth.internal_auth.login']
         logout: typeof routes['internal.auth.internal_auth.logout']
         changePassword: typeof routes['internal.auth.internal_auth.change_password']
+        verifyMfa: typeof routes['internal.auth.internal_auth.verify_mfa']
+        setupMfa: typeof routes['internal.auth.internal_auth.setup_mfa']
+        enableMfa: typeof routes['internal.auth.internal_auth.enable_mfa']
         me: typeof routes['internal.auth.internal_auth.me']
       }
     }

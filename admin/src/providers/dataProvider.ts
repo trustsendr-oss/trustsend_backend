@@ -319,6 +319,8 @@ export const adminActions = {
       method: 'POST',
       body: JSON.stringify({ reason }),
     }),
+  internalUserResetMfa: (id: number | string) =>
+    apiFetch<{ id: number; mfa_enabled: boolean }>(`/internal-users/${id}/reset-mfa`, { method: 'POST' }),
   internalUserResetPassword: (id: number | string) =>
     apiFetch<{ new_password: string; message: string }>(`/internal-users/${id}/reset-password`, {
       method: 'POST',

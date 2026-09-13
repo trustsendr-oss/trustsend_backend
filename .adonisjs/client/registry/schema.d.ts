@@ -1459,6 +1459,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/internal_users_controller').default['resetPassword']>>>
     }
   }
+  'internal_users.internal_users.reset_mfa': {
+    methods: ["POST"]
+    pattern: '/api/v1/internal-users/:id/reset-mfa'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/internal_users_controller').default['resetMfa']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/internal_users_controller').default['resetMfa']>>>
+    }
+  }
   'admin.admin_transactions.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/admin/transactions'
@@ -2033,6 +2045,42 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/internal_auth_controller').default['changePassword']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/internal_auth_controller').default['changePassword']>>>
+    }
+  }
+  'internal.auth.internal_auth.verify_mfa': {
+    methods: ["POST"]
+    pattern: '/api/v1/internal/auth/mfa/verify'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/internal_auth_controller').default['verifyMfa']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/internal_auth_controller').default['verifyMfa']>>>
+    }
+  }
+  'internal.auth.internal_auth.setup_mfa': {
+    methods: ["POST"]
+    pattern: '/api/v1/internal/auth/mfa/setup'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/internal_auth_controller').default['setupMfa']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/internal_auth_controller').default['setupMfa']>>>
+    }
+  }
+  'internal.auth.internal_auth.enable_mfa': {
+    methods: ["POST"]
+    pattern: '/api/v1/internal/auth/mfa/enable'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/internal_auth_controller').default['enableMfa']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/internal_auth_controller').default['enableMfa']>>>
     }
   }
   'internal.auth.internal_auth.me': {

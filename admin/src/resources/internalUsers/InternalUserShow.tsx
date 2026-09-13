@@ -19,6 +19,7 @@ import PasswordIcon from '@mui/icons-material/PasswordOutlined'
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutlineOutlined'
 import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutlineOutlined'
 import BlockIcon from '@mui/icons-material/Block'
+import SecurityIcon from '@mui/icons-material/SecurityOutlined'
 import {
   Show,
   useRecordContext,
@@ -150,9 +151,18 @@ function InternalUserActions() {
         />
       )}
       <ResetPasswordButton userId={record.id} />
+      {record.mfa_enabled && !isSelf && (
+        <ConfirmActionButton
+          label="Reset 2FA"
+          icon={SecurityIcon}
+          color="warning"
+          confirmText={`Reset two-factor authentication for ${record.full_name}? Their sessions are ended and they must enrol a new authenticator on next sign-in.`}
+          onConfirm={() => adminActions.internalUserResetMfa(record.id)}
+        />
+      )}
       {isSelf && (
         <Typography variant="caption" color="text.disabled" sx={{ alignSelf: 'center', ml: 1 }}>
-          You can't suspend or deactivate your own account
+          You can't suspend, deactivate or reset 2FA on your own account
         </Typography>
       )}
     </TopToolbar>

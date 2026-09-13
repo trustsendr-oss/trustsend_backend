@@ -51,7 +51,8 @@ export class InternalUserService {
       fullName: request.fullName,
       password: request.password || generatedPassword!,
       status: 'active',
-      mustChangePassword: !request.password,
+      // Always forced — even an admin-chosen password was seen by someone other than its owner
+      mustChangePassword: true,
       mfaEnabled: false,
       loginAttempts: 0,
     })
@@ -155,6 +156,7 @@ export class InternalUserService {
     user.loginAttempts = 0
     user.loginLockedUntil = null
     await user.save()
+    await this.revokeSessions(user)
 
     await AuditLoggerService.record({
       actorType: 'internal_user',
@@ -168,5 +170,43 @@ export class InternalUserService {
     })
 
     return newPassword
+  }
+  /**
+   * Admin-initiated two-factor reset (lost or replaced phone). Clears the TOTP secret and signs the
+   * account out everywhere; the staff member must enrol a new authenticator on next sign-in. An
+   * admin cannot reset their own second factor — a stolen session must not be able to drop MFA.
+   */
+  static async resetMfa(id: number, actorId: number, correlationId: string): Promise<InternalUser> {
+    if (id === actorId) {
+      throw new CannotModifySelfException()
+    }
+
+    const user = await this.findByIdOrFail(id)
+    const before = { mfa_enabled: user.mfaEnabled }
+
+    user.mfaEnabled = false
+    user.mfaSecretEncrypted = null
+    user.mfaLastUsedStep = null
+    await user.save()
+    await this.revokeSessions(user)
+
+    await AuditLoggerService.record({
+      actorType: 'internal_user',
+      actorId,
+      action: 'internal_user.mfa_reset',
+      resourceType: 'internal_user',
+      resourceId: user.id,
+      before,
+      after: { mfa_enabled: false },
+      correlationId,
+    })
+
+    return user
+  }
+
+  private static async revokeSessions(user: InternalUser) {
+    for (const token of await InternalUser.accessTokens.all(user)) {
+      await InternalUser.accessTokens.delete(user, token.identifier)
+    }
   }
 }

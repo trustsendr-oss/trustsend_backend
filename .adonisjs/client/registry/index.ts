@@ -732,6 +732,12 @@ const routes = {
     tokens: [{"old":"/api/v1/internal-users/:id/reset-password","type":0,"val":"api","end":""},{"old":"/api/v1/internal-users/:id/reset-password","type":0,"val":"v1","end":""},{"old":"/api/v1/internal-users/:id/reset-password","type":0,"val":"internal-users","end":""},{"old":"/api/v1/internal-users/:id/reset-password","type":1,"val":"id","end":""},{"old":"/api/v1/internal-users/:id/reset-password","type":0,"val":"reset-password","end":""}],
     types: placeholder as Registry['internal_users.internal_users.reset_password']['types'],
   },
+  'internal_users.internal_users.reset_mfa': {
+    methods: ["POST"],
+    pattern: '/api/v1/internal-users/:id/reset-mfa',
+    tokens: [{"old":"/api/v1/internal-users/:id/reset-mfa","type":0,"val":"api","end":""},{"old":"/api/v1/internal-users/:id/reset-mfa","type":0,"val":"v1","end":""},{"old":"/api/v1/internal-users/:id/reset-mfa","type":0,"val":"internal-users","end":""},{"old":"/api/v1/internal-users/:id/reset-mfa","type":1,"val":"id","end":""},{"old":"/api/v1/internal-users/:id/reset-mfa","type":0,"val":"reset-mfa","end":""}],
+    types: placeholder as Registry['internal_users.internal_users.reset_mfa']['types'],
+  },
   'admin.admin_transactions.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/admin/transactions',
@@ -1019,6 +1025,24 @@ const routes = {
     pattern: '/api/v1/internal/auth/change-password',
     tokens: [{"old":"/api/v1/internal/auth/change-password","type":0,"val":"api","end":""},{"old":"/api/v1/internal/auth/change-password","type":0,"val":"v1","end":""},{"old":"/api/v1/internal/auth/change-password","type":0,"val":"internal","end":""},{"old":"/api/v1/internal/auth/change-password","type":0,"val":"auth","end":""},{"old":"/api/v1/internal/auth/change-password","type":0,"val":"change-password","end":""}],
     types: placeholder as Registry['internal.auth.internal_auth.change_password']['types'],
+  },
+  'internal.auth.internal_auth.verify_mfa': {
+    methods: ["POST"],
+    pattern: '/api/v1/internal/auth/mfa/verify',
+    tokens: [{"old":"/api/v1/internal/auth/mfa/verify","type":0,"val":"api","end":""},{"old":"/api/v1/internal/auth/mfa/verify","type":0,"val":"v1","end":""},{"old":"/api/v1/internal/auth/mfa/verify","type":0,"val":"internal","end":""},{"old":"/api/v1/internal/auth/mfa/verify","type":0,"val":"auth","end":""},{"old":"/api/v1/internal/auth/mfa/verify","type":0,"val":"mfa","end":""},{"old":"/api/v1/internal/auth/mfa/verify","type":0,"val":"verify","end":""}],
+    types: placeholder as Registry['internal.auth.internal_auth.verify_mfa']['types'],
+  },
+  'internal.auth.internal_auth.setup_mfa': {
+    methods: ["POST"],
+    pattern: '/api/v1/internal/auth/mfa/setup',
+    tokens: [{"old":"/api/v1/internal/auth/mfa/setup","type":0,"val":"api","end":""},{"old":"/api/v1/internal/auth/mfa/setup","type":0,"val":"v1","end":""},{"old":"/api/v1/internal/auth/mfa/setup","type":0,"val":"internal","end":""},{"old":"/api/v1/internal/auth/mfa/setup","type":0,"val":"auth","end":""},{"old":"/api/v1/internal/auth/mfa/setup","type":0,"val":"mfa","end":""},{"old":"/api/v1/internal/auth/mfa/setup","type":0,"val":"setup","end":""}],
+    types: placeholder as Registry['internal.auth.internal_auth.setup_mfa']['types'],
+  },
+  'internal.auth.internal_auth.enable_mfa': {
+    methods: ["POST"],
+    pattern: '/api/v1/internal/auth/mfa/enable',
+    tokens: [{"old":"/api/v1/internal/auth/mfa/enable","type":0,"val":"api","end":""},{"old":"/api/v1/internal/auth/mfa/enable","type":0,"val":"v1","end":""},{"old":"/api/v1/internal/auth/mfa/enable","type":0,"val":"internal","end":""},{"old":"/api/v1/internal/auth/mfa/enable","type":0,"val":"auth","end":""},{"old":"/api/v1/internal/auth/mfa/enable","type":0,"val":"mfa","end":""},{"old":"/api/v1/internal/auth/mfa/enable","type":0,"val":"enable","end":""}],
+    types: placeholder as Registry['internal.auth.internal_auth.enable_mfa']['types'],
   },
   'internal.auth.internal_auth.me': {
     methods: ["GET","HEAD"],

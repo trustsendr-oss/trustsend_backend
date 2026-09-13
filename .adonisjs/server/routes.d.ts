@@ -125,6 +125,7 @@ export type ScannedRoutes = {
     'internal_users.internal_users.suspend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'internal_users.internal_users.deactivate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'internal_users.internal_users.reset_password': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'internal_users.internal_users.reset_mfa': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_transactions.index': { paramsTuple?: []; params?: {} }
     'admin.admin_transactions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_audit_logs.index': { paramsTuple?: []; params?: {} }
@@ -173,6 +174,9 @@ export type ScannedRoutes = {
     'internal.auth.internal_auth.login': { paramsTuple?: []; params?: {} }
     'internal.auth.internal_auth.logout': { paramsTuple?: []; params?: {} }
     'internal.auth.internal_auth.change_password': { paramsTuple?: []; params?: {} }
+    'internal.auth.internal_auth.verify_mfa': { paramsTuple?: []; params?: {} }
+    'internal.auth.internal_auth.setup_mfa': { paramsTuple?: []; params?: {} }
+    'internal.auth.internal_auth.enable_mfa': { paramsTuple?: []; params?: {} }
     'internal.auth.internal_auth.me': { paramsTuple?: []; params?: {} }
     'business.auth.business_dashboard_auth.request_signup_otp': { paramsTuple?: []; params?: {} }
     'business.auth.business_dashboard_auth.signup': { paramsTuple?: []; params?: {} }
@@ -486,6 +490,7 @@ export type ScannedRoutes = {
     'internal_users.internal_users.suspend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'internal_users.internal_users.deactivate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'internal_users.internal_users.reset_password': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'internal_users.internal_users.reset_mfa': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_cards.store': { paramsTuple?: []; params?: {} }
     'admin.admin_cards.topup': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_cards.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -502,6 +507,9 @@ export type ScannedRoutes = {
     'internal.auth.internal_auth.login': { paramsTuple?: []; params?: {} }
     'internal.auth.internal_auth.logout': { paramsTuple?: []; params?: {} }
     'internal.auth.internal_auth.change_password': { paramsTuple?: []; params?: {} }
+    'internal.auth.internal_auth.verify_mfa': { paramsTuple?: []; params?: {} }
+    'internal.auth.internal_auth.setup_mfa': { paramsTuple?: []; params?: {} }
+    'internal.auth.internal_auth.enable_mfa': { paramsTuple?: []; params?: {} }
     'business.auth.business_dashboard_auth.request_signup_otp': { paramsTuple?: []; params?: {} }
     'business.auth.business_dashboard_auth.signup': { paramsTuple?: []; params?: {} }
     'business.auth.business_dashboard_auth.login': { paramsTuple?: []; params?: {} }

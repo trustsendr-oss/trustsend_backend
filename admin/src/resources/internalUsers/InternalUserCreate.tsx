@@ -1,4 +1,4 @@
-import { Create, SimpleForm, TextInput, required, minLength, email } from 'react-admin'
+import { Create, SimpleForm, TextInput, required, minLength, maxLength, email } from 'react-admin'
 import { useGeneratedSecretNotice } from '../../components/useGeneratedSecretNotice'
 
 export function InternalUserCreate() {
@@ -11,7 +11,8 @@ export function InternalUserCreate() {
         <TextInput
           source="password"
           type="password"
-          helperText="Optional — a password is generated and shown once if left blank. The account must change it on first login."
+          validate={[minLength(12), maxLength(128)]}
+          helperText="Optional — at least 12 characters. Leave blank to generate one, shown once. On first sign-in the account must change it and enable two-factor authentication."
         />
       </SimpleForm>
     </Create>

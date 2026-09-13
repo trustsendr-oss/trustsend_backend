@@ -44,6 +44,10 @@ export default class InternalUser extends compose(BaseModel, withAuthFinder(hash
   @column({ serializeAs: null })
   declare mfaSecretEncrypted: string | null
 
+  /** Last accepted TOTP time step — a code for this step or earlier is refused (anti-replay). */
+  @column({ serializeAs: null })
+  declare mfaLastUsedStep: number | null
+
   @column()
   declare loginAttempts: number
 

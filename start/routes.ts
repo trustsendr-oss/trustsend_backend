@@ -469,6 +469,7 @@ router
         router.post(':id/suspend', [InternalUsersController, 'suspend'])
         router.post(':id/deactivate', [InternalUsersController, 'deactivate'])
         router.post(':id/reset-password', [InternalUsersController, 'resetPassword'])
+        router.post(':id/reset-mfa', [InternalUsersController, 'resetMfa'])
       })
       .prefix('internal-users')
       .as('internal_users')
@@ -604,6 +605,19 @@ router
           .use(middleware.auth({ guards: ['internal'] }))
         router
           .post('change-password', [InternalAuthController, 'changePassword'])
+          .use(middleware.auth({ guards: ['internal'] }))
+        // TOTP two-factor authentication — verify completes a pending sign-in, setup/enable enrol
+        // a new authenticator (see internal_auth_controller.ts).
+        router
+          .post('mfa/verify', [InternalAuthController, 'verifyMfa'])
+          .use(middleware.throttle({ maxRequests: 10, windowMinutes: 15, name: 'internal-mfa-verify' }))
+          .use(middleware.auth({ guards: ['internal'] }))
+        router
+          .post('mfa/setup', [InternalAuthController, 'setupMfa'])
+          .use(middleware.auth({ guards: ['internal'] }))
+        router
+          .post('mfa/enable', [InternalAuthController, 'enableMfa'])
+          .use(middleware.throttle({ maxRequests: 10, windowMinutes: 15, name: 'internal-mfa-enable' }))
           .use(middleware.auth({ guards: ['internal'] }))
         // Cheap session check for the admin panel's checkAuth() — the access token now lives in
         // an httpOnly cookie the frontend can't read (see auth_cookie_service.ts).

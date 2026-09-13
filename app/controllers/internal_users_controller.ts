@@ -13,7 +13,7 @@ const createInternalUserValidator = vine.create({
     return !user
   }),
   full_name: vine.string().minLength(2).maxLength(255),
-  password: vine.string().minLength(8).optional(),
+  password: vine.string().minLength(12).maxLength(128).optional(),
 })
 
 const reasonValidator = vine.create({ reason: vine.string().minLength(10).maxLength(255) })
@@ -164,6 +164,26 @@ export default class InternalUsersController {
     } catch (error) {
       if (error instanceof InternalUserNotFoundException) {
         return response.notFound({ message: error.message })
+      }
+      throw error
+    }
+  }
+  /**
+   * POST /api/v1/internal-users/:id/reset-mfa (admin only)
+   * Clears the account's TOTP enrolment and signs it out; it must enrol again on next sign-in.
+   */
+  async resetMfa({ auth, params, correlationId, response }: HttpContext) {
+    const actor = (await auth.authenticateUsing(['internal'])) as InternalUser
+
+    try {
+      const user = await InternalUserService.resetMfa(Number(params.id), actor.id, correlationId)
+      return response.ok({ data: { id: user.id, mfa_enabled: user.mfaEnabled } })
+    } catch (error) {
+      if (error instanceof InternalUserNotFoundException) {
+        return response.notFound({ message: error.message })
+      }
+      if (error instanceof CannotModifySelfException) {
+        return response.badRequest({ message: error.message })
       }
       throw error
     }
