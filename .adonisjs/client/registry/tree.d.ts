@@ -49,6 +49,15 @@ export interface ApiDefinition {
   currencies: {
     index: typeof routes['currencies.index']
   }
+  exchangeRates: {
+    index: typeof routes['exchange_rates.index']
+  }
+  swaps: {
+    swaps: {
+      quote: typeof routes['swaps.swaps.quote']
+      store: typeof routes['swaps.swaps.store']
+    }
+  }
   wallets: {
     wallets: {
       index: typeof routes['wallets.wallets.index']
@@ -270,6 +279,12 @@ export interface ApiDefinition {
       adminShow: typeof routes['admin.currencies.admin_show']
       adminUpdate: typeof routes['admin.currencies.admin_update']
     }
+    exchangeRates: {
+      adminIndex: typeof routes['admin.exchange_rates.admin_index']
+      adminRefresh: typeof routes['admin.exchange_rates.admin_refresh']
+      adminShow: typeof routes['admin.exchange_rates.admin_show']
+      adminUpdate: typeof routes['admin.exchange_rates.admin_update']
+    }
     adminAccounting: {
       balanceSheet: typeof routes['admin.admin_accounting.balance_sheet']
       revenue: typeof routes['admin.admin_accounting.revenue']
@@ -291,6 +306,10 @@ export interface ApiDefinition {
       store: typeof routes['business.business_wallet.store']
       index: typeof routes['business.business_wallet.index']
       show: typeof routes['business.business_wallet.show']
+    }
+    businessSwaps: {
+      quote: typeof routes['business.business_swaps.quote']
+      store: typeof routes['business.business_swaps.store']
     }
     businessTransactions: {
       index: typeof routes['business.business_transactions.index']
@@ -376,6 +395,10 @@ export interface ApiDefinition {
         store: typeof routes['business.dashboard.business_wallet.store']
         index: typeof routes['business.dashboard.business_wallet.index']
         show: typeof routes['business.dashboard.business_wallet.show']
+      }
+      businessSwaps: {
+        quote: typeof routes['business.dashboard.business_swaps.quote']
+        store: typeof routes['business.dashboard.business_swaps.store']
       }
       businessTransactions: {
         index: typeof routes['business.dashboard.business_transactions.index']

@@ -80,6 +80,19 @@ export class LedgerService {
         )
       }
 
+      // A multi-currency transaction (fx_swap) must also balance within each currency: amounts
+      // in different currencies can never offset each other.
+      const netByCurrency = new Map<string, bigint>()
+      for (const e of entries) {
+        const signed = e.direction === 'debit' ? e.amount.amount : -e.amount.amount
+        netByCurrency.set(e.amount.currencyCode, (netByCurrency.get(e.amount.currencyCode) ?? 0n) + signed)
+      }
+      for (const [currencyCode, net] of netByCurrency) {
+        if (net !== 0n) {
+          throw new Error(`Double-entry violation: ${currencyCode} entries are off by ${net}`)
+        }
+      }
+
       // Create the transaction envelope
       const txn = new LedgerTransaction()
       txn.id = options.transactionId || IdGenerator.generateTransactionId() // TXN-XXXXXXXX

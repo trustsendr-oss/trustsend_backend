@@ -211,6 +211,42 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['index']>>>
     }
   }
+  'exchange_rates.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/exchange-rates'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/fx').listExchangeRatesValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'swaps.swaps.quote': {
+    methods: ["POST"]
+    pattern: '/api/v1/swaps/quote'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/fx').createSwapQuoteValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/fx').createSwapQuoteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/fx/swaps_controller').default['quote']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/fx/swaps_controller').default['quote']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'swaps.swaps.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/swaps'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/fx').executeSwapValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/fx').executeSwapValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/fx/swaps_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/fx/swaps_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'wallets.wallets.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/wallets'
@@ -1699,6 +1735,54 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['adminUpdate']>>>
     }
   }
+  'admin.exchange_rates.admin_index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/exchange-rates'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['adminIndex']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['adminIndex']>>>
+    }
+  }
+  'admin.exchange_rates.admin_refresh': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/exchange-rates/refresh'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['adminRefresh']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['adminRefresh']>>>
+    }
+  }
+  'admin.exchange_rates.admin_show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/exchange-rates/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['adminShow']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['adminShow']>>>
+    }
+  }
+  'admin.exchange_rates.admin_update': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/admin/exchange-rates/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/fx').updateExchangeRateValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/fx').updateExchangeRateValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['adminUpdate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['adminUpdate']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'admin.admin_accounting.balance_sheet': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/admin/accounting/balance-sheet'
@@ -1841,6 +1925,30 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/wallet_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/wallet_controller').default['show']>>>
+    }
+  }
+  'business.business_swaps.quote': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/swaps/quote'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/fx').createSwapQuoteValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/fx').createSwapQuoteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/swaps_controller').default['quote']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/swaps_controller').default['quote']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'business.business_swaps.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/swaps'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/fx').executeSwapValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/fx').executeSwapValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/swaps_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/swaps_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'business.business_transactions.index': {
@@ -2501,6 +2609,30 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/wallet_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/wallet_controller').default['show']>>>
+    }
+  }
+  'business.dashboard.business_swaps.quote': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/swaps/quote'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/fx').createSwapQuoteValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/fx').createSwapQuoteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/swaps_controller').default['quote']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/swaps_controller').default['quote']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'business.dashboard.business_swaps.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/swaps'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/fx').executeSwapValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/fx').executeSwapValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/swaps_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/swaps_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'business.dashboard.business_transactions.index': {

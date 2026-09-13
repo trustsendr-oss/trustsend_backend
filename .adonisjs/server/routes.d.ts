@@ -21,6 +21,9 @@ export type ScannedRoutes = {
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
+    'exchange_rates.index': { paramsTuple?: []; params?: {} }
+    'swaps.swaps.quote': { paramsTuple?: []; params?: {} }
+    'swaps.swaps.store': { paramsTuple?: []; params?: {} }
     'wallets.wallets.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.store': { paramsTuple?: []; params?: {} }
     'wallets.wallets.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -145,6 +148,10 @@ export type ScannedRoutes = {
     'admin.currencies.admin_index': { paramsTuple?: []; params?: {} }
     'admin.currencies.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.currencies.admin_update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exchange_rates.admin_index': { paramsTuple?: []; params?: {} }
+    'admin.exchange_rates.admin_refresh': { paramsTuple?: []; params?: {} }
+    'admin.exchange_rates.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exchange_rates.admin_update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_accounting.balance_sheet': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.revenue': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.reconcile': { paramsTuple?: []; params?: {} }
@@ -157,6 +164,8 @@ export type ScannedRoutes = {
     'business.business_wallet.store': { paramsTuple?: []; params?: {} }
     'business.business_wallet.index': { paramsTuple?: []; params?: {} }
     'business.business_wallet.show': { paramsTuple: [ParamValue]; params: {'currency': ParamValue} }
+    'business.business_swaps.quote': { paramsTuple?: []; params?: {} }
+    'business.business_swaps.store': { paramsTuple?: []; params?: {} }
     'business.business_transactions.index': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.index': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.store': { paramsTuple?: []; params?: {} }
@@ -212,6 +221,8 @@ export type ScannedRoutes = {
     'business.dashboard.business_wallet.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_wallet.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_wallet.show': { paramsTuple: [ParamValue]; params: {'currency': ParamValue} }
+    'business.dashboard.business_swaps.quote': { paramsTuple?: []; params?: {} }
+    'business.dashboard.business_swaps.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_transactions.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.store': { paramsTuple?: []; params?: {} }
@@ -241,6 +252,7 @@ export type ScannedRoutes = {
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
+    'exchange_rates.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'wallets.wallets.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -296,6 +308,8 @@ export type ScannedRoutes = {
     'admin.admin_ledger_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.currencies.admin_index': { paramsTuple?: []; params?: {} }
     'admin.currencies.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exchange_rates.admin_index': { paramsTuple?: []; params?: {} }
+    'admin.exchange_rates.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_accounting.balance_sheet': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.revenue': { paramsTuple?: []; params?: {} }
     'business.business_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -345,6 +359,7 @@ export type ScannedRoutes = {
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
+    'exchange_rates.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'wallets.wallets.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -400,6 +415,8 @@ export type ScannedRoutes = {
     'admin.admin_ledger_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.currencies.admin_index': { paramsTuple?: []; params?: {} }
     'admin.currencies.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exchange_rates.admin_index': { paramsTuple?: []; params?: {} }
+    'admin.exchange_rates.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_accounting.balance_sheet': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.revenue': { paramsTuple?: []; params?: {} }
     'business.business_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -451,6 +468,8 @@ export type ScannedRoutes = {
     'profile.pin_reset.pin.request_reset': { paramsTuple?: []; params?: {} }
     'profile.pin_reset.pin.confirm_reset': { paramsTuple?: []; params?: {} }
     'notifications.notifications.mark_all_read': { paramsTuple?: []; params?: {} }
+    'swaps.swaps.quote': { paramsTuple?: []; params?: {} }
+    'swaps.swaps.store': { paramsTuple?: []; params?: {} }
     'wallets.wallets.store': { paramsTuple?: []; params?: {} }
     'transfers.p2p.p_2_p_transfers.create': { paramsTuple?: []; params?: {} }
     'cash_in.cash_in.store': { paramsTuple?: []; params?: {} }
@@ -509,10 +528,13 @@ export type ScannedRoutes = {
     'admin.admin_cards.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_cards.unfreeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_cards.terminate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exchange_rates.admin_refresh': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.reconcile': { paramsTuple?: []; params?: {} }
     'business.business_deposits.store': { paramsTuple?: []; params?: {} }
     'business.business_payouts.store': { paramsTuple?: []; params?: {} }
     'business.business_wallet.store': { paramsTuple?: []; params?: {} }
+    'business.business_swaps.quote': { paramsTuple?: []; params?: {} }
+    'business.business_swaps.store': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.store': { paramsTuple?: []; params?: {} }
     'business.business_plan.subscribe': { paramsTuple?: []; params?: {} }
     'business.business_cards.store': { paramsTuple?: []; params?: {} }
@@ -539,6 +561,8 @@ export type ScannedRoutes = {
     'business.dashboard.business_deposits.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_payouts.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_wallet.store': { paramsTuple?: []; params?: {} }
+    'business.dashboard.business_swaps.quote': { paramsTuple?: []; params?: {} }
+    'business.dashboard.business_swaps.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_api_keys.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_cards.store': { paramsTuple?: []; params?: {} }
@@ -554,6 +578,7 @@ export type ScannedRoutes = {
     'card_products.card_products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.currencies.admin_update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exchange_rates.admin_update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_cards.topup': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_cards.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_cards.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

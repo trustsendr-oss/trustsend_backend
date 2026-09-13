@@ -26,6 +26,7 @@ const RESOURCE_PATH: Record<string, string> = {
   cards: '/admin/cards',
   ledger_accounts: '/admin/ledger-accounts',
   currencies: '/admin/currencies',
+  exchange_rates: '/admin/exchange-rates',
 }
 
 function pathFor(resource: string) {
@@ -243,6 +244,9 @@ export const dataProvider: DataProvider = {
  * buttons via useDataProvider() rather than through update()/create().
  */
 export const adminActions = {
+  refreshExchangeRates: () =>
+    apiFetch<{ updated: number }>('/admin/exchange-rates/refresh', { method: 'POST' }),
+
   agentApprove: (id: number | string) => apiFetch(`/agents/${id}/approve`, { method: 'POST' }),
   agentActivate: (id: number | string) => apiFetch(`/agents/${id}/activate`, { method: 'POST' }),
   agentSuspend: (id: number | string, reason: string) =>

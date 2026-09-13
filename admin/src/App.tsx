@@ -18,6 +18,7 @@ import {
 } from './resources/cardProducts'
 import { PlanList, PlanShow, PlanCreate, PlanEdit } from './resources/plans'
 import { CurrencyList, CurrencyEdit } from './resources/currencies'
+import { ExchangeRateList, ExchangeRateEdit } from './resources/exchangeRates'
 import { KycList, KycShow } from './resources/kyc'
 import { DisputeList, DisputeShow } from './resources/disputes'
 import {
@@ -136,6 +137,14 @@ export default function App() {
         edit={CurrencyEdit}
         icon={resourceIcons.currencies}
         recordRepresentation="code"
+      />
+      <Resource
+        name="exchange_rates"
+        list={ExchangeRateList}
+        edit={ExchangeRateEdit}
+        icon={resourceIcons.exchange_rates}
+        options={{ label: 'Exchange rates' }}
+        recordRepresentation="currency_code"
       />
       <Resource
         name="internal_users"

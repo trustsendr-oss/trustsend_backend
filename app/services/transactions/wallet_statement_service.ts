@@ -75,7 +75,7 @@ export type StatementRow = {
  * `\.description =` under app/services.
  */
 const GENERATED_DESCRIPTION =
-  '^(P2P transfer from wallet|Mobile money (deposit|payout)|Cash-in|Cash-out|Card (creation|top-up)|Withdrawal from card|Agent [0-9]+ converted|Subscription to plan|Monthly maintenance fee|Reversal:)'
+  '^(P2P transfer from wallet|Mobile money (deposit|payout)|Cash-in|Cash-out|Card (creation|top-up)|Withdrawal from card|Agent [0-9]+ converted|Subscription to plan|Monthly maintenance fee|Reversal:|Currency swap )'
 
 export class WalletStatementService {
   /**

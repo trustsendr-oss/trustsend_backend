@@ -108,6 +108,24 @@ const routes = {
     tokens: [{"old":"/api/v1/currencies","type":0,"val":"api","end":""},{"old":"/api/v1/currencies","type":0,"val":"v1","end":""},{"old":"/api/v1/currencies","type":0,"val":"currencies","end":""}],
     types: placeholder as Registry['currencies.index']['types'],
   },
+  'exchange_rates.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/exchange-rates',
+    tokens: [{"old":"/api/v1/exchange-rates","type":0,"val":"api","end":""},{"old":"/api/v1/exchange-rates","type":0,"val":"v1","end":""},{"old":"/api/v1/exchange-rates","type":0,"val":"exchange-rates","end":""}],
+    types: placeholder as Registry['exchange_rates.index']['types'],
+  },
+  'swaps.swaps.quote': {
+    methods: ["POST"],
+    pattern: '/api/v1/swaps/quote',
+    tokens: [{"old":"/api/v1/swaps/quote","type":0,"val":"api","end":""},{"old":"/api/v1/swaps/quote","type":0,"val":"v1","end":""},{"old":"/api/v1/swaps/quote","type":0,"val":"swaps","end":""},{"old":"/api/v1/swaps/quote","type":0,"val":"quote","end":""}],
+    types: placeholder as Registry['swaps.swaps.quote']['types'],
+  },
+  'swaps.swaps.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/swaps',
+    tokens: [{"old":"/api/v1/swaps","type":0,"val":"api","end":""},{"old":"/api/v1/swaps","type":0,"val":"v1","end":""},{"old":"/api/v1/swaps","type":0,"val":"swaps","end":""}],
+    types: placeholder as Registry['swaps.swaps.store']['types'],
+  },
   'wallets.wallets.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/wallets',
@@ -852,6 +870,30 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/currencies/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/currencies/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/currencies/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/currencies/:id","type":0,"val":"currencies","end":""},{"old":"/api/v1/admin/currencies/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['admin.currencies.admin_update']['types'],
   },
+  'admin.exchange_rates.admin_index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/exchange-rates',
+    tokens: [{"old":"/api/v1/admin/exchange-rates","type":0,"val":"api","end":""},{"old":"/api/v1/admin/exchange-rates","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/exchange-rates","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/exchange-rates","type":0,"val":"exchange-rates","end":""}],
+    types: placeholder as Registry['admin.exchange_rates.admin_index']['types'],
+  },
+  'admin.exchange_rates.admin_refresh': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/exchange-rates/refresh',
+    tokens: [{"old":"/api/v1/admin/exchange-rates/refresh","type":0,"val":"api","end":""},{"old":"/api/v1/admin/exchange-rates/refresh","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/exchange-rates/refresh","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/exchange-rates/refresh","type":0,"val":"exchange-rates","end":""},{"old":"/api/v1/admin/exchange-rates/refresh","type":0,"val":"refresh","end":""}],
+    types: placeholder as Registry['admin.exchange_rates.admin_refresh']['types'],
+  },
+  'admin.exchange_rates.admin_show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/exchange-rates/:id',
+    tokens: [{"old":"/api/v1/admin/exchange-rates/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/exchange-rates/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/exchange-rates/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/exchange-rates/:id","type":0,"val":"exchange-rates","end":""},{"old":"/api/v1/admin/exchange-rates/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.exchange_rates.admin_show']['types'],
+  },
+  'admin.exchange_rates.admin_update': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/admin/exchange-rates/:id',
+    tokens: [{"old":"/api/v1/admin/exchange-rates/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/exchange-rates/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/exchange-rates/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/exchange-rates/:id","type":0,"val":"exchange-rates","end":""},{"old":"/api/v1/admin/exchange-rates/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.exchange_rates.admin_update']['types'],
+  },
   'admin.admin_accounting.balance_sheet': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/admin/accounting/balance-sheet',
@@ -923,6 +965,18 @@ const routes = {
     pattern: '/api/v1/business/wallet/:currency',
     tokens: [{"old":"/api/v1/business/wallet/:currency","type":0,"val":"api","end":""},{"old":"/api/v1/business/wallet/:currency","type":0,"val":"v1","end":""},{"old":"/api/v1/business/wallet/:currency","type":0,"val":"business","end":""},{"old":"/api/v1/business/wallet/:currency","type":0,"val":"wallet","end":""},{"old":"/api/v1/business/wallet/:currency","type":1,"val":"currency","end":""}],
     types: placeholder as Registry['business.business_wallet.show']['types'],
+  },
+  'business.business_swaps.quote': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/swaps/quote',
+    tokens: [{"old":"/api/v1/business/swaps/quote","type":0,"val":"api","end":""},{"old":"/api/v1/business/swaps/quote","type":0,"val":"v1","end":""},{"old":"/api/v1/business/swaps/quote","type":0,"val":"business","end":""},{"old":"/api/v1/business/swaps/quote","type":0,"val":"swaps","end":""},{"old":"/api/v1/business/swaps/quote","type":0,"val":"quote","end":""}],
+    types: placeholder as Registry['business.business_swaps.quote']['types'],
+  },
+  'business.business_swaps.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/swaps',
+    tokens: [{"old":"/api/v1/business/swaps","type":0,"val":"api","end":""},{"old":"/api/v1/business/swaps","type":0,"val":"v1","end":""},{"old":"/api/v1/business/swaps","type":0,"val":"business","end":""},{"old":"/api/v1/business/swaps","type":0,"val":"swaps","end":""}],
+    types: placeholder as Registry['business.business_swaps.store']['types'],
   },
   'business.business_transactions.index': {
     methods: ["GET","HEAD"],
@@ -1253,6 +1307,18 @@ const routes = {
     pattern: '/api/v1/business/dashboard/wallet/:currency',
     tokens: [{"old":"/api/v1/business/dashboard/wallet/:currency","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/wallet/:currency","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/wallet/:currency","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/wallet/:currency","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/wallet/:currency","type":0,"val":"wallet","end":""},{"old":"/api/v1/business/dashboard/wallet/:currency","type":1,"val":"currency","end":""}],
     types: placeholder as Registry['business.dashboard.business_wallet.show']['types'],
+  },
+  'business.dashboard.business_swaps.quote': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/dashboard/swaps/quote',
+    tokens: [{"old":"/api/v1/business/dashboard/swaps/quote","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/swaps/quote","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/swaps/quote","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/swaps/quote","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/swaps/quote","type":0,"val":"swaps","end":""},{"old":"/api/v1/business/dashboard/swaps/quote","type":0,"val":"quote","end":""}],
+    types: placeholder as Registry['business.dashboard.business_swaps.quote']['types'],
+  },
+  'business.dashboard.business_swaps.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/dashboard/swaps',
+    tokens: [{"old":"/api/v1/business/dashboard/swaps","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/swaps","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/swaps","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/swaps","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/swaps","type":0,"val":"swaps","end":""}],
+    types: placeholder as Registry['business.dashboard.business_swaps.store']['types'],
   },
   'business.dashboard.business_transactions.index': {
     methods: ["GET","HEAD"],

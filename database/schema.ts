@@ -518,6 +518,27 @@ export class DisputeSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class ExchangeRateSchema extends BaseModel {
+  static $columns = ['createdAt', 'currencyCode', 'manualRate', 'marginBps', 'marketRate', 'marketSource', 'marketUpdatedAt', 'updatedAt'] as const
+  $columns = ExchangeRateSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare currencyCode: string
+  @column()
+  declare manualRate: string | null
+  @column()
+  declare marginBps: number
+  @column()
+  declare marketRate: string | null
+  @column()
+  declare marketSource: string | null
+  @column.dateTime()
+  declare marketUpdatedAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
 export class FeeScheduleSchema extends BaseModel {
   static $columns = ['createdAt', 'feePercent', 'id', 'operationType', 'updatedAt', 'updatedBy'] as const
   $columns = FeeScheduleSchema.$columns
@@ -533,6 +554,45 @@ export class FeeScheduleSchema extends BaseModel {
   declare updatedAt: DateTime
   @column()
   declare updatedBy: number | null
+}
+
+export class FxQuoteSchema extends BaseModel {
+  static $columns = ['amountIn', 'amountOut', 'createdAt', 'expiresAt', 'fee', 'fromCurrency', 'fromWalletId', 'id', 'ledgerTransactionId', 'marginBps', 'midRate', 'ownerId', 'ownerType', 'rate', 'toCurrency', 'toWalletId', 'usedAt'] as const
+  $columns = FxQuoteSchema.$columns
+  @column()
+  declare amountIn: bigint | number
+  @column()
+  declare amountOut: bigint | number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column()
+  declare fee: bigint | number
+  @column()
+  declare fromCurrency: string
+  @column()
+  declare fromWalletId: number
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare ledgerTransactionId: string | null
+  @column()
+  declare marginBps: number
+  @column()
+  declare midRate: string
+  @column()
+  declare ownerId: number
+  @column()
+  declare ownerType: string
+  @column()
+  declare rate: string
+  @column()
+  declare toCurrency: string
+  @column()
+  declare toWalletId: number
+  @column.dateTime()
+  declare usedAt: DateTime | null
 }
 
 export class IdempotencyKeySchema extends BaseModel {

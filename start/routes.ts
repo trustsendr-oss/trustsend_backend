@@ -58,6 +58,9 @@ const BusinessNotificationsController = () =>
 const NotificationsController = () => import('#controllers/notifications_controller')
 const AssetsController = () => import('#controllers/assets_controller')
 const CurrenciesController = () => import('#controllers/currencies_controller')
+const ExchangeRatesController = () => import('#controllers/fx/exchange_rates_controller')
+const SwapsController = () => import('#controllers/fx/swaps_controller')
+const BusinessSwapsController = () => import('#controllers/business/swaps_controller')
 const AdminTransactionsController = () => import('#controllers/admin/transactions_controller')
 const AdminAuditLogsController = () => import('#controllers/admin/audit_logs_controller')
 const AdminCardsController = () => import('#controllers/admin/cards_controller')
@@ -154,6 +157,18 @@ router
 
     // Currencies a wallet can be opened in — public reference data (no balances, no user data)
     router.get('currencies', [CurrenciesController, 'index']).as('currencies.index')
+    // Public mid-market rates (no margin) — see exchange_rate_service.ts
+    router.get('exchange-rates', [ExchangeRatesController, 'index']).as('exchange_rates.index')
+
+    // Currency swaps between two of the user's own wallets — see swap_service.ts
+    router
+      .group(() => {
+        router.post('quote', [SwapsController, 'quote'])
+        router.post('', [SwapsController, 'store'])
+      })
+      .prefix('swaps')
+      .as('swaps')
+      .use(middleware.auth())
 
     // Wallets
     router
@@ -509,6 +524,11 @@ router
         router.get('currencies/:id', [CurrenciesController, 'adminShow'])
         router.patch('currencies/:id', [CurrenciesController, 'adminUpdate'])
 
+        router.get('exchange-rates', [ExchangeRatesController, 'adminIndex'])
+        router.post('exchange-rates/refresh', [ExchangeRatesController, 'adminRefresh'])
+        router.get('exchange-rates/:id', [ExchangeRatesController, 'adminShow'])
+        router.patch('exchange-rates/:id', [ExchangeRatesController, 'adminUpdate'])
+
         router.get('accounting/balance-sheet', [AdminAccountingController, 'balanceSheet'])
         router.get('accounting/revenue', [AdminAccountingController, 'revenue'])
         router.post('accounting/reconcile', [AdminAccountingController, 'reconcile'])
@@ -545,6 +565,12 @@ router
           .use(middleware.businessPlan('wallet.multi_currency'))
         router.get('wallet', [BusinessWalletController, 'index'])
         router.get('wallet/:currency', [BusinessWalletController, 'show'])
+        router
+          .post('swaps/quote', [BusinessSwapsController, 'quote'])
+          .use(middleware.businessPlan('wallet.multi_currency'))
+        router
+          .post('swaps', [BusinessSwapsController, 'store'])
+          .use(middleware.businessPlan('wallet.multi_currency'))
         router.get('transactions', [BusinessTransactionsController, 'index'])
         router
           .get('webhooks', [BusinessWebhooksController, 'index'])
@@ -754,6 +780,12 @@ router
           .use(middleware.businessPlan('wallet.multi_currency'))
         router.get('wallet', [BusinessWalletController, 'index'])
         router.get('wallet/:currency', [BusinessWalletController, 'show'])
+        router
+          .post('swaps/quote', [BusinessSwapsController, 'quote'])
+          .use(middleware.businessPlan('wallet.multi_currency'))
+        router
+          .post('swaps', [BusinessSwapsController, 'store'])
+          .use(middleware.businessPlan('wallet.multi_currency'))
         router.get('transactions', [BusinessTransactionsController, 'index'])
         router
           .get('webhooks', [BusinessWebhooksController, 'index'])

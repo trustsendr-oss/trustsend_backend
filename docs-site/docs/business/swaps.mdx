@@ -1,0 +1,141 @@
+---
+sidebar_position: 2
+title: Échange de devises
+---
+
+# Échange de devises
+
+Un échange convertit une partie du solde d'un de vos wallets vers un autre de vos wallets, dans une autre devise. Il se fait en deux appels : vous demandez d'abord un **devis**, qui bloque le taux pendant 60 secondes, puis vous **exécutez** ce devis.
+
+Les deux wallets doivent déjà exister (voir [Wallets](./wallet)). Les montants sont exprimés dans la plus petite unité de la devise, sous forme de chaîne de caractères.
+
+:::note
+Nécessite la fonctionnalité `wallet.multi_currency` dans votre offre.
+:::
+
+## Taux de change
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/exchange-rates?base=USD'}</span>
+</div>
+
+Renvoie les taux du marché international pour les devises disponibles, sans marge. Cet endpoint est public.
+
+```json
+{
+  "base": "USD",
+  "data": [
+    { "currency_code": "CDF", "rate": "2304.931274", "source": "market", "updated_at": "2026-09-13T08:00:00.000+00:00" }
+  ],
+  "attribution": { "name": "ExchangeRate-API", "url": "https://www.exchangerate-api.com" }
+}
+```
+
+`source` vaut `market` pour un taux du marché international, ou `manual` lorsque TrustSend a fixé le taux de cette devise.
+
+## Demander un devis
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/swaps/quote'}</span>
+</div>
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `from_currency` | string | Oui | Devise du wallet débité, par exemple `USD` |
+| `to_currency` | string | Oui | Devise du wallet crédité, par exemple `CDF` |
+| `amount` | string | Oui | Montant à convertir, dans la plus petite unité de `from_currency` |
+
+```bash
+curl -X POST https://api.trustsend.africa/api/v1/business/swaps/quote \
+  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "from_currency": "USD", "to_currency": "CDF", "amount": "1000" }'
+```
+
+**Réponse `201`**
+
+```json
+{
+  "data": {
+    "quote_id": "0b8d3f3e-5d0a-4c55-9d67-3f1f8f0b2a41",
+    "from_currency": "USD",
+    "to_currency": "CDF",
+    "amount_in": "1000",
+    "amount_out": "2281881",
+    "fee": "23050",
+    "fee_currency": "CDF",
+    "rate": "2281.88196126",
+    "mid_rate": "2304.931274",
+    "margin_bps": 100,
+    "expires_at": "2026-09-13T10:01:00.000+00:00"
+  }
+}
+```
+
+| Champ | Description |
+|---|---|
+| `amount_out` | Montant crédité sur le wallet `to_currency` |
+| `rate` | Taux appliqué, marge incluse |
+| `mid_rate` | Taux du marché, sans marge |
+| `fee` | Écart entre la conversion au taux du marché et `amount_out`, dans `fee_currency` |
+| `margin_bps` | Marge appliquée, en points de base (100 = 1 %) |
+| `expires_at` | Au-delà de cette date, le devis ne peut plus être exécuté |
+
+Pour une devise sans décimales, comme `XAF`, `amount_out` est arrondi à l'unité inférieure.
+
+## Exécuter un échange
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/swaps'}</span>
+</div>
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `quote_id` | string | Oui | Identifiant renvoyé par le devis |
+| `idempotency_key` | string | Oui | UUID unique par échange : rejouer la requête avec la même clé renvoie le même résultat |
+
+```bash
+curl -X POST https://api.trustsend.africa/api/v1/business/swaps \
+  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "quote_id": "0b8d3f3e-5d0a-4c55-9d67-3f1f8f0b2a41", "idempotency_key": "6f1c1f0e-2b1f-4a53-9a0e-8f3c0a1d9b77" }'
+```
+
+**Réponse `201`**
+
+```json
+{
+  "data": {
+    "transaction_id": "TXN-8KD2M4QP",
+    "transaction_uuid": "c1b7e2f4-5a6d-4e8f-9a0b-1c2d3e4f5a6b",
+    "status": "completed",
+    "quote_id": "0b8d3f3e-5d0a-4c55-9d67-3f1f8f0b2a41",
+    "from_currency": "USD",
+    "to_currency": "CDF",
+    "amount_in": "1000",
+    "amount_out": "2281881",
+    "fee": "23050",
+    "fee_currency": "CDF",
+    "rate": "2281.88196126",
+    "mid_rate": "2304.931274",
+    "margin_bps": 100,
+    "created_at": "2026-09-13T10:00:20.000+00:00"
+  }
+}
+```
+
+L'échange est immédiat : les deux soldes sont mis à jour dans la même opération, qui apparaît ensuite dans vos [transactions](./transactions) avec le type `fx_swap`.
+
+## Erreurs
+
+| Statut | Code | Cause |
+|---|---|---|
+| `402` | | Solde insuffisant sur le wallet débité |
+| `404` | | Wallet introuvable pour l'une des devises, ou devis inconnu |
+| `409` | `QUOTE_USED` | Le devis a déjà été exécuté |
+| `410` | `QUOTE_EXPIRED` | Le devis a expiré : demandez-en un nouveau |
+| `422` | | Devises identiques, devise non disponible ou montant trop faible |
+| `503` | `RATE_UNAVAILABLE` | Aucun taux utilisable pour l'une des devises pour le moment |

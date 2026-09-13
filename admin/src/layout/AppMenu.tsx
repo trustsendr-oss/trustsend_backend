@@ -15,6 +15,7 @@ import CardsIcon from '@mui/icons-material/CreditCardOutlined'
 import LedgerAccountsIcon from '@mui/icons-material/AccountBalanceOutlined'
 import AccountingIcon from '@mui/icons-material/SummarizeOutlined'
 import CurrenciesIcon from '@mui/icons-material/CurrencyExchangeOutlined'
+import ExchangeRatesIcon from '@mui/icons-material/TrendingUpOutlined'
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -45,6 +46,7 @@ export function AppMenu() {
       <Menu.ResourceItem name="transactions" />
       <Menu.ResourceItem name="cards" />
       <Menu.ResourceItem name="ledger_accounts" />
+      <Menu.ResourceItem name="exchange_rates" />
       <Menu.Item to="/accounting" primaryText="Accounting" leftIcon={<AccountingIcon />} />
 
       <SectionLabel>Platform</SectionLabel>
@@ -71,4 +73,5 @@ export const resourceIcons = {
   cards: CardsIcon,
   ledger_accounts: LedgerAccountsIcon,
   currencies: CurrenciesIcon,
+  exchange_rates: ExchangeRatesIcon,
 }

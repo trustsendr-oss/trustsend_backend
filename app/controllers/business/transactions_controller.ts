@@ -25,6 +25,7 @@ export default class BusinessTransactionsController {
         'mobile_money_payout',
         'business_plan_subscription',
         'business_plan_maintenance_fee',
+        'fx_swap',
       ])
       .orderBy('created_at', 'desc')
       .paginate(page, limit)

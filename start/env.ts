@@ -67,6 +67,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   CARD_ISSUANCE_FEE_PERCENT: Env.schema.string.optional(),
   CARD_TOPUP_FEE_PERCENT: Env.schema.string.optional(),
 
+  // Exchange rates for currency swaps (defaults to ExchangeRate-API open access, USD base)
+  FX_RATES_URL: Env.schema.string.optional(),
+
   // Mail (Namecheap Private Email via SMTP — see config/mail.ts). Required, not optional: like
   // ENCRYPTION_KEY above, fail fast at boot if these are missing rather than only discovering it
   // when the first PIN-reset/notification email silently fails to send in production.
