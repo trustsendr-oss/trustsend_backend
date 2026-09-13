@@ -46,7 +46,12 @@ export class AuthCookieService {
     })
 
     const csrfToken = randomUUID()
+    // encode: false — Adonis would otherwise JSON+base64 the value, so the raw cookie would no
+    // longer equal the csrf_token returned in the login body. Frontends served from another
+    // subdomain cannot read this cookie and send that body value back as X-CSRF-Token, which
+    // cookie_to_bearer_middleware.ts compares against the raw cookie byte-for-byte.
     ctx.response.plainCookie(csrfCookieName, csrfToken, {
+      encode: false,
       httpOnly: false,
       secure: this.secure,
       sameSite: 'lax',
