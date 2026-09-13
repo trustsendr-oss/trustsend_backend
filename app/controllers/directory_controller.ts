@@ -3,6 +3,7 @@ import Agent from '#models/agent'
 import User from '#models/user'
 import Wallet from '#models/wallet'
 import vine from '@vinejs/vine'
+import { CurrencyService } from '#services/money/currency_service'
 
 /**
  * Directory lookups — resolving a code someone gave you into a payee.
@@ -73,6 +74,8 @@ export default class DirectoryController {
       })
     }
 
+    const walletCurrency = (await CurrencyService.serializeMany([wallet.currencyCode])).get(wallet.currencyCode)!
+
     return response.ok({
       data: {
         user: {
@@ -84,6 +87,8 @@ export default class DirectoryController {
         wallet: {
           id: wallet.id,
           currency_code: wallet.currencyCode,
+          logo_url: walletCurrency.logo_url,
+          currency: walletCurrency,
         },
       },
     })

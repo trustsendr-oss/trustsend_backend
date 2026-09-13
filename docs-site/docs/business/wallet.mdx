@@ -29,6 +29,7 @@ curl https://api.trustsend.africa/api/v1/currencies
   "data": [
     {
       "code": "CDF",
+      "numeric_code": "976",
       "name": "Congolese franc",
       "symbol": "FC",
       "decimals": 2,
@@ -43,6 +44,7 @@ curl https://api.trustsend.africa/api/v1/currencies
 | Champ | Description |
 |---|---|
 | `code` | Code ISO 4217 à 3 lettres |
+| `numeric_code` | Code numérique ISO 4217, par exemple `976` pour CDF |
 | `symbol` | Symbole usuel, `null` s'il n'en existe pas |
 | `decimals` | Nombre de décimales ISO 4217 de la devise, à utiliser pour l'affichage |
 | `country_code` | Pays émetteur (ISO 3166-1 alpha-2), `null` pour une devise partagée par plusieurs pays comme `XAF` ou `XOF` |
@@ -76,6 +78,7 @@ curl -X POST https://api.trustsend.africa/api/v1/business/wallet \
     "logo_url": "https://api.trustsend.africa/assets/currencies/CDF.svg",
     "currency": {
       "code": "CDF",
+      "numeric_code": "976",
       "name": "Congolese franc",
       "symbol": "FC",
       "decimals": 2,
@@ -117,6 +120,7 @@ Nécessite la fonctionnalité `wallet.multi_currency` dans votre offre.
       "logo_url": "https://api.trustsend.africa/assets/currencies/USD.svg",
       "currency": {
         "code": "USD",
+        "numeric_code": "840",
         "name": "United States dollar",
         "symbol": "$",
         "decimals": 2,
@@ -154,7 +158,7 @@ Nécessite la fonctionnalité `wallet.multi_currency` dans votre offre.
     "id": 30,
     "currency_code": "USD",
     "logo_url": "https://api.trustsend.africa/assets/currencies/USD.svg",
-    "currency": { "code": "USD", "name": "United States dollar", "symbol": "$", "decimals": 2, "country_code": "US", "logo_url": "https://api.trustsend.africa/assets/currencies/USD.svg", "is_active": true },
+    "currency": { "code": "USD", "numeric_code": "840", "name": "United States dollar", "symbol": "$", "decimals": 2, "country_code": "US", "logo_url": "https://api.trustsend.africa/assets/currencies/USD.svg", "is_active": true },
     "balance": "11000",
     "status": "active",
     "per_transaction_limit": null,

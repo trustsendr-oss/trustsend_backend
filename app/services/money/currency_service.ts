@@ -18,6 +18,7 @@ export class CurrencyNotFoundException extends Error {
 
 export interface SerializedCurrency {
   code: string
+  numeric_code: string | null
   name: string
   symbol: string | null
   decimals: number
@@ -51,6 +52,7 @@ export class CurrencyService {
   static serialize(currency: Currency): SerializedCurrency {
     return {
       code: currency.code,
+      numeric_code: currency.numericCode,
       name: currency.name,
       symbol: currency.symbol,
       decimals: currency.decimals,
@@ -65,6 +67,7 @@ export class CurrencyService {
     const normalized = this.normalize(code)
     return {
       code: normalized,
+      numeric_code: null,
       name: normalized,
       symbol: null,
       decimals: 2,

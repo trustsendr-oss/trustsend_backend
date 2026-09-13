@@ -7,6 +7,7 @@ import {
   WalletStatusException,
 } from '#services/users/user_admin_service'
 import vine from '@vinejs/vine'
+import { CurrencyService } from '#services/money/currency_service'
 
 const freezeWalletValidator = vine.create({ reason: vine.string().minLength(10).maxLength(255) })
 
@@ -40,6 +41,7 @@ export default class UsersController {
     try {
       const user = await UserAdminService.findByIdOrFail(Number(params.id))
       const wallets = await UserAdminService.listWallets(user.id)
+      const currencies = await CurrencyService.serializeMany(wallets.map((w) => w.currencyCode))
       const latestKyc = await KycVerification.query()
         .where('subject_type', 'user')
         .where('subject_id', user.id)
@@ -58,6 +60,8 @@ export default class UsersController {
           wallets: wallets.map((w) => ({
             id: w.id,
             currency_code: w.currencyCode,
+            logo_url: currencies.get(w.currencyCode)!.logo_url,
+            currency: currencies.get(w.currencyCode)!,
             balance: w.balanceCache.toString(),
             status: w.status,
           })),

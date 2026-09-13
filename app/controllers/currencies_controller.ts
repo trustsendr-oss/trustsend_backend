@@ -22,7 +22,6 @@ function adminRecord(currency: Currency) {
   return {
     id: currency.code,
     ...CurrencyService.serialize(currency),
-    numeric_code: currency.numericCode,
     custom_logo_url: currency.logoUrl,
     sort_order: currency.sortOrder,
     created_at: currency.createdAt,
