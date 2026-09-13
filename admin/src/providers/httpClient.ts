@@ -1,5 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3330/api/v1'
 const USER_KEY = 'tumaplus_admin_user'
+const CSRF_KEY = 'tumaplus_admin_csrf'
 
 /**
  * The access token itself lives in an httpOnly cookie the backend sets on login (see
@@ -13,6 +14,16 @@ export function setSession(user: unknown) {
 
 export function clearSession() {
   localStorage.removeItem(USER_KEY)
+  localStorage.removeItem(CSRF_KEY)
+}
+
+/** Keeps the CSRF token the login / two-factor responses return in their body. */
+export function setCsrfToken(token: string | null | undefined) {
+  if (token) {
+    localStorage.setItem(CSRF_KEY, token)
+  } else {
+    localStorage.removeItem(CSRF_KEY)
+  }
 }
 
 export function getStoredUser(): { id: number; email: string; full_name: string } | null {
@@ -29,6 +40,11 @@ export function getStoredUser(): { id: number; email: string; full_name: string 
  * Adonis's own cookie decoding to it either, since a browser reading `document.cookie` couldn't
  * replicate that anyway. Both sides must treat the value as an opaque string. */
 function getCsrfToken(): string | null {
+  // The cookie belongs to the API host (api.trustsend.africa) — a panel served from another
+  // subdomain can never read it, so the token saved from the login response is the primary
+  // source. The cookie is only readable when both run on the same host (local development).
+  const stored = localStorage.getItem(CSRF_KEY)
+  if (stored) return stored
   const match = document.cookie.match(/(?:^|;\s*)internal_csrf_token=([^;]+)/)
   return match ? match[1] : null
 }

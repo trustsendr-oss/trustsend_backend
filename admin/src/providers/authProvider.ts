@@ -1,5 +1,5 @@
 import type { AuthProvider } from 'react-admin'
-import { ApiError, apiFetch, clearSession, getStoredUser, setSession } from './httpClient'
+import { ApiError, apiFetch, clearSession, getStoredUser, setCsrfToken, setSession } from './httpClient'
 
 interface SessionUser {
   id: number
@@ -56,6 +56,8 @@ export const internalAuth = {
       body: JSON.stringify({ email, password }),
     })
 
+    setCsrfToken(result.csrf_token)
+
     if (!('user' in result)) {
       return { status: 'mfa_required' }
     }
@@ -73,6 +75,8 @@ export const internalAuth = {
       method: 'POST',
       body: JSON.stringify({ code }),
     })
+    // Full session = new cookies, new CSRF token
+    setCsrfToken(result.csrf_token)
     setSession(result.user)
     return { mustChangePassword: result.must_change_password }
   },
