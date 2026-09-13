@@ -333,10 +333,13 @@ export const adminActions = {
       method: 'POST',
       body: JSON.stringify({ amount }),
     }),
-  cardTransactions: (id: number | string) =>
-    apiFetch<
-      Array<{ transactionId: string; amount: string; description: string; createdAt: string }>
-    >(`/admin/cards/${id}/transactions`),
+  // L'API renvoie une page du fournisseur ({ transactions, total, page, pageSize }), pas un tableau :
+  // on n'expose que la liste, en acceptant aussi un tableau nu par sécurité.
+  cardTransactions: async (id: number | string) => {
+    type Tx = { transactionId: string; amount: string; description: string; createdAt: string }
+    const result = await apiFetch<Tx[] | { transactions?: Tx[] }>(`/admin/cards/${id}/transactions`)
+    return Array.isArray(result) ? result : (result?.transactions ?? [])
+  },
 
   balanceSheet: (currency: string) =>
     apiFetch<{
