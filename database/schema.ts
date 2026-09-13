@@ -561,7 +561,7 @@ export class InternalAccessTokenSchema extends BaseModel {
 }
 
 export class InternalUserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'loginAttempts', 'loginLockedUntil', 'mfaEnabled', 'mfaSecretEncrypted', 'mustChangePassword', 'password', 'status', 'updatedAt'] as const
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'loginAttempts', 'loginLockedUntil', 'mfaEnabled', 'mfaLastUsedStep', 'mfaSecretEncrypted', 'mustChangePassword', 'password', 'status', 'updatedAt'] as const
   $columns = InternalUserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -577,6 +577,8 @@ export class InternalUserSchema extends BaseModel {
   declare loginLockedUntil: DateTime | null
   @column()
   declare mfaEnabled: boolean
+  @column()
+  declare mfaLastUsedStep: number | null
   @column()
   declare mfaSecretEncrypted: string | null
   @column()

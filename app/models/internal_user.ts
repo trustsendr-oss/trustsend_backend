@@ -9,7 +9,7 @@ import { type AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_
  * InternalUser — Staff member (support, compliance, finance, admin)
  * Uses the same access token system as regular users
  */
-export default class InternalUser extends compose(BaseModel, withAuthFinder(hash)) {
+export default class InternalUser extends compose(BaseModel, withAuthFinder(() => hash.use())) {
   static table = 'internal_users'
 
   // Dedicated table — the default (auth_access_tokens) has a hard FK to users(id), which is

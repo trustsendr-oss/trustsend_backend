@@ -1,8 +1,6 @@
 import { randomBytes, randomUUID } from 'node:crypto'
 import { BaseCommand, args, flags } from '@adonisjs/core/ace'
 import type { CommandOptions } from '@adonisjs/core/types/ace'
-import InternalUser from '#models/internal_user'
-import { AuditLoggerService } from '#services/audit/audit_logger_service'
 
 /**
  * Bootstraps a staff account from the server itself — the only way to create the very first
@@ -25,6 +23,11 @@ export default class CreateInternalAdmin extends BaseCommand {
   declare name: string
 
   async run() {
+    // Imported lazily: ace loads command files before the application boots, and the model's
+    // withAuthFinder(hash) mixin needs the hash service, which only exists once the app has booted.
+    const { default: InternalUser } = await import('#models/internal_user')
+    const { AuditLoggerService } = await import('#services/audit/audit_logger_service')
+
     const email = this.email.trim().toLowerCase()
     const fullName = this.name.trim()
 
