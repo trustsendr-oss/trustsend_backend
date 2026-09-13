@@ -14,6 +14,7 @@ import AuditLogsIcon from '@mui/icons-material/HistoryOutlined'
 import CardsIcon from '@mui/icons-material/CreditCardOutlined'
 import LedgerAccountsIcon from '@mui/icons-material/AccountBalanceOutlined'
 import AccountingIcon from '@mui/icons-material/SummarizeOutlined'
+import CurrenciesIcon from '@mui/icons-material/CurrencyExchangeOutlined'
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -49,6 +50,7 @@ export function AppMenu() {
       <SectionLabel>Platform</SectionLabel>
       <Menu.ResourceItem name="card_products" />
       <Menu.ResourceItem name="plans" />
+      <Menu.ResourceItem name="currencies" />
       <Menu.ResourceItem name="internal_users" />
     </Menu>
   )
@@ -68,4 +70,5 @@ export const resourceIcons = {
   audit_logs: AuditLogsIcon,
   cards: CardsIcon,
   ledger_accounts: LedgerAccountsIcon,
+  currencies: CurrenciesIcon,
 }

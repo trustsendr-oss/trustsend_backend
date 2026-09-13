@@ -111,7 +111,10 @@ export default defineConfig({
   | the production build.
   |
   */
-  metaFiles: [],
+  metaFiles: [
+    // Wallet logos read from disk at runtime (assets_controller.ts, currency_logo_service.ts)
+    { pattern: 'resources/flags/**', reloadServer: false },
+  ],
 
   hooks: {
     init: [

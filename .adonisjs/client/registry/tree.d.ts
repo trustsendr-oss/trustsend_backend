@@ -4,6 +4,7 @@ import type { routes } from './index.ts'
 export interface ApiDefinition {
   assets: {
     usdFlag: typeof routes['assets.usd_flag']
+    currencyLogo: typeof routes['assets.currency_logo']
   }
   auth: {
     newAccount: {
@@ -44,6 +45,9 @@ export interface ApiDefinition {
       lookupRecipient: typeof routes['directory.directory.lookup_recipient']
       lookupAgent: typeof routes['directory.directory.lookup_agent']
     }
+  }
+  currencies: {
+    index: typeof routes['currencies.index']
   }
   wallets: {
     wallets: {
@@ -260,6 +264,11 @@ export interface ApiDefinition {
     adminLedgerAccounts: {
       index: typeof routes['admin.admin_ledger_accounts.index']
       show: typeof routes['admin.admin_ledger_accounts.show']
+    }
+    currencies: {
+      adminIndex: typeof routes['admin.currencies.admin_index']
+      adminShow: typeof routes['admin.currencies.admin_show']
+      adminUpdate: typeof routes['admin.currencies.admin_update']
     }
     adminAccounting: {
       balanceSheet: typeof routes['admin.admin_accounting.balance_sheet']

@@ -19,6 +19,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/assets_controller').default['usdFlag']>>>
     }
   }
+  'assets.currency_logo': {
+    methods: ["GET","HEAD"]
+    pattern: '/assets/currencies/:file'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { file: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/assets_controller').default['currencyLogo']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/assets_controller').default['currencyLogo']>>>
+    }
+  }
   'auth.new_account.store': {
     methods: ["POST"]
     pattern: '/api/v1/auth/signup'
@@ -185,6 +197,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/directory_controller').default['lookupAgent']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/directory_controller').default['lookupAgent']>>>
+    }
+  }
+  'currencies.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/currencies'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['index']>>>
     }
   }
   'wallets.wallets.index': {
@@ -1637,6 +1661,42 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/ledger_accounts_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/ledger_accounts_controller').default['show']>>>
+    }
+  }
+  'admin.currencies.admin_index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/currencies'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['adminIndex']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['adminIndex']>>>
+    }
+  }
+  'admin.currencies.admin_show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/currencies/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['adminShow']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['adminShow']>>>
+    }
+  }
+  'admin.currencies.admin_update': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/admin/currencies/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['adminUpdate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/currencies_controller').default['adminUpdate']>>>
     }
   }
   'admin.admin_accounting.balance_sheet': {

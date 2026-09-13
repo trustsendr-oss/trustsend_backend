@@ -1,27 +1,19 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import env from '#start/env'
 import Wallet from '#models/wallet'
 import { BusinessOnboardingService } from '#services/business/business_onboarding_service'
 import { createBusinessWalletValidator } from '#validators/business_wallet'
-import { PawaPayProvider } from '#services/mobile_money/pawapay_provider'
-
-const provider = new PawaPayProvider()
+import {
+  CurrencyService,
+  CurrencyNotSupportedException,
+  type SerializedCurrency,
+} from '#services/money/currency_service'
 
 /**
- * Never let a PawaPay hiccup break the wallet listing — a missing flag just renders as null.
- * USD is special-cased to our own server: it's our primary wallet currency, and PawaPay's
- * active-conf ties its flag to whichever configured country happens to offer USD first — not
- * meaningfully "the" USD country — so we serve our own icon instead of an arbitrary one.
+ * logo_url and currency come from the currencies table (CurrencyService). flag_url is the same
+ * URL, kept so integrations written against the previous response shape keep working.
  */
-async function safeFlagForCurrency(currencyCode: string): Promise<string | null> {
-  if (currencyCode === 'USD') {
-    return `${env.get('APP_URL')}/assets/flags/usd.svg`
-  }
-  try {
-    return await provider.getFlagForCurrency(currencyCode)
-  } catch {
-    return null
-  }
+function currencyFields(currency: SerializedCurrency) {
+  return { logo_url: currency.logo_url, flag_url: currency.logo_url, currency }
 }
 
 export default class BusinessWalletController {
@@ -29,11 +21,21 @@ export default class BusinessWalletController {
    * POST /api/v1/business/wallet
    * Self-service: create a wallet in a new currency, beyond the single USD wallet allocated
    * at signup. Idempotent — calling it again for a currency that already has a wallet just
-   * returns that wallet (200, not 201).
+   * returns that wallet (200, not 201). The currency must be active in the currencies table.
    */
   async store({ business, request, correlationId, response }: HttpContext) {
     const payload = await request.validateUsing(createBusinessWalletValidator)
-    const currencyCode = payload.currency_code.toUpperCase()
+    const currencyCode = CurrencyService.normalize(payload.currency_code)
+
+    let currency
+    try {
+      currency = await CurrencyService.requireActive(currencyCode)
+    } catch (error) {
+      if (error instanceof CurrencyNotSupportedException) {
+        return response.unprocessableEntity({ message: error.message })
+      }
+      throw error
+    }
 
     const { wallet, created } = await BusinessOnboardingService.createWallet(
       business.id,
@@ -45,6 +47,7 @@ export default class BusinessWalletController {
       data: {
         id: wallet.id,
         currency_code: wallet.currencyCode,
+        ...currencyFields(CurrencyService.serialize(currency)),
         balance: wallet.balanceCache.toString(),
         status: wallet.status,
         created_at: wallet.createdAt,
@@ -63,17 +66,13 @@ export default class BusinessWalletController {
       .select('id', 'currency_code', 'balance_cache', 'status', 'created_at', 'updated_at')
       .orderBy('created_at', 'asc')
 
-    const uniqueCurrencies = [...new Set(wallets.map((w) => w.currencyCode))]
-    const flagEntries = await Promise.all(
-      uniqueCurrencies.map(async (currency) => [currency, await safeFlagForCurrency(currency)] as const)
-    )
-    const flagByCurrency = new Map(flagEntries)
+    const currencies = await CurrencyService.serializeMany(wallets.map((w) => w.currencyCode))
 
     return response.ok({
       data: wallets.map((wallet) => ({
         id: wallet.id,
         currency_code: wallet.currencyCode,
-        flag_url: flagByCurrency.get(wallet.currencyCode) ?? null,
+        ...currencyFields(currencies.get(wallet.currencyCode)!),
         balance: wallet.balanceCache.toString(),
         status: wallet.status,
         created_at: wallet.createdAt,
@@ -88,20 +87,20 @@ export default class BusinessWalletController {
   async show({ business, params, response }: HttpContext) {
     const wallet = await Wallet.query()
       .where('business_id', business.id)
-      .where('currency_code', params.currency.toUpperCase())
+      .where('currency_code', CurrencyService.normalize(String(params.currency)))
       .first()
 
     if (!wallet) {
       return response.notFound({ message: `No wallet found for currency ${params.currency}` })
     }
 
-    const flagUrl = await safeFlagForCurrency(wallet.currencyCode)
+    const currencies = await CurrencyService.serializeMany([wallet.currencyCode])
 
     return response.ok({
       data: {
         id: wallet.id,
         currency_code: wallet.currencyCode,
-        flag_url: flagUrl,
+        ...currencyFields(currencies.get(wallet.currencyCode)!),
         balance: wallet.balanceCache.toString(),
         status: wallet.status,
         per_transaction_limit: wallet.perTransactionLimit?.toString() || null,

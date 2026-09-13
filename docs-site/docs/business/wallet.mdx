@@ -9,6 +9,45 @@ Un wallet détient le solde de votre compte dans une devise. Un wallet **USD** e
 
 Les soldes sont exprimés dans la plus petite unité de la devise, sous forme de chaîne de caractères.
 
+## Devises disponibles
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">GET</span>
+  <span className="ts-endpoint__url">{'/api/v1/currencies'}</span>
+</div>
+
+Renvoie les devises dans lesquelles un wallet peut être ouvert. Cet endpoint est public : aucune authentification n'est requise.
+
+```bash
+curl https://api.trustsend.africa/api/v1/currencies
+```
+
+**Réponse `200`**
+
+```json
+{
+  "data": [
+    {
+      "code": "CDF",
+      "name": "Congolese franc",
+      "symbol": "FC",
+      "decimals": 2,
+      "country_code": "CD",
+      "logo_url": "https://api.trustsend.africa/assets/currencies/CDF.svg",
+      "is_active": true
+    }
+  ]
+}
+```
+
+| Champ | Description |
+|---|---|
+| `code` | Code ISO 4217 à 3 lettres |
+| `symbol` | Symbole usuel, `null` s'il n'en existe pas |
+| `decimals` | Nombre de décimales ISO 4217 de la devise, à utiliser pour l'affichage |
+| `country_code` | Pays émetteur (ISO 3166-1 alpha-2), `null` pour une devise partagée par plusieurs pays comme `XAF` ou `XOF` |
+| `logo_url` | Logo SVG de la devise : drapeau du pays émetteur, ou badge avec le symbole pour une devise partagée |
+
 ## Créer un wallet
 
 <div className="ts-endpoint">
@@ -18,7 +57,7 @@ Les soldes sont exprimés dans la plus petite unité de la devise, sous forme de
 
 | Paramètre | Type | Requis | Description |
 |---|---|---|---|
-| `currency_code` | string | Oui | Code de devise ISO 4217 à 3 lettres, par exemple `CDF` |
+| `currency_code` | string | Oui | Code d'une devise renvoyée par `GET /api/v1/currencies`, par exemple `CDF` |
 
 ```bash
 curl -X POST https://api.trustsend.africa/api/v1/business/wallet \
@@ -34,6 +73,16 @@ curl -X POST https://api.trustsend.africa/api/v1/business/wallet \
   "data": {
     "id": 38,
     "currency_code": "CDF",
+    "logo_url": "https://api.trustsend.africa/assets/currencies/CDF.svg",
+    "currency": {
+      "code": "CDF",
+      "name": "Congolese franc",
+      "symbol": "FC",
+      "decimals": 2,
+      "country_code": "CD",
+      "logo_url": "https://api.trustsend.africa/assets/currencies/CDF.svg",
+      "is_active": true
+    },
     "balance": "0",
     "status": "active",
     "created_at": "2026-09-12T10:00:00.000+00:00"
@@ -43,6 +92,8 @@ curl -X POST https://api.trustsend.africa/api/v1/business/wallet \
 ```
 
 Si un wallet existe déjà pour cette devise, l'API renvoie `200` avec le wallet existant : la requête peut être rejouée sans risque.
+
+**Erreurs** : `422` si la devise est inconnue ou n'est pas ouverte aux nouveaux wallets.
 
 :::note
 Nécessite la fonctionnalité `wallet.multi_currency` dans votre offre.
@@ -63,7 +114,16 @@ Nécessite la fonctionnalité `wallet.multi_currency` dans votre offre.
     {
       "id": 30,
       "currency_code": "USD",
-      "flag_url": "https://api.trustsend.africa/assets/flags/usd.svg",
+      "logo_url": "https://api.trustsend.africa/assets/currencies/USD.svg",
+      "currency": {
+        "code": "USD",
+        "name": "United States dollar",
+        "symbol": "$",
+        "decimals": 2,
+        "country_code": "US",
+        "logo_url": "https://api.trustsend.africa/assets/currencies/USD.svg",
+        "is_active": true
+      },
       "balance": "11000",
       "status": "active",
       "created_at": "2026-09-01T08:00:00.000+00:00",
@@ -73,7 +133,7 @@ Nécessite la fonctionnalité `wallet.multi_currency` dans votre offre.
 }
 ```
 
-`flag_url` renvoie une icône de drapeau associée à la devise, utile pour l'affichage.
+`logo_url` renvoie le logo de la devise du wallet, et `currency` le détail de la devise tel que renvoyé par `GET /api/v1/currencies`. L'ancien champ `flag_url` reste présent avec la même valeur que `logo_url`.
 
 ## Consulter un wallet
 
@@ -93,7 +153,8 @@ Nécessite la fonctionnalité `wallet.multi_currency` dans votre offre.
   "data": {
     "id": 30,
     "currency_code": "USD",
-    "flag_url": "https://api.trustsend.africa/assets/flags/usd.svg",
+    "logo_url": "https://api.trustsend.africa/assets/currencies/USD.svg",
+    "currency": { "code": "USD", "name": "United States dollar", "symbol": "$", "decimals": 2, "country_code": "US", "logo_url": "https://api.trustsend.africa/assets/currencies/USD.svg", "is_active": true },
     "balance": "11000",
     "status": "active",
     "per_transaction_limit": null,

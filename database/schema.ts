@@ -443,6 +443,33 @@ export class CardSchema extends BaseModel {
   declare walletId: number
 }
 
+export class CurrencySchema extends BaseModel {
+  static $columns = ['code', 'countryCode', 'createdAt', 'decimals', 'isActive', 'logoUrl', 'name', 'numericCode', 'sortOrder', 'symbol', 'updatedAt'] as const
+  $columns = CurrencySchema.$columns
+  @column({ isPrimary: true })
+  declare code: string
+  @column()
+  declare countryCode: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare decimals: number
+  @column()
+  declare isActive: boolean
+  @column()
+  declare logoUrl: string | null
+  @column()
+  declare name: string
+  @column()
+  declare numericCode: string | null
+  @column()
+  declare sortOrder: number
+  @column()
+  declare symbol: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
 export class DisputeMessageSchema extends BaseModel {
   static $columns = ['authorId', 'authorType', 'body', 'createdAt', 'disputeId', 'id'] as const
   $columns = DisputeMessageSchema.$columns

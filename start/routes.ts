@@ -57,6 +57,7 @@ const BusinessNotificationsController = () =>
   import('#controllers/business_dashboard/notifications_controller')
 const NotificationsController = () => import('#controllers/notifications_controller')
 const AssetsController = () => import('#controllers/assets_controller')
+const CurrenciesController = () => import('#controllers/currencies_controller')
 const AdminTransactionsController = () => import('#controllers/admin/transactions_controller')
 const AdminAuditLogsController = () => import('#controllers/admin/audit_logs_controller')
 const AdminCardsController = () => import('#controllers/admin/cards_controller')
@@ -72,6 +73,7 @@ router.get('/health', () => {
 })
 
 router.get('/assets/flags/usd.svg', [AssetsController, 'usdFlag'])
+router.get('/assets/currencies/:file', [AssetsController, 'currencyLogo'])
 
 router
   .group(() => {
@@ -149,6 +151,9 @@ router
       .prefix('directory')
       .as('directory')
       .use(middleware.auth())
+
+    // Currencies a wallet can be opened in — public reference data (no balances, no user data)
+    router.get('currencies', [CurrenciesController, 'index']).as('currencies.index')
 
     // Wallets
     router
@@ -499,6 +504,10 @@ router
 
         router.get('ledger-accounts', [AdminLedgerAccountsController, 'index'])
         router.get('ledger-accounts/:id', [AdminLedgerAccountsController, 'show'])
+
+        router.get('currencies', [CurrenciesController, 'adminIndex'])
+        router.get('currencies/:id', [CurrenciesController, 'adminShow'])
+        router.patch('currencies/:id', [CurrenciesController, 'adminUpdate'])
 
         router.get('accounting/balance-sheet', [AdminAccountingController, 'balanceSheet'])
         router.get('accounting/revenue', [AdminAccountingController, 'revenue'])

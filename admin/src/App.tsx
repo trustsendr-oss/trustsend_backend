@@ -17,6 +17,7 @@ import {
   CardProductEdit,
 } from './resources/cardProducts'
 import { PlanList, PlanShow, PlanCreate, PlanEdit } from './resources/plans'
+import { CurrencyList, CurrencyEdit } from './resources/currencies'
 import { KycList, KycShow } from './resources/kyc'
 import { DisputeList, DisputeShow } from './resources/disputes'
 import {
@@ -128,6 +129,13 @@ export default function App() {
         edit={PlanEdit}
         icon={resourceIcons.plans}
         recordRepresentation="name"
+      />
+      <Resource
+        name="currencies"
+        list={CurrencyList}
+        edit={CurrencyEdit}
+        icon={resourceIcons.currencies}
+        recordRepresentation="code"
       />
       <Resource
         name="internal_users"

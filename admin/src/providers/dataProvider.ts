@@ -25,6 +25,7 @@ const RESOURCE_PATH: Record<string, string> = {
   audit_logs: '/admin/audit-logs',
   cards: '/admin/cards',
   ledger_accounts: '/admin/ledger-accounts',
+  currencies: '/admin/currencies',
 }
 
 function pathFor(resource: string) {

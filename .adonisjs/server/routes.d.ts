@@ -5,6 +5,7 @@ type ParamValue = string | number | bigint | boolean
 export type ScannedRoutes = {
   ALL: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
+    'assets.currency_logo': { paramsTuple: [ParamValue]; params: {'file': ParamValue} }
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.refresh': { paramsTuple?: []; params?: {} }
@@ -19,6 +20,7 @@ export type ScannedRoutes = {
     'notifications.notifications.mark_all_read': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
+    'currencies.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.store': { paramsTuple?: []; params?: {} }
     'wallets.wallets.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -140,6 +142,9 @@ export type ScannedRoutes = {
     'admin.admin_cards.terminate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_ledger_accounts.index': { paramsTuple?: []; params?: {} }
     'admin.admin_ledger_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.currencies.admin_index': { paramsTuple?: []; params?: {} }
+    'admin.currencies.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.currencies.admin_update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_accounting.balance_sheet': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.revenue': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.reconcile': { paramsTuple?: []; params?: {} }
@@ -230,10 +235,12 @@ export type ScannedRoutes = {
   }
   GET: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
+    'assets.currency_logo': { paramsTuple: [ParamValue]; params: {'file': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
+    'currencies.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'wallets.wallets.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -287,6 +294,8 @@ export type ScannedRoutes = {
     'admin.admin_cards.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_ledger_accounts.index': { paramsTuple?: []; params?: {} }
     'admin.admin_ledger_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.currencies.admin_index': { paramsTuple?: []; params?: {} }
+    'admin.currencies.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_accounting.balance_sheet': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.revenue': { paramsTuple?: []; params?: {} }
     'business.business_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -330,10 +339,12 @@ export type ScannedRoutes = {
   }
   HEAD: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
+    'assets.currency_logo': { paramsTuple: [ParamValue]; params: {'file': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
+    'currencies.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'wallets.wallets.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -387,6 +398,8 @@ export type ScannedRoutes = {
     'admin.admin_cards.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_ledger_accounts.index': { paramsTuple?: []; params?: {} }
     'admin.admin_ledger_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.currencies.admin_index': { paramsTuple?: []; params?: {} }
+    'admin.currencies.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_accounting.balance_sheet': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.revenue': { paramsTuple?: []; params?: {} }
     'business.business_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -540,6 +553,7 @@ export type ScannedRoutes = {
     'agents.agents.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.currencies.admin_update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_cards.topup': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_cards.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_cards.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

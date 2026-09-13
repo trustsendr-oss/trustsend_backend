@@ -3,35 +3,7 @@ import Wallet from '#models/wallet'
 import { UserOnboardingService } from '#services/users/user_onboarding_service'
 import { WalletStatementService } from '#services/transactions/wallet_statement_service'
 import vine from '@vinejs/vine'
-
-const ISO_4217_CODES = new Set([
-  'AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AWG', 'AZN',
-  'BAM', 'BBD', 'BDT', 'BGN', 'BHD', 'BIF', 'BMD', 'BND', 'BOB', 'BRL', 'BSD', 'BTC', 'BTN', 'BWP', 'BYN', 'BZD',
-  'CAD', 'CDF', 'CHF', 'CLF', 'CLP', 'CNH', 'CNY', 'COP', 'CRC', 'CUC', 'CUP', 'CVE', 'CZK',
-  'DJF', 'DKK', 'DOP', 'DZD',
-  'EGP', 'ERN', 'ETB', 'EUR',
-  'FJD', 'FKP',
-  'GBP', 'GEL', 'GHS', 'GIP', 'GMD', 'GNF', 'GTQ', 'GYD',
-  'HKD', 'HNL', 'HRK', 'HTG', 'HUF',
-  'IDR', 'ILS', 'INR', 'IQD', 'IRR', 'ISK',
-  'JMD', 'JOD', 'JPY',
-  'KES', 'KGS', 'KHR', 'KMF', 'KPW', 'KRW', 'KWD', 'KYD', 'KZT',
-  'LAK', 'LBP', 'LKR', 'LRD', 'LSL', 'LYD',
-  'MAD', 'MDL', 'MGA', 'MKD', 'MMK', 'MNT', 'MOP', 'MRU', 'MUR', 'MVR', 'MWK', 'MXN', 'MYR', 'MZN',
-  'NAD', 'NGN', 'NIO', 'NOK', 'NPR', 'NZD',
-  'OMR',
-  'PAB', 'PEN', 'PGK', 'PHP', 'PKR', 'PLN', 'PYG',
-  'QAR',
-  'RON', 'RSD', 'RUB', 'RWF',
-  'SAR', 'SBD', 'SCR', 'SDG', 'SEK', 'SGD', 'SHP', 'SLL', 'SOS', 'SRD', 'SSP', 'STN', 'SYP', 'SZL',
-  'THB', 'TJS', 'TMT', 'TND', 'TOP', 'TRY', 'TTD', 'TWD', 'TZS',
-  'UAH', 'UGX', 'USD', 'UYU', 'UZS',
-  'VEF', 'VES', 'VND', 'VUV',
-  'WST',
-  'XAF', 'XAG', 'XAU', 'XCD', 'XOF', 'XPD', 'XPF', 'XPT',
-  'YER',
-  'ZAR', 'ZMW', 'ZWL',
-])
+import { CurrencyService, CurrencyNotSupportedException } from '#services/money/currency_service'
 
 const listWalletTransactionsValidator = vine.create({
   page: vine.number().positive().min(1).optional(),
@@ -41,8 +13,10 @@ const listWalletTransactionsValidator = vine.create({
   direction: vine.enum(['in', 'out']).optional(),
 })
 
+// Whether the currency exists and is open for wallets is checked against the currencies table
+// (CurrencyService.requireActive), not a hardcoded list.
 const createWalletValidator = vine.create({
-  currency_code: vine.string().fixedLength(3).in([...ISO_4217_CODES]),
+  currency_code: vine.string().trim().fixedLength(3),
 })
 
 /**
@@ -69,10 +43,14 @@ export default class WalletsController {
       .select('id', 'currency_code', 'balance_cache', 'status', 'created_at', 'updated_at')
       .orderBy('created_at', 'asc')
 
+    const currencies = await CurrencyService.serializeMany(wallets.map((w) => w.currencyCode))
+
     return response.ok({
       data: wallets.map((wallet) => ({
         id: wallet.id,
         currency_code: wallet.currencyCode,
+        logo_url: currencies.get(wallet.currencyCode)!.logo_url,
+        currency: currencies.get(wallet.currencyCode)!,
         balance: wallet.balanceCache.toString(),
         status: wallet.status,
         created_at: wallet.createdAt,
@@ -92,37 +70,46 @@ export default class WalletsController {
     }
 
     const payload = await request.validateUsing(createWalletValidator)
+    const currencyCode = CurrencyService.normalize(payload.currency_code)
 
     try {
+      const currency = await CurrencyService.requireActive(currencyCode)
+
       // Check if wallet already exists for this currency
       const existingWallet = await Wallet.query()
         .where('user_id', user.id)
-        .where('currency_code', payload.currency_code)
+        .where('currency_code', currencyCode)
         .first()
 
       if (existingWallet) {
         return response.badRequest({
-          message: `Wallet for ${payload.currency_code} already exists`,
+          message: `Wallet for ${currencyCode} already exists`,
         })
       }
 
       // Create new wallet
       const wallet = await UserOnboardingService.createDefaultWallet(
         user.id,
-        payload.currency_code,
+        currencyCode,
         (request as any).correlationId || 'unknown'
       )
 
+      const serialized = CurrencyService.serialize(currency)
       return response.created({
         data: {
           id: wallet.id,
           currency_code: wallet.currencyCode,
+          logo_url: serialized.logo_url,
+          currency: serialized,
           balance: wallet.balanceCache.toString(),
           status: wallet.status,
           created_at: wallet.createdAt,
         },
       })
     } catch (error) {
+      if (error instanceof CurrencyNotSupportedException) {
+        return response.unprocessableEntity({ message: error.message })
+      }
       const err = error as any
       return response.internalServerError({
         message: err.message || 'Failed to create wallet',
@@ -149,10 +136,14 @@ export default class WalletsController {
       return response.notFound({ message: 'Wallet not found' })
     }
 
+    const currency = (await CurrencyService.serializeMany([wallet.currencyCode])).get(wallet.currencyCode)!
+
     return response.ok({
       data: {
         id: wallet.id,
         currency_code: wallet.currencyCode,
+        logo_url: currency.logo_url,
+        currency,
         balance: wallet.balanceCache.toString(),
         status: wallet.status,
         per_transaction_limit: wallet.perTransactionLimit?.toString() || null,

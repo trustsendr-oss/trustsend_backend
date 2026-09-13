@@ -12,6 +12,12 @@ const routes = {
     tokens: [{"old":"/assets/flags/usd.svg","type":0,"val":"assets","end":""},{"old":"/assets/flags/usd.svg","type":0,"val":"flags","end":""},{"old":"/assets/flags/usd.svg","type":0,"val":"usd.svg","end":""}],
     types: placeholder as Registry['assets.usd_flag']['types'],
   },
+  'assets.currency_logo': {
+    methods: ["GET","HEAD"],
+    pattern: '/assets/currencies/:file',
+    tokens: [{"old":"/assets/currencies/:file","type":0,"val":"assets","end":""},{"old":"/assets/currencies/:file","type":0,"val":"currencies","end":""},{"old":"/assets/currencies/:file","type":1,"val":"file","end":""}],
+    types: placeholder as Registry['assets.currency_logo']['types'],
+  },
   'auth.new_account.store': {
     methods: ["POST"],
     pattern: '/api/v1/auth/signup',
@@ -95,6 +101,12 @@ const routes = {
     pattern: '/api/v1/directory/agents',
     tokens: [{"old":"/api/v1/directory/agents","type":0,"val":"api","end":""},{"old":"/api/v1/directory/agents","type":0,"val":"v1","end":""},{"old":"/api/v1/directory/agents","type":0,"val":"directory","end":""},{"old":"/api/v1/directory/agents","type":0,"val":"agents","end":""}],
     types: placeholder as Registry['directory.directory.lookup_agent']['types'],
+  },
+  'currencies.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/currencies',
+    tokens: [{"old":"/api/v1/currencies","type":0,"val":"api","end":""},{"old":"/api/v1/currencies","type":0,"val":"v1","end":""},{"old":"/api/v1/currencies","type":0,"val":"currencies","end":""}],
+    types: placeholder as Registry['currencies.index']['types'],
   },
   'wallets.wallets.index': {
     methods: ["GET","HEAD"],
@@ -821,6 +833,24 @@ const routes = {
     pattern: '/api/v1/admin/ledger-accounts/:id',
     tokens: [{"old":"/api/v1/admin/ledger-accounts/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/ledger-accounts/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/ledger-accounts/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/ledger-accounts/:id","type":0,"val":"ledger-accounts","end":""},{"old":"/api/v1/admin/ledger-accounts/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['admin.admin_ledger_accounts.show']['types'],
+  },
+  'admin.currencies.admin_index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/currencies',
+    tokens: [{"old":"/api/v1/admin/currencies","type":0,"val":"api","end":""},{"old":"/api/v1/admin/currencies","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/currencies","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/currencies","type":0,"val":"currencies","end":""}],
+    types: placeholder as Registry['admin.currencies.admin_index']['types'],
+  },
+  'admin.currencies.admin_show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/currencies/:id',
+    tokens: [{"old":"/api/v1/admin/currencies/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/currencies/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/currencies/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/currencies/:id","type":0,"val":"currencies","end":""},{"old":"/api/v1/admin/currencies/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.currencies.admin_show']['types'],
+  },
+  'admin.currencies.admin_update': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/admin/currencies/:id',
+    tokens: [{"old":"/api/v1/admin/currencies/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/currencies/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/currencies/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/currencies/:id","type":0,"val":"currencies","end":""},{"old":"/api/v1/admin/currencies/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.currencies.admin_update']['types'],
   },
   'admin.admin_accounting.balance_sheet': {
     methods: ["GET","HEAD"],
