@@ -15,7 +15,9 @@ Toutes les requêtes à l'API TrustSend sont authentifiées par une **clé API**
 3. Copiez-la immédiatement : elle n'est affichée qu'une seule fois. TrustSend n'en conserve qu'une empreinte et ne peut pas la retrouver pour vous.
 
 :::info Compte activé requis
-La génération de clés API est disponible une fois votre compte business vérifié et activé par l'équipe TrustSend. La vérification se fait entièrement depuis l'Espace client.
+En production, la génération de clés API est disponible une fois votre compte business vérifié et activé par l'équipe TrustSend. La vérification se fait entièrement depuis l'Espace client.
+
+En [sandbox](/sandbox), le compte est actif dès l'inscription : vous pouvez générer une clé immédiatement.
 :::
 
 ## Utiliser la clé
@@ -24,19 +26,21 @@ Transmettez la clé avec le schéma `Bearer` :
 
 ```bash
 curl https://api.trustsend.africa/api/v1/business/wallet \
-  -H "Authorization: Bearer biz_live_xxxxxxxxxxxxxxxxxxxxxxxx"
+  -H "Authorization: Bearer ts_live_xxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 La clé est vérifiée à chaque requête. Une clé révoquée est refusée dès l'appel suivant.
 
 ## Environnements
 
-Le préfixe de la clé indique l'environnement auquel elle appartient.
+Le préfixe de la clé indique l'environnement auquel elle appartient. Chaque environnement a sa propre URL, ses propres comptes et ses propres clés : une clé ne fonctionne que sur l'API de son environnement.
 
-| Préfixe | Environnement | Usage |
-|---|---|---|
-| `biz_sandbox_` | Sandbox | Développement et tests d'intégration |
-| `biz_live_` | Production | Opérations réelles |
+| Préfixe | Environnement | URL de base | Usage |
+|---|---|---|---|
+| `ts_sandbox_` | Sandbox | `https://sandbox-api.trustsend.africa/api/v1` | Développement et tests d'intégration — voir [Sandbox](/sandbox) |
+| `ts_live_` | Production | `https://api.trustsend.africa/api/v1` | Opérations réelles |
+
+Les clés émises avant le changement de préfixe (`biz_sandbox_`, `biz_live_`) restent valides.
 
 ## Bonnes pratiques
 
@@ -50,4 +54,6 @@ Le préfixe de la clé indique l'environnement auquel elle appartient.
 |---|---|---|
 | `401` | `Missing API key` | En-tête `Authorization` absent ou mal formé |
 | `401` | `Invalid or revoked API key` | Clé inconnue ou révoquée |
+| `401` | `This is a sandbox API key, but this is the production API. …` | Clé sandbox envoyée à l'API de production |
+| `401` | `This is a live API key, but this is the sandbox API. …` | Clé de production envoyée à l'API sandbox |
 | `403` | `Your current plan (…) does not include this feature: …` | Fonctionnalité non incluse dans votre offre — voir [Erreurs](/errors#fonctionnalités-et-offre) |
