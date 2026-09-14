@@ -160,6 +160,9 @@ router
     router.get('currencies', [CurrenciesController, 'index']).as('currencies.index')
     // Public mid-market rates (no margin) — see exchange_rate_service.ts
     router.get('exchange-rates', [ExchangeRatesController, 'index']).as('exchange_rates.index')
+    // Public plan catalogue for the marketing pricing page — the same active-plans list businesses
+    // see once logged in, nothing account-specific. Not under `plans/`: that prefix is the admin API.
+    router.get('pricing', [BusinessPlanController, 'index']).as('pricing.index')
 
     // Currency swaps between two of the user's own wallets — see swap_service.ts
     router
