@@ -3,7 +3,7 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import Paper from '@mui/material/Paper'
+import { PlanFeaturesField } from './PlanFeaturesField'
 import {
   Show,
   useRecordContext,
@@ -77,11 +77,7 @@ function PlanShowContent() {
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
             Features
           </Typography>
-          <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'action.hover' }}>
-            <pre style={{ margin: 0, fontSize: 13, whiteSpace: 'pre-wrap' }}>
-              {JSON.stringify(record.features, null, 2)}
-            </pre>
-          </Paper>
+          <PlanFeaturesField />
         </CardContent>
       </Card>
     </Box>
