@@ -71,9 +71,11 @@ ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3330
 
-# Health check
+# Health check — le worker n'ecoute aucun port HTTP : il est considere sain tant qu'il tourne
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD node -e "const req = require('http').get('http://127.0.0.1:3330/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));"
+  CMD node -e "if (process.env.PROCESS_TYPE === 'worker') process.exit(0); const req = require('http').get('http://127.0.0.1:3330/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));"
 
-# Applique les migrations en attente avant de demarrer le serveur
-CMD ["sh", "-c", "node ace migration:run --force && node bin/server.js"]
+# Meme image pour l'API et le worker (BullMQ), choisi par PROCESS_TYPE.
+# L'API applique les migrations en attente avant de demarrer ; le worker ne migre jamais,
+# pour que deux conteneurs ne lancent pas les memes migrations en meme temps.
+CMD ["sh", "-c", "if [ \"$PROCESS_TYPE\" = worker ]; then exec node bin/worker.js; else node ace migration:run --force && exec node bin/server.js; fi"]

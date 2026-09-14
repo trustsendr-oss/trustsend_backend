@@ -26,6 +26,7 @@ export default class BusinessTransactionsController {
         'business_plan_subscription',
         'business_plan_maintenance_fee',
         'fx_swap',
+        'sandbox_funding',
       ])
       .orderBy('created_at', 'desc')
       .paginate(page, limit)

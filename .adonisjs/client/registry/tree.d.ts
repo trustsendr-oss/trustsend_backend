@@ -329,6 +329,9 @@ export interface ApiDefinition {
       current: typeof routes['business.business_plan.current']
       subscribe: typeof routes['business.business_plan.subscribe']
     }
+    businessSandbox: {
+      fund: typeof routes['business.business_sandbox.fund']
+    }
     businessCards: {
       index: typeof routes['business.business_cards.index']
       store: typeof routes['business.business_cards.store']
@@ -415,6 +418,9 @@ export interface ApiDefinition {
       }
       businessOverview: {
         show: typeof routes['business.dashboard.business_overview.show']
+      }
+      businessSandbox: {
+        fund: typeof routes['business.dashboard.business_sandbox.fund']
       }
       businessDashboardApiKeys: {
         index: typeof routes['business.dashboard.business_dashboard_api_keys.index']

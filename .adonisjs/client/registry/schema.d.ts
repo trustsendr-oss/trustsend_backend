@@ -2071,6 +2071,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/plan_controller').default['subscribe']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'business.business_sandbox.fund': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/sandbox/fund'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/sandbox').fundSandboxWalletValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/sandbox').fundSandboxWalletValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/sandbox_controller').default['fund']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/sandbox_controller').default['fund']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'business.business_cards.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/business/cards'
@@ -2729,6 +2741,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/overview_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/overview_controller').default['show']>>>
+    }
+  }
+  'business.dashboard.business_sandbox.fund': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/sandbox/fund'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/sandbox').fundSandboxWalletValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/sandbox').fundSandboxWalletValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/sandbox_controller').default['fund']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/sandbox_controller').default['fund']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'business.dashboard.business_dashboard_api_keys.index': {

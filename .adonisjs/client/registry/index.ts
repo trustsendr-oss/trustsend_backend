@@ -1038,6 +1038,12 @@ const routes = {
     tokens: [{"old":"/api/v1/business/plan/subscribe","type":0,"val":"api","end":""},{"old":"/api/v1/business/plan/subscribe","type":0,"val":"v1","end":""},{"old":"/api/v1/business/plan/subscribe","type":0,"val":"business","end":""},{"old":"/api/v1/business/plan/subscribe","type":0,"val":"plan","end":""},{"old":"/api/v1/business/plan/subscribe","type":0,"val":"subscribe","end":""}],
     types: placeholder as Registry['business.business_plan.subscribe']['types'],
   },
+  'business.business_sandbox.fund': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/sandbox/fund',
+    tokens: [{"old":"/api/v1/business/sandbox/fund","type":0,"val":"api","end":""},{"old":"/api/v1/business/sandbox/fund","type":0,"val":"v1","end":""},{"old":"/api/v1/business/sandbox/fund","type":0,"val":"business","end":""},{"old":"/api/v1/business/sandbox/fund","type":0,"val":"sandbox","end":""},{"old":"/api/v1/business/sandbox/fund","type":0,"val":"fund","end":""}],
+    types: placeholder as Registry['business.business_sandbox.fund']['types'],
+  },
   'business.business_cards.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/business/cards',
@@ -1367,6 +1373,12 @@ const routes = {
     pattern: '/api/v1/business/dashboard/overview',
     tokens: [{"old":"/api/v1/business/dashboard/overview","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/overview","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/overview","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/overview","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/overview","type":0,"val":"overview","end":""}],
     types: placeholder as Registry['business.dashboard.business_overview.show']['types'],
+  },
+  'business.dashboard.business_sandbox.fund': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/dashboard/sandbox/fund',
+    tokens: [{"old":"/api/v1/business/dashboard/sandbox/fund","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/sandbox/fund","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/sandbox/fund","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/sandbox/fund","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/sandbox/fund","type":0,"val":"sandbox","end":""},{"old":"/api/v1/business/dashboard/sandbox/fund","type":0,"val":"fund","end":""}],
+    types: placeholder as Registry['business.dashboard.business_sandbox.fund']['types'],
   },
   'business.dashboard.business_dashboard_api_keys.index': {
     methods: ["GET","HEAD"],

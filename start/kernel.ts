@@ -57,5 +57,6 @@ export const middleware = router.named({
   businessDashboard: () => import('#middleware/business_dashboard_middleware'),
   businessActive: () => import('#middleware/business_active_middleware'),
   businessPlan: () => import('#middleware/business_plan_middleware'),
+  sandboxOnly: () => import('#middleware/sandbox_only_middleware'),
   throttle: () => import('#middleware/throttle_middleware'),
 })

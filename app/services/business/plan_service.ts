@@ -11,6 +11,7 @@ import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { IdGenerator } from '#services/security/id_generator'
 import { notifyBusinessWebhook } from '#services/webhooks/notify_business_webhook'
 import { InAppNotificationService } from '#services/notifications/in_app_notification_service'
+import { SandboxMode } from '#services/sandbox/sandbox_mode'
 
 export class PlanNotFoundException extends Error {
   constructor() {
@@ -553,8 +554,12 @@ export class PlanService {
    * for a misconfigured environment — and a config bug should never silently lock a paying
    * customer out of every API. Track down and fix a business with no plan rather than relying on
    * this fallback.
+   *
+   * Always true in the sandbox: integrators need to exercise every API before choosing a plan,
+   * and the 'default' plan doesn't grant everything (e.g. cards.issuing).
    */
   static hasFeature(business: Business, featureKey: string, context?: PlanFeatureContext): boolean {
+    if (SandboxMode.isEnabled()) return true
     if (!business.plan) return true
     return business.plan.hasFeature(featureKey, context)
   }

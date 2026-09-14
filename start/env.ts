@@ -11,12 +11,19 @@
 
 import { Env } from '@adonisjs/core/env'
 
-export default await Env.create(new URL('../', import.meta.url), {
+const env = await Env.create(new URL('../', import.meta.url), {
   // Node
   NODE_ENV: Env.schema.enum(['development', 'production', 'test'] as const),
   PORT: Env.schema.number(),
   HOST: Env.schema.string({ format: 'host' }),
   LOG_LEVEL: Env.schema.string(),
+
+  // Which platform this deployment IS — distinct from NODE_ENV (a sandbox runs with
+  // NODE_ENV=production too). 'sandbox' is the public integration environment for business
+  // clients' developers: self-service signup is auto-approved and plan gating is lifted (see
+  // app/services/sandbox/sandbox_mode.ts). Defaults to 'production' so a deployment that forgets
+  // to set it fails closed — no auto-approval — rather than open.
+  APP_MODE: Env.schema.enum.optional(['sandbox', 'production'] as const),
 
   // App
   APP_KEY: Env.schema.secret(),
@@ -80,3 +87,21 @@ export default await Env.create(new URL('../', import.meta.url), {
   MAIL_FROM_ADDRESS: Env.schema.string(),
   MAIL_FROM_NAME: Env.schema.string(),
 })
+
+// A sandbox hands out auto-approved accounts to anyone who signs up — pointed at a production
+// provider, that would be real mobile money and real cards for unvetted strangers. Refuse to boot
+// rather than trust every deployment's env to be right. (Unset provider envs default to sandbox,
+// see config/mobile_money.ts and config/cards.ts.) The reverse — production mode on sandbox
+// providers — is just a local dev setup, so it stays allowed.
+if (env.get('APP_MODE') === 'sandbox') {
+  const productionProviders = (['PAWAPAY_ENV', 'PAYSCRIBE_ENV'] as const).filter(
+    (key) => env.get(key) === 'production'
+  )
+  if (productionProviders.length > 0) {
+    throw new Error(
+      `APP_MODE=sandbox cannot run against production providers (${productionProviders.join(', ')}=production)`
+    )
+  }
+}
+
+export default env

@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 import Business from '#models/business'
 import { BusinessApiKeyService } from '#services/business/business_api_key_service'
+import { SandboxMode } from '#services/sandbox/sandbox_mode'
 
 /**
  * Authenticates server-to-server business API calls via a Bearer API key — NOT the human
@@ -20,6 +21,15 @@ export default class BusinessApiKeyMiddleware {
 
     const business = await BusinessApiKeyService.verify(presentedKey)
     if (!business) {
+      // Only consulted once verification has already failed, so a key that is genuinely valid
+      // here is never turned away on its prefix alone.
+      if (SandboxMode.isKeyForOtherEnvironment(presentedKey)) {
+        return ctx.response.unauthorized({
+          message: SandboxMode.isEnabled()
+            ? 'This is a live API key, but this is the sandbox API. Use a sandbox key (ts_sandbox_...) here, or call the production API.'
+            : 'This is a sandbox API key, but this is the production API. Use a live key (ts_live_...) here, or call the sandbox API.',
+        })
+      }
       return ctx.response.unauthorized({ message: 'Invalid or revoked API key' })
     }
 
