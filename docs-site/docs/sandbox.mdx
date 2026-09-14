@@ -1,0 +1,92 @@
+---
+sidebar_position: 2.5
+title: Sandbox
+slug: /sandbox
+---
+
+# Sandbox
+
+La sandbox est un environnement complet de l'API TrustSend, séparé de la production, pour développer et tester votre intégration. Les mêmes endpoints y répondent de la même façon, mais **aucun argent réel ne circule** : les opérations mobile money et cartes passent par les environnements de test des opérateurs.
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">URL</span>
+  <span className="ts-endpoint__url">{'https://sandbox-api.trustsend.africa/api/v1'}</span>
+</div>
+
+## Différences avec la production
+
+| | Sandbox | Production |
+|---|---|---|
+| URL de base | `https://sandbox-api.trustsend.africa/api/v1` | `https://api.trustsend.africa/api/v1` |
+| Préfixe des clés API | `ts_sandbox_` | `ts_live_` |
+| Activation du compte | Immédiate, sans vérification | Après vérification (KYB) et validation par TrustSend |
+| Fonctionnalités | Toutes, quelle que soit l'offre | Selon votre offre |
+| Argent | Fictif | Réel |
+| Créditer un wallet | [Endpoint de test](#créditer-un-wallet) | Par un dépôt réel |
+
+Les deux environnements sont totalement indépendants : un compte, une clé, un wallet ou une transaction créés en sandbox n'existent pas en production, et inversement. Une clé envoyée au mauvais environnement est refusée avec un message qui l'indique (voir [Authentification](/authentication#erreurs-dauthentification)).
+
+## Démarrer
+
+1. Créez un compte business sur l'Espace client sandbox. Il est actif dès l'inscription.
+2. Générez une clé API : elle commence par `ts_sandbox_`.
+3. Créditez votre wallet avec l'[endpoint de test](#créditer-un-wallet), puis appelez l'API comme vous le feriez en production.
+
+## Créditer un wallet
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/sandbox/fund'}</span>
+</div>
+
+Ajoute de l'argent fictif sur l'un de vos wallets, pour tester les payouts, les échanges de devises ou les cartes sans passer d'abord par un dépôt. Le crédit apparaît dans l'historique des transactions avec le type `sandbox_funding`.
+
+Cet endpoint n'existe qu'en sandbox : en production, il répond `404`.
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `currency_code` | string | Oui | Devise du wallet à créditer, par exemple `USD`. Le wallet doit déjà exister (voir [Wallets](./business/wallet)) |
+| `amount` | string | Oui | Montant à créditer, en centièmes de la devise. 10 000 000 000 au maximum par appel |
+| `idempotency_key` | string | Oui | UUID v4 unique par crédit. Renvoyer la même clé renvoie le même résultat sans créditer une seconde fois |
+
+```bash
+curl -X POST https://sandbox-api.trustsend.africa/api/v1/business/sandbox/fund \
+  -H "Authorization: Bearer $TRUSTSEND_SANDBOX_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "currency_code": "USD", "amount": "150000", "idempotency_key": "4f6b1c2e-8a8d-4c1e-9d0a-2b7e5f3c9a11" }'
+```
+
+**Réponse `201`**
+
+```json
+{
+  "data": {
+    "transaction_id": "TXN-8KQ2M4ZP",
+    "transaction_uuid": "0d3e6a52-4b7f-4e0c-a1f2-6c9b8e4d7a35",
+    "status": "completed",
+    "wallet_id": 42,
+    "currency_code": "USD",
+    "amount": "150000",
+    "balance": "150000",
+    "created_at": "2026-09-14T14:40:00.000+00:00"
+  }
+}
+```
+
+`balance` est le solde du wallet après le crédit.
+
+**Erreurs**
+
+| Code | Message | Cause |
+|---|---|---|
+| `404` | `This endpoint is only available in the sandbox` | Appel à l'API de production |
+| `404` | `No active … wallet — create one with POST /business/wallet first` | Aucun wallet actif dans cette devise |
+| `409` | | `idempotency_key` déjà utilisée avec d'autres paramètres |
+| `422` | | Paramètre invalide, devise non disponible ou montant au-delà du maximum |
+
+## Passer en production
+
+1. Créez votre compte sur l'[Espace client](https://business.trustsend.africa) de production et complétez la vérification de votre entreprise.
+2. Une fois le compte activé, générez une clé `ts_live_`.
+3. Remplacez l'URL de base et la clé dans votre configuration. Les endpoints, les paramètres et les formats de réponse sont identiques, à l'exception de l'endpoint de test ci-dessus.
+4. Déclarez vos URLs de webhook sur le compte de production : celles de la sandbox ne sont pas reprises.
