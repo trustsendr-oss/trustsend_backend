@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { PinService } from '#services/security/pin_service'
+import { SandboxMode } from '#services/sandbox/sandbox_mode'
 import { updateBusinessProfileValidator } from '#validators/business_dashboard'
 
 export default class BusinessDashboardProfileController {
@@ -18,6 +19,9 @@ export default class BusinessDashboardProfileController {
         status: business.status,
         webhook_url: business.webhookUrl,
         pin_set: PinService.isPinSet(business),
+        // Lets the dashboard confirm it is talking to the API it thinks it is (sandbox vs
+        // production) instead of trusting its own hostname alone.
+        environment: SandboxMode.isEnabled() ? 'sandbox' : 'production',
         created_at: business.createdAt,
       },
     })
