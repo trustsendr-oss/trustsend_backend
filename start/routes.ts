@@ -41,6 +41,7 @@ const BusinessWebhooksController = () => import('#controllers/business/webhooks_
 const BusinessToolkitController = () => import('#controllers/business/toolkit_controller')
 const BusinessPlanController = () => import('#controllers/business/plan_controller')
 const BusinessCardsController = () => import('#controllers/business/cards_controller')
+const BusinessSandboxController = () => import('#controllers/business/sandbox_controller')
 const InternalAuthController = () => import('#controllers/internal_auth_controller')
 const InternalUsersController = () => import('#controllers/internal_users_controller')
 const BusinessDashboardAuthController = () =>
@@ -597,6 +598,9 @@ router
         router.get('plan', [BusinessPlanController, 'current'])
         router.post('plan/subscribe', [BusinessPlanController, 'subscribe'])
         router
+          .post('sandbox/fund', [BusinessSandboxController, 'fund'])
+          .use(middleware.sandboxOnly())
+        router
           .get('cards', [BusinessCardsController, 'index'])
           .use(middleware.businessPlan('cards.issuing'))
         router
@@ -809,6 +813,9 @@ router
           ])
           .use(middleware.businessPlan('mobile_money.toolkit'))
         router.get('overview', [BusinessOverviewController, 'show'])
+        router
+          .post('sandbox/fund', [BusinessSandboxController, 'fund'])
+          .use(middleware.sandboxOnly())
         router.get('api-keys', [BusinessDashboardApiKeysController, 'index'])
         router.post('api-keys', [BusinessDashboardApiKeysController, 'store'])
         router.delete('api-keys/:id', [BusinessDashboardApiKeysController, 'destroy'])

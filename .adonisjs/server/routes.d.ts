@@ -176,6 +176,7 @@ export type ScannedRoutes = {
     'business.business_plan.index': { paramsTuple?: []; params?: {} }
     'business.business_plan.current': { paramsTuple?: []; params?: {} }
     'business.business_plan.subscribe': { paramsTuple?: []; params?: {} }
+    'business.business_sandbox.fund': { paramsTuple?: []; params?: {} }
     'business.business_cards.index': { paramsTuple?: []; params?: {} }
     'business.business_cards.store': { paramsTuple?: []; params?: {} }
     'business.business_cards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -231,6 +232,7 @@ export type ScannedRoutes = {
     'business.dashboard.business_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_overview.show': { paramsTuple?: []; params?: {} }
+    'business.dashboard.business_sandbox.fund': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_api_keys.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_api_keys.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_api_keys.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -537,6 +539,7 @@ export type ScannedRoutes = {
     'business.business_swaps.store': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.store': { paramsTuple?: []; params?: {} }
     'business.business_plan.subscribe': { paramsTuple?: []; params?: {} }
+    'business.business_sandbox.fund': { paramsTuple?: []; params?: {} }
     'business.business_cards.store': { paramsTuple?: []; params?: {} }
     'business.business_cards.terminate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'internal.auth.internal_auth.login': { paramsTuple?: []; params?: {} }
@@ -564,6 +567,7 @@ export type ScannedRoutes = {
     'business.dashboard.business_swaps.quote': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_swaps.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.store': { paramsTuple?: []; params?: {} }
+    'business.dashboard.business_sandbox.fund': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_api_keys.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_cards.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_cards.terminate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

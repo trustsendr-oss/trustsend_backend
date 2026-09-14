@@ -30,6 +30,7 @@ export const controllers = {
     Deposits: () => import('#controllers/business/deposits_controller'),
     Payouts: () => import('#controllers/business/payouts_controller'),
     Plan: () => import('#controllers/business/plan_controller'),
+    Sandbox: () => import('#controllers/business/sandbox_controller'),
     Swaps: () => import('#controllers/business/swaps_controller'),
     Toolkit: () => import('#controllers/business/toolkit_controller'),
     Transactions: () => import('#controllers/business/transactions_controller'),

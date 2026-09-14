@@ -1,10 +1,10 @@
 import hash from '@adonisjs/core/services/hash'
 import { randomBytes } from 'node:crypto'
 import { DateTime } from 'luxon'
-import env from '#start/env'
 import BusinessApiKey from '#models/business_api_key'
 import Business from '#models/business'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
+import { SandboxMode } from '#services/sandbox/sandbox_mode'
 
 /**
  * Issues and verifies business API keys. The full key is generated once, returned to the
@@ -22,7 +22,7 @@ export class BusinessApiKeyService {
     correlationId: string,
     issuedByType: 'internal_user' | 'business' = 'internal_user'
   ): Promise<{ apiKey: string; keyId: number }> {
-    const envLabel = env.get('PAWAPAY_ENV') === 'production' ? 'biz_live_' : 'biz_sandbox_'
+    const envLabel = SandboxMode.apiKeyPrefix()
     const secret = randomBytes(this.KEY_BYTES).toString('hex')
     const fullKey = `${envLabel}${secret}`
     const keyPrefix = fullKey.slice(0, this.PREFIX_LENGTH)

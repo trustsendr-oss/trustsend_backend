@@ -6,6 +6,7 @@ import Wallet from '#models/wallet'
 import LedgerAccount from '#models/ledger_account'
 import Plan from '#models/plan'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
+import { SandboxMode } from '#services/sandbox/sandbox_mode'
 
 export class BusinessOnboardingService {
   /**
@@ -36,7 +37,15 @@ export class BusinessOnboardingService {
       business.email = request.email
       business.phone = request.phone
       business.password = request.password || generatedPassword
-      business.status = 'pending_approval'
+      // The sandbox is self-service for integrators: no KYB review, no admin in the loop. Safe
+      // only because start/env.ts guarantees a sandbox never talks to a production provider.
+      // approvedBy stays null — no internal user made this decision.
+      if (SandboxMode.isEnabled()) {
+        business.status = 'active'
+        business.approvedAt = DateTime.now()
+      } else {
+        business.status = 'pending_approval'
+      }
 
       // Every business needs a plan for business_plan_middleware.ts to gate against — 'default'
       // (seeded in 1788300000000_create_plans_table.ts) grants every feature key that exists
@@ -90,7 +99,7 @@ export class BusinessOnboardingService {
         resourceType: 'business',
         resourceId: business.id,
         before: undefined,
-        after: { code: business.code, status: business.status },
+        after: { code: business.code, status: business.status, sandbox: SandboxMode.isEnabled() },
         correlationId: request.correlationId,
         trx,
       })

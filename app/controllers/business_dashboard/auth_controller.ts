@@ -11,6 +11,7 @@ import { BusinessOnboardingService } from '#services/business/business_onboardin
 import { BusinessSignupOtpService } from '#services/business/business_signup_otp_service'
 import { NotificationService } from '#services/notifications/notification_service'
 import { IdGenerator } from '#services/security/id_generator'
+import { SandboxMode } from '#services/sandbox/sandbox_mode'
 import {
   requestBusinessSignupOtpValidator,
   businessSignupValidator,
@@ -96,8 +97,9 @@ export default class BusinessDashboardAuthController {
         name: business.name,
         email: business.email,
         status: business.status,
-        message:
-          'Account created. You can log in now to submit your KYC verification, but deposits, payouts, and API keys require admin approval first.',
+        message: SandboxMode.isEnabled()
+          ? 'Sandbox account created and active. Log in to generate a sandbox API key — no KYC or approval needed.'
+          : 'Account created. You can log in now to submit your KYC verification, but deposits, payouts, and API keys require admin approval first.',
       },
     })
   }
