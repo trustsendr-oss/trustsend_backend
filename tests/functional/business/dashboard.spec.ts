@@ -3,6 +3,8 @@ import { DateTime } from 'luxon'
 import env from '#start/env'
 import InternalUser from '#models/internal_user'
 import KycVerification from '#models/kyc_verification'
+import { CryptoService } from '#services/security/crypto_service'
+import { TotpService } from '#services/security/totp_service'
 import { BusinessOnboardingService } from '#services/business/business_onboarding_service'
 import { BusinessLifecycleService } from '#services/business/business_lifecycle_service'
 
@@ -56,7 +58,7 @@ async function authedFetch(
     body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
   })
   const body = await res.json().catch(() => null)
-  return { status: res.status, body: body as any }
+  return { status: res.status, body: body as any, setCookies: res.headers.getSetCookie() }
 }
 
 async function login(path: string, credentials: { email: string; password: string }) {
@@ -70,14 +72,40 @@ async function login(path: string, credentials: { email: string; password: strin
 }
 
 async function createInternalUser(email: string) {
-  return InternalUser.create({
+  // Admin routes require two-factor authentication to be enrolled (is_internal_user.ts), so test
+  // staff get a real TOTP secret, stored the same way enrolment stores it.
+  const secret = TotpService.generateSecret()
+  const user = await InternalUser.create({
     email,
     fullName: `Staff ${email}`,
     password: 'staffpass123',
     status: 'active',
     mustChangePassword: false,
-    mfaEnabled: false,
+    mfaEnabled: true,
+    mfaSecretEncrypted: CryptoService.encrypt(secret),
   })
+  return { user, secret }
+}
+
+/**
+ * Full staff sign-in, as the admin console does it: the password alone only yields a pending
+ * session that admin routes refuse, and a valid TOTP code upgrades it to a full session.
+ */
+async function signInInternal(email: string, secret: string) {
+  const res = await login('/internal/auth/login', { email, password: 'staffpass123' })
+  if (res.status !== 200 || !res.body?.data?.mfa_required) {
+    throw new Error(`Expected a pending two-factor session, got HTTP ${res.status}`)
+  }
+  const pending = authSession(res.setCookies, 'internal')
+
+  const verify = await authedFetch('/internal/auth/mfa/verify', pending, {
+    method: 'POST',
+    body: { code: TotpService.generate(secret) },
+  })
+  if (verify.status !== 200) {
+    throw new Error(`Two-factor verification failed with HTTP ${verify.status}`)
+  }
+  return authSession(verify.setCookies, 'internal')
 }
 
 /** BusinessLifecycleService.approve() now requires an approved KYC (KYB) on file first. */
@@ -95,11 +123,8 @@ async function approveKycFor(businessId: number) {
 
 test.group('Internal auth (regression: guard bug)', () => {
   test('internal user can log in and call an admin-only endpoint', async ({ assert }) => {
-    await createInternalUser('admin1@internal.test')
-
-    const res = await login('/internal/auth/login', { email: 'admin1@internal.test', password: 'staffpass123' })
-    assert.equal(res.status, 200)
-    const session = authSession(res.setCookies, 'internal')
+    const { secret } = await createInternalUser('admin1@internal.test')
+    const session = await signInInternal('admin1@internal.test', secret)
 
     // A regular user token would 401 here; an internal token via the wrong guard
     // (the bug this fixes) would also 401. This must succeed.
@@ -109,14 +134,16 @@ test.group('Internal auth (regression: guard bug)', () => {
 
   test('wrong password rejected, no token issued', async ({ assert }) => {
     await createInternalUser('admin2@internal.test')
-    const res = await login('/internal/auth/login', { email: 'admin2@internal.test', password: 'wrong' })
+    const res = await login('/internal/auth/login', {
+      email: 'admin2@internal.test',
+      password: 'wrong',
+    })
     assert.equal(res.status, 400)
   })
 
   test('internal user can approve a business end-to-end via HTTP', async ({ assert }) => {
-    const staff = await createInternalUser('admin3@internal.test')
-    const res = await login('/internal/auth/login', { email: 'admin3@internal.test', password: 'staffpass123' })
-    const session = authSession(res.setCookies, 'internal')
+    const { user: staff, secret } = await createInternalUser('admin3@internal.test')
+    const session = await signInInternal('admin3@internal.test', secret)
 
     const create = await authedFetch('/businesses', session, {
       method: 'POST',
@@ -126,7 +153,9 @@ test.group('Internal auth (regression: guard bug)', () => {
     const businessId = create.body.data.id
     await approveKycFor(businessId)
 
-    const approve = await authedFetch(`/businesses/${businessId}/approve`, session, { method: 'POST' })
+    const approve = await authedFetch(`/businesses/${businessId}/approve`, session, {
+      method: 'POST',
+    })
     assert.equal(approve.status, 200)
     assert.equal(approve.body.data.status, 'active')
     assert.equal(approve.body.data.approved_by, staff.id)
@@ -146,7 +175,10 @@ test.group('Business dashboard login', () => {
     await approveKycFor(business.id)
     await BusinessLifecycleService.approve(business.id, 1, 'debug')
 
-    const res = await login('/business/auth/login', { email: 'dashboard1@biz.test', password: generatedPassword! })
+    const res = await login('/business/auth/login', {
+      email: 'dashboard1@biz.test',
+      password: generatedPassword!,
+    })
     assert.equal(res.status, 200)
     const session = authSession(res.setCookies, 'business')
 
@@ -159,7 +191,9 @@ test.group('Business dashboard login', () => {
     assert.equal(profile.body.data.email, 'dashboard1@biz.test')
   })
 
-  test('pending business can log in (to submit KYC) but is blocked from financial routes', async ({ assert }) => {
+  test('pending business can log in (to submit KYC) but is blocked from financial routes', async ({
+    assert,
+  }) => {
     const { business, generatedPassword } = await BusinessOnboardingService.create({
       code: 'dash-biz-pending',
       name: 'Pending Biz',
@@ -169,7 +203,10 @@ test.group('Business dashboard login', () => {
     })
     void business
 
-    const res = await login('/business/auth/login', { email: 'pending@biz.test', password: generatedPassword! })
+    const res = await login('/business/auth/login', {
+      email: 'pending@biz.test',
+      password: generatedPassword!,
+    })
     assert.equal(res.status, 200)
     const session = authSession(res.setCookies, 'business')
 
@@ -189,7 +226,10 @@ test.group('Business dashboard login', () => {
     await BusinessLifecycleService.approve(business.id, 1, 'debug')
     await BusinessLifecycleService.suspend(business.id, 1, 'reason for suspension test', 'debug')
 
-    const res = await login('/business/auth/login', { email: 'suspended@biz.test', password: generatedPassword! })
+    const res = await login('/business/auth/login', {
+      email: 'suspended@biz.test',
+      password: generatedPassword!,
+    })
     assert.equal(res.status, 403)
   })
 
@@ -206,7 +246,10 @@ test.group('Business dashboard login', () => {
     await BusinessLifecycleService.approve(business.id, 1, 'debug')
 
     for (let i = 0; i < 5; i++) {
-      const attempt = await login('/business/auth/login', { email: 'lockout@biz.test', password: 'wrong-password' })
+      const attempt = await login('/business/auth/login', {
+        email: 'lockout@biz.test',
+        password: 'wrong-password',
+      })
       assert.equal(attempt.status, 400)
     }
 
@@ -231,11 +274,16 @@ test.group('Business dashboard login', () => {
     await approveKycFor(business.id)
     await BusinessLifecycleService.approve(business.id, 1, 'debug')
 
-    const res = await login('/business/auth/login', { email: 'money@biz.test', password: 'correcthorsebattery' })
+    const res = await login('/business/auth/login', {
+      email: 'money@biz.test',
+      password: 'correcthorsebattery',
+    })
     const session = authSession(res.setCookies, 'business')
 
     // Self-service API key issuance from the dashboard
-    const keyResponse = await authedFetch('/business/dashboard/api-keys', session, { method: 'POST' })
+    const keyResponse = await authedFetch('/business/dashboard/api-keys', session, {
+      method: 'POST',
+    })
     assert.equal(keyResponse.status, 201)
     assert.exists(keyResponse.body.data.api_key)
 
