@@ -84,6 +84,10 @@ curl -X POST https://sandbox-api.trustsend.africa/api/v1/business/sandbox/fund \
 | `409` | | `idempotency_key` déjà utilisée avec d'autres paramètres |
 | `422` | | Paramètre invalide, devise non disponible ou montant au-delà du maximum |
 
+## Tester les dépôts et retraits
+
+Les dépôts et retraits mobile money passent par l'environnement de test de l'opérateur. Des numéros de téléphone dédiés produisent un résultat connu d'avance (réussite, échec avec un code précis, opération en attente), pour chaque pays et chaque opérateur : voir [Numéros de test](/mobile-money/test-numbers).
+
 ## Passer en production
 
 1. Créez votre compte sur l'[Espace client](https://business.trustsend.africa) de production et complétez la vérification de votre entreprise.

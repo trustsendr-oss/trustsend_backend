@@ -1,0 +1,710 @@
+---
+sidebar_position: 3
+title: Numéros de test (sandbox)
+---
+
+# Numéros de test (sandbox)
+
+En [sandbox](/sandbox), les dépôts et retraits mobile money passent par l'environnement de test de PawaPay. Certains numéros de téléphone y produisent un résultat connu d'avance : réussite, échec avec un code précis, ou opération qui reste en attente. Ils permettent de vérifier que votre intégration gère chaque cas.
+
+:::warning Sandbox uniquement
+Ces numéros ne fonctionnent que sur l'API sandbox (`https://sandbox-api.trustsend.africa/api/v1`). En production, ils ne correspondent à aucun client réel.
+:::
+
+## Utiliser un numéro de test
+
+Envoyez un [dépôt ou un retrait](/mobile-money/deposits-payouts) avec le numéro de test dans `phone_number` et le code opérateur correspondant dans `provider`. La devise doit être acceptée par cet opérateur : consultez [Moyens de paiement](/mobile-money/payment-methods).
+
+```bash
+curl -X POST https://sandbox-api.trustsend.africa/api/v1/business/mobile-money/deposits \
+  -H "Authorization: Bearer $TRUSTSEND_SANDBOX_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "50000",
+    "currency_code": "CDF",
+    "phone_number": "243813456789",
+    "provider": "VODACOM_MPESA_COD",
+    "idempotency_key": "4f6b1c2e-8a8d-4c1e-9d0a-2b7e5f3c9a11",
+    "pin": "0000"
+  }'
+```
+
+En sandbox, le client n'a pas à valider le paiement sur son téléphone : le résultat arrive plus vite qu'en production.
+
+## Résultats
+
+| Résultat indiqué | Ce que vous observez |
+|---|---|
+| Réussi | La transaction passe à `completed` et le webhook `.completed` est envoyé |
+| Échec | La transaction passe à `failed`, le webhook `.failed` est envoyé et le motif figure dans `failure_reason` |
+| Reste en attente | La transaction reste `processing` : utile pour tester l'affichage d'une opération en cours |
+
+## Codes d'échec
+
+| Code | Opération | Signification |
+|---|---|---|
+| `PAYER_NOT_FOUND` | Dépôt | Le numéro du payeur n'est pas reconnu par l'opérateur. |
+| `PAYMENT_NOT_APPROVED` | Dépôt | Le client n'a pas autorisé le paiement, par exemple faute d'avoir saisi son code PIN à temps. |
+| `INSUFFICIENT_BALANCE` | Dépôt, retrait | Solde insuffisant pour effectuer l'opération. |
+| `PAYER_LIMIT_REACHED` | Dépôt | Le payeur a atteint une limite de son compte mobile money. |
+| `TRANSACTION_ALREADY_IN_PROCESS` | Dépôt | Une autre transaction du client est déjà en cours chez l'opérateur. |
+| `RECIPIENT_NOT_FOUND` | Retrait | Le numéro du bénéficiaire n'appartient pas à l'opérateur indiqué. |
+| `WALLET_LIMIT_REACHED` | Retrait | Le bénéficiaire a atteint une limite de son compte, par exemple un plafond hebdomadaire. |
+| `RECIPIENT_LIMIT_REACHED` | Retrait | Le bénéficiaire a atteint une limite de réception. |
+| `PAYEE_LIMIT_REACHED` | Retrait | Le bénéficiaire a atteint une limite de réception. |
+| `PAYEE_NOT_ALLOWED_TO_RECEIVE` | Retrait | Le compte du bénéficiaire n'est pas autorisé à recevoir des fonds. |
+| `PO_MAX_AMOUNT_DAY` | Retrait | Le montant maximal de retraits pour la journée est atteint. |
+| `UNSPECIFIED_FAILURE` | Dépôt, retrait | L'opérateur n'a pas indiqué la raison de l'échec. |
+
+## Numéros par pays
+
+<details>
+<summary>Bénin</summary>
+
+**MTN** — `MTN_MOMO_BEN`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `22951345029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `22951345039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `22951345069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `22951345129` | Reste en attente (`processing`) |
+| Dépôt | `22951345789` | Réussi (`completed`) |
+| Retrait | `22951345089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `22951345119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `22951345129` | Reste en attente (`processing`) |
+| Retrait | `22951345789` | Réussi (`completed`) |
+
+**Moov** — `MOOV_BEN`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `22995345679` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `22995345529` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `22995345639` | Reste en attente (`processing`) |
+| Dépôt | `22995345789` | Réussi (`completed`) |
+| Retrait | `22995345219` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `22995345279` | Reste en attente (`processing`) |
+| Retrait | `22995345789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Burkina Faso</summary>
+
+**Moov** — `MOOV_BFA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `22602345048` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `22602345068` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `22602345138` | Reste en attente (`processing`) |
+| Dépôt | `22602345678` | Réussi (`completed`) |
+| Retrait | `22602345118` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `22602345138` | Reste en attente (`processing`) |
+| Retrait | `22602345678` | Réussi (`completed`) |
+
+**Orange** — `ORANGE_BFA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `22607345148` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `22607345128` | Reste en attente (`processing`) |
+| Dépôt | `22607345678` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Cameroun</summary>
+
+**MTN** — `MTN_MOMO_CMR`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `237653456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `237653456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `237653456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `237653456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `237653456129` | Reste en attente (`processing`) |
+| Dépôt | `237653456789` | Réussi (`completed`) |
+| Retrait | `237653456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `237653456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `237653456129` | Reste en attente (`processing`) |
+| Retrait | `237653456789` | Réussi (`completed`) |
+
+**Orange** — `ORANGE_CMR`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `237693456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `237693456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `237693456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `237693456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `237693456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `237693456129` | Reste en attente (`processing`) |
+| Dépôt | `237693456789` | Réussi (`completed`) |
+| Retrait | `237693456099` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `237693456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `237693456129` | Reste en attente (`processing`) |
+| Retrait | `237693456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Côte d'Ivoire</summary>
+
+**MTN** — `MTN_MOMO_CIV`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `2250503456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `2250503456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `2250503456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `2250503456129` | Reste en attente (`processing`) |
+| Dépôt | `2250503456789` | Réussi (`completed`) |
+| Retrait | `2250503456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `2250503456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `2250503456129` | Reste en attente (`processing`) |
+| Retrait | `2250503456789` | Réussi (`completed`) |
+
+**Orange** — `ORANGE_CIV`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `2250734567030` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `2250734567060` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `2250734567130` | Reste en attente (`processing`) |
+| Dépôt | `2250734567890` | Réussi (`completed`) |
+| Retrait | `2250734567110` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `2250734567130` | Reste en attente (`processing`) |
+| Retrait | `2250734567890` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Éthiopie</summary>
+
+**Safaricom MPesa** — `MPESA_ETH`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `251700000010` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `251700000030` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `251700000040` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `251700000050` | Échec : `TRANSACTION_ALREADY_IN_PROCESS` |
+| Dépôt | `251700000060` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `251700000120` | Reste en attente (`processing`) |
+| Dépôt | `251700000000` | Réussi (`completed`) |
+| Retrait | `251700000070` | Échec : `INSUFFICIENT_BALANCE` |
+| Retrait | `251700000080` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `251700000090` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `251700000100` | Échec : `RECIPIENT_LIMIT_REACHED` |
+| Retrait | `251700000110` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `251700000120` | Reste en attente (`processing`) |
+| Retrait | `251700000000` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Gabon</summary>
+
+**Airtel** — `AIRTEL_GAB`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `24174345048` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `24174345068` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `24174345128` | Reste en attente (`processing`) |
+| Dépôt | `24174345678` | Réussi (`completed`) |
+| Retrait | `24174345088` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `24174345118` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `24174345128` | Reste en attente (`processing`) |
+| Retrait | `24174345678` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Ghana</summary>
+
+**MTN** — `MTN_MOMO_GHA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `233593456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `233593456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `233593456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `233593456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `233593456129` | Reste en attente (`processing`) |
+| Dépôt | `233593456789` | Réussi (`completed`) |
+| Retrait | `233593456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `233593456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `233593456129` | Reste en attente (`processing`) |
+| Retrait | `233593456789` | Réussi (`completed`) |
+
+**AT** — `AIRTELTIGO_GHA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `233273456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `233273456129` | Reste en attente (`processing`) |
+| Dépôt | `233273456789` | Réussi (`completed`) |
+| Retrait | `233273456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `233273456099` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `233273456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `233273456129` | Reste en attente (`processing`) |
+| Retrait | `233273456789` | Réussi (`completed`) |
+
+**Vodafone** — `VODAFONE_GHA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `233503456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `233503456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `233503456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `233503456129` | Reste en attente (`processing`) |
+| Dépôt | `233503456789` | Réussi (`completed`) |
+| Retrait | `233503456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `233503456099` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `233503456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `233503456129` | Reste en attente (`processing`) |
+| Retrait | `233503456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Kenya</summary>
+
+**MPesa** — `MPESA_KEN`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `254703456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `254703456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `254703456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `254703456059` | Échec : `TRANSACTION_ALREADY_IN_PROCESS` |
+| Dépôt | `254703456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `254703456129` | Reste en attente (`processing`) |
+| Dépôt | `254703456789` | Réussi (`completed`) |
+| Retrait | `254703456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `254703456099` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `254703456109` | Échec : `RECIPIENT_LIMIT_REACHED` |
+| Retrait | `254703456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `254703456129` | Reste en attente (`processing`) |
+| Retrait | `254703456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Lesotho</summary>
+
+**MPesa** — `MPESA_LSO`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `266100000010` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `266100000020` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `266100000030` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `266100000040` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `266100000060` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `266100000120` | Reste en attente (`processing`) |
+| Dépôt | `266100000000` | Réussi (`completed`) |
+| Retrait | `266100000070` | Échec : `INSUFFICIENT_BALANCE` |
+| Retrait | `266100000080` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `266100000090` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `266100000110` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `266100000120` | Reste en attente (`processing`) |
+| Retrait | `266100000000` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Malawi</summary>
+
+**Airtel** — `AIRTEL_MWI`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `265993456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `265993456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `265993456129` | Reste en attente (`processing`) |
+| Dépôt | `265993456789` | Réussi (`completed`) |
+| Retrait | `265993456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `265993456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `265993456129` | Reste en attente (`processing`) |
+| Retrait | `265993456789` | Réussi (`completed`) |
+
+**TNM** — `TNM_MWI`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `265883456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `265883456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `265883456129` | Reste en attente (`processing`) |
+| Dépôt | `265883456789` | Réussi (`completed`) |
+| Retrait | `265883456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `265883456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `265883456129` | Reste en attente (`processing`) |
+| Retrait | `265883456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Mozambique</summary>
+
+**Movitel** — `MOVITEL_MOZ`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `258100000010` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `258100000000` | Réussi (`completed`) |
+| Retrait | `258100000110` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `258100000120` | Échec : `PAYEE_NOT_ALLOWED_TO_RECEIVE` |
+| Retrait | `258100000130` | Échec : `INSUFFICIENT_BALANCE` |
+| Retrait | `258100000130` | Échec : `PO_MAX_AMOUNT_DAY` |
+| Retrait | `258100000150` | Échec : `PAYEE_LIMIT_REACHED` |
+| Retrait | `258100000160` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `258100000000` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Nigeria</summary>
+
+**Airtel** — `AIRTEL_NGA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `2349034567069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `2349034567129` | Reste en attente (`processing`) |
+| Dépôt | `2349034567899` | Réussi (`completed`) |
+| Retrait | `2349034567089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `2349034567119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `2349034567129` | Reste en attente (`processing`) |
+| Retrait | `2349034567899` | Réussi (`completed`) |
+
+**MTN** — `MTN_MOMO_NGA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `2348134567019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `2348134567029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `2348134567039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `2348134567069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `2348134567129` | Reste en attente (`processing`) |
+| Dépôt | `2348134567899` | Réussi (`completed`) |
+| Retrait | `2348134567089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `2348134567099` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `2348134567119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `2348134567129` | Reste en attente (`processing`) |
+| Retrait | `2348134567899` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Ouganda</summary>
+
+**Airtel** — `AIRTEL_OAPI_UGA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `256753456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `256753456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `256753456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `256753456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `256753456129` | Reste en attente (`processing`) |
+| Dépôt | `256753456789` | Réussi (`completed`) |
+| Retrait | `256753456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `256753456099` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `256753456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `256753456129` | Reste en attente (`processing`) |
+| Retrait | `256753456789` | Réussi (`completed`) |
+
+**MTN** — `MTN_MOMO_UGA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `256783456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `256783456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `256783456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `256783456129` | Reste en attente (`processing`) |
+| Dépôt | `256783456789` | Réussi (`completed`) |
+| Retrait | `256783456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `256783456099` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `256783456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `256783456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>République démocratique du Congo (RDC)</summary>
+
+**Vodacom** — `VODACOM_MPESA_COD`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `243813456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `243813456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `243813456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `243813456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `243813456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `243813456129` | Reste en attente (`processing`) |
+| Dépôt | `243813456789` | Réussi (`completed`) |
+| Retrait | `243813456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `243813456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `243813456129` | Reste en attente (`processing`) |
+| Retrait | `243813456789` | Réussi (`completed`) |
+
+**Airtel** — `AIRTEL_COD`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `243973456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `243973456129` | Reste en attente (`processing`) |
+| Dépôt | `243973456789` | Réussi (`completed`) |
+| Retrait | `243973456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `243973456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `243973456129` | Reste en attente (`processing`) |
+| Retrait | `243973456789` | Réussi (`completed`) |
+
+**Orange** — `ORANGE_COD`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `243893456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `243893456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `243893456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `243893456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `243893456129` | Reste en attente (`processing`) |
+| Dépôt | `243893456789` | Réussi (`completed`) |
+| Retrait | `243893456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `243893456129` | Reste en attente (`processing`) |
+| Retrait | `243893456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>République du Congo</summary>
+
+**Airtel** — `AIRTEL_COG`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `242053456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `242053456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `242053456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `242053456129` | Reste en attente (`processing`) |
+| Dépôt | `242053456789` | Réussi (`completed`) |
+| Retrait | `242053456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `242053456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `242053456129` | Reste en attente (`processing`) |
+| Retrait | `242053456789` | Réussi (`completed`) |
+
+**MTN** — `MTN_MOMO_COG`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `242063456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `242063456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `242063456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `242063456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `242063456129` | Reste en attente (`processing`) |
+| Dépôt | `242063456789` | Réussi (`completed`) |
+| Retrait | `242063456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `242063456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `242063456129` | Reste en attente (`processing`) |
+| Retrait | `242063456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Rwanda</summary>
+
+**Airtel** — `AIRTEL_RWA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `250733456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `250733456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `250733456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `250733456129` | Reste en attente (`processing`) |
+| Dépôt | `250733456789` | Réussi (`completed`) |
+| Retrait | `250733456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `250733456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `250733456129` | Reste en attente (`processing`) |
+| Retrait | `250733456789` | Réussi (`completed`) |
+
+**MTN** — `MTN_MOMO_RWA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `250783456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `250783456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `250783456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `250783456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `250783456129` | Reste en attente (`processing`) |
+| Dépôt | `250783456789` | Réussi (`completed`) |
+| Retrait | `250783456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `250783456099` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `250783456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `250783456129` | Reste en attente (`processing`) |
+| Retrait | `250783456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Sénégal</summary>
+
+**Free** — `FREE_SEN`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `221763456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `221763456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `221763456129` | Reste en attente (`processing`) |
+| Dépôt | `221763456789` | Réussi (`completed`) |
+| Retrait | `221763456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `221763456129` | Reste en attente (`processing`) |
+| Retrait | `221763456789` | Réussi (`completed`) |
+
+**Orange** — `ORANGE_SEN`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `221773456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `221773456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `221773456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `221773456129` | Reste en attente (`processing`) |
+| Dépôt | `221773456789` | Réussi (`completed`) |
+| Retrait | `221773456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `221773456139` | Reste en attente (`processing`) |
+| Retrait | `221773456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Sierra Leone</summary>
+
+**Orange** — `ORANGE_SLE`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `23276123456` | Réussi (`completed`) |
+| Retrait | `23276123456` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Tanzanie</summary>
+
+**Airtel** — `AIRTEL_TZA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `255683456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `255683456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `255683456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `255683456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `255683456129` | Reste en attente (`processing`) |
+| Dépôt | `255683456789` | Réussi (`completed`) |
+| Retrait | `255683456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `255683456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `255683456129` | Reste en attente (`processing`) |
+| Retrait | `255683456789` | Réussi (`completed`) |
+
+**Vodacom** — `VODACOM_TZA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `255763456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `255763456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `255763456129` | Reste en attente (`processing`) |
+| Dépôt | `255763456789` | Réussi (`completed`) |
+| Retrait | `255763456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `255763456129` | Reste en attente (`processing`) |
+| Retrait | `255763456789` | Réussi (`completed`) |
+
+**Tigo** — `TIGO_TZA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `255713456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `255713456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `255713456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `255713456129` | Reste en attente (`processing`) |
+| Dépôt | `255713456789` | Réussi (`completed`) |
+| Retrait | `255713456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `255713456099` | Échec : `WALLET_LIMIT_REACHED` |
+| Retrait | `255713456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `255713456129` | Reste en attente (`processing`) |
+| Retrait | `255713456789` | Réussi (`completed`) |
+
+**Halotel** — `HALOTEL_TZA`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `255623456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `255623456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `255623456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `255623456129` | Reste en attente (`processing`) |
+| Dépôt | `255623456789` | Réussi (`completed`) |
+| Retrait | `255623456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `255623456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `255623456129` | Reste en attente (`processing`) |
+| Retrait | `255623456789` | Réussi (`completed`) |
+
+</details>
+
+<details>
+<summary>Zambie</summary>
+
+**Airtel** — `AIRTEL_OAPI_ZMB`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `260973456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `260973456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `260973456049` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `260973456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `260973456129` | Reste en attente (`processing`) |
+| Dépôt | `260973456789` | Réussi (`completed`) |
+| Retrait | `260973456089` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `260973456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `260973456129` | Reste en attente (`processing`) |
+| Retrait | `260973456789` | Réussi (`completed`) |
+
+**MTN** — `MTN_MOMO_ZMB`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `260763456019` | Échec : `PAYER_LIMIT_REACHED` |
+| Dépôt | `260763456029` | Échec : `PAYER_NOT_FOUND` |
+| Dépôt | `260763456039` | Échec : `PAYMENT_NOT_APPROVED` |
+| Dépôt | `260763456069` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `260763456129` | Reste en attente (`processing`) |
+| Dépôt | `260763456789` | Réussi (`completed`) |
+| Retrait | `260763456079` | Échec : `RECIPIENT_NOT_FOUND` |
+| Retrait | `260763456119` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `260763456129` | Reste en attente (`processing`) |
+| Retrait | `260763456789` | Réussi (`completed`) |
+
+**Zamtel** — `ZAMTEL_ZMB`
+
+| Opération | Numéro | Résultat |
+|---|---|---|
+| Dépôt | `260953456704` | Échec : `INSUFFICIENT_BALANCE` |
+| Dépôt | `260953456712` | Échec : `UNSPECIFIED_FAILURE` |
+| Dépôt | `260953456789` | Reste en attente (`processing`) |
+| Dépôt | `260953456700` | Réussi (`completed`) |
+| Retrait | `260953456712` | Échec : `UNSPECIFIED_FAILURE` |
+| Retrait | `260953456789` | Reste en attente (`processing`) |
+| Retrait | `260953456700` | Réussi (`completed`) |
+
+</details>
+
+:::note
+La documentation PawaPay associe deux résultats différents à un même numéro : Mozambique, MOVITEL_MOZ, retrait 258100000130. Les deux lignes sont reprises telles quelles.
+:::
+
+## Source
+
+Numéros repris de la [documentation PawaPay](https://docs.pawapay.io/v2/docs/test_numbers) le 15 septembre 2026. PawaPay peut les modifier : en cas de différence, leur documentation fait foi.
