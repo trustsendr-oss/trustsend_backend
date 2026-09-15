@@ -1,6 +1,6 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
-import type * as Preset from '@docusaurus/preset-classic';
+import { themes as prismThemes } from 'prism-react-renderer'
+import type { Config } from '@docusaurus/types'
+import type * as Preset from '@docusaurus/preset-classic'
 
 const config: Config = {
   title: 'TrustSend API',
@@ -22,11 +22,15 @@ const config: Config = {
   headTags: [
     {
       tagName: 'link',
-      attributes: {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
+      attributes: { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     },
     {
       tagName: 'link',
-      attributes: {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous'},
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossorigin: 'anonymous',
+      },
     },
   ],
 
@@ -92,25 +96,25 @@ const config: Config = {
         {
           title: 'Documentation',
           items: [
-            {label: 'Introduction', to: '/'},
-            {label: 'Authentification', to: '/authentication'},
-            {label: 'Mobile Money', to: '/mobile-money/deposits-payouts'},
-            {label: 'Erreurs', to: '/errors'},
+            { label: 'Introduction', to: '/' },
+            { label: 'Authentification', to: '/authentication' },
+            { label: 'Mobile Money', to: '/mobile-money/deposits-payouts' },
+            { label: 'Erreurs', to: '/errors' },
           ],
         },
         {
           title: 'Produit',
           items: [
-            {label: 'TrustSend', href: 'https://www.trustsend.africa'},
-            {label: 'Espace client', href: 'https://business.trustsend.africa'},
-            {label: 'Tarifs', href: 'https://www.trustsend.africa/pricing'},
+            { label: 'TrustSend', href: 'https://www.trustsend.africa' },
+            { label: 'Espace client', href: 'https://business.trustsend.africa' },
+            { label: 'Tarifs', href: 'https://www.trustsend.africa/pricing' },
           ],
         },
         {
           title: 'Support',
           items: [
-            {label: 'WhatsApp', href: 'https://wa.me/243972716360'},
-            {label: 'Statut de l\'API', href: 'https://api.trustsend.africa/health'},
+            { label: 'WhatsApp', href: 'https://wa.me/243972716360' },
+            { label: "Statut de l'API", href: 'https://api.trustsend.africa/health' },
           ],
         },
       ],
@@ -134,6 +138,6 @@ const config: Config = {
       },
     },
   } satisfies Preset.ThemeConfig,
-};
+}
 
-export default config;
+export default config

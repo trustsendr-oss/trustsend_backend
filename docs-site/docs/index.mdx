@@ -72,7 +72,7 @@ Une réponse réussie place la ressource dans un champ `data`. Une erreur renvoi
 
 ### Montants
 
-Les montants sont exprimés dans la **plus petite unité de la devise** et transmis sous forme de chaîne de caractères, afin d'éviter toute perte de précision liée aux nombres décimaux.
+Les montants sont exprimés en **centièmes de la devise**, quelle que soit la devise, et transmis sous forme de chaîne de caractères afin d'éviter toute perte de précision liée aux nombres décimaux : `"1250"` vaut 12,50 USD, et `"10000"` vaut 100 XAF. Pour une devise sans décimales (XAF, XOF, RWF, BIF, UGX…), un montant envoyé doit être un multiple de 100.
 
 ```json
 { "amount": "50000", "currency_code": "USD" }

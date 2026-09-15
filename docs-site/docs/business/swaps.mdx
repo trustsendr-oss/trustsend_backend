@@ -7,7 +7,7 @@ title: Échange de devises
 
 Un échange convertit une partie du solde d'un de vos wallets vers un autre de vos wallets, dans une autre devise. Il se fait en deux appels : vous demandez d'abord un **devis**, qui bloque le taux pendant 60 secondes, puis vous **exécutez** ce devis.
 
-Les deux wallets doivent déjà exister (voir [Wallets](./wallet)). Les montants sont exprimés dans la plus petite unité de la devise, sous forme de chaîne de caractères.
+Les deux wallets doivent déjà exister (voir [Wallets](./wallet)). Les montants sont exprimés en centièmes de la devise, quelle que soit la devise, sous forme de chaîne de caractères.
 
 :::note
 Nécessite la fonctionnalité `wallet.multi_currency` dans votre offre.
@@ -45,7 +45,7 @@ Renvoie les taux du marché international pour les devises disponibles, sans mar
 |---|---|---|---|
 | `from_currency` | string | Oui | Devise du wallet débité, par exemple `USD` |
 | `to_currency` | string | Oui | Devise du wallet crédité, par exemple `CDF` |
-| `amount` | string | Oui | Montant à convertir, dans la plus petite unité de `from_currency` |
+| `amount` | string | Oui | Montant à convertir, en centièmes de `from_currency` |
 
 ```bash
 curl -X POST https://api.trustsend.africa/api/v1/business/swaps/quote \
@@ -83,7 +83,7 @@ curl -X POST https://api.trustsend.africa/api/v1/business/swaps/quote \
 | `margin_bps` | Marge appliquée, en points de base (100 = 1 %) |
 | `expires_at` | Au-delà de cette date, le devis ne peut plus être exécuté |
 
-Pour une devise sans décimales, comme `XAF`, `amount_out` est arrondi à l'unité inférieure.
+Pour une devise sans décimales, comme `XAF`, `amount_out` est arrondi à l'unité inférieure : c'est toujours un multiple de 100.
 
 ## Exécuter un échange
 

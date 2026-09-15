@@ -24,7 +24,7 @@ Les deux opérations sont asynchrones : l'API répond immédiatement `202` avec 
 
 | Paramètre | Type | Requis | Description |
 |---|---|---|---|
-| `amount` | string | Oui | Montant en plus petite unité de la devise, entier positif sans zéro initial |
+| `amount` | string | Oui | Montant en centièmes de la devise (`"10000"` = 100 XAF), entier positif sans zéro initial. Multiple de 100 pour une devise sans décimales |
 | `currency_code` | string | Oui | Code de devise ISO 4217 ; un wallet actif doit exister dans cette devise |
 | `phone_number` | string | Oui | Numéro du payeur au format international, chiffres uniquement, sans `+` (8 à 15 chiffres) |
 | `provider` | string | Oui | Code opérateur obtenu via [Moyens de paiement](/mobile-money/payment-methods) |

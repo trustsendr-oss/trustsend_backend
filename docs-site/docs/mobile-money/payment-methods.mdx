@@ -43,8 +43,8 @@ curl "https://api.trustsend.africa/api/v1/business/mobile-money/payment-methods?
 | `provider` | Code opérateur à utiliser lors d'un dépôt ou d'un retrait |
 | `display_name` | Nom de l'opérateur, à afficher à vos clients |
 | `status` | `OPERATIONAL` lorsque l'opérateur accepte les opérations ; toute autre valeur signale une indisponibilité temporaire |
-| `min_amount` | Montant minimal accepté, en plus petite unité de la devise |
-| `max_amount` | Montant maximal accepté, en plus petite unité de la devise |
+| `min_amount` | Montant minimal accepté, en centièmes de la devise |
+| `max_amount` | Montant maximal accepté, en centièmes de la devise |
 
 :::tip
 Interrogez cet endpoint au moment d'afficher le choix de l'opérateur à votre client, et n'initiez pas d'opération vers un opérateur dont le statut n'est pas `OPERATIONAL`.

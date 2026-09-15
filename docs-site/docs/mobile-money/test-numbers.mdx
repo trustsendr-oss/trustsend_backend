@@ -5,12 +5,12 @@ title: Numéros de test (sandbox)
 
 # Numéros de test (sandbox)
 
-En [sandbox](/sandbox), les dépôts et retraits mobile money passent par l'environnement de test de PawaPay. Certains numéros de téléphone y produisent un résultat connu d'avance : réussite, échec avec un code précis, ou opération qui reste en attente. Ils permettent de vérifier que votre intégration gère chaque cas.
+En [sandbox](/sandbox), les dépôts et retraits mobile money passent par l'environnement de test. Certains numéros de téléphone y produisent un résultat connu d'avance : réussite, échec avec un code précis, ou opération qui reste en attente. Ils permettent de vérifier que votre intégration gère chaque cas.
 
-:::warning Sandbox uniquement
+:::warning
+ Sandbox uniquement
 Ces numéros ne fonctionnent que sur l'API sandbox (`https://sandbox-api.trustsend.africa/api/v1`). En production, ils ne correspondent à aucun client réel.
 :::
-
 ## Utiliser un numéro de test
 
 Envoyez un [dépôt ou un retrait](/mobile-money/deposits-payouts) avec le numéro de test dans `phone_number` et le code opérateur correspondant dans `provider`. La devise doit être acceptée par cet opérateur : consultez [Moyens de paiement](/mobile-money/payment-methods).
@@ -700,11 +700,3 @@ En sandbox, le client n'a pas à valider le paiement sur son téléphone : le r�
 | Retrait | `260953456700` | Réussi (`completed`) |
 
 </details>
-
-:::note
-La documentation PawaPay associe deux résultats différents à un même numéro : Mozambique, MOVITEL_MOZ, retrait 258100000130. Les deux lignes sont reprises telles quelles.
-:::
-
-## Source
-
-Numéros repris de la [documentation PawaPay](https://docs.pawapay.io/v2/docs/test_numbers) le 15 septembre 2026. PawaPay peut les modifier : en cas de différence, leur documentation fait foi.
