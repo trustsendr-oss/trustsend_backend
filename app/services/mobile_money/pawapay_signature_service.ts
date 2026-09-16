@@ -1,5 +1,7 @@
 import { createHash, createPublicKey, verify as cryptoVerify } from 'node:crypto'
 import mobileMoneyConfig from '#config/mobile_money'
+import { SandboxMode } from '#services/sandbox/sandbox_mode'
+import appLogger from '@adonisjs/core/services/logger'
 
 export class PawaPaySignatureException extends Error {
   constructor(message: string) {
@@ -71,25 +73,50 @@ export class PawaPaySignatureService {
 
     const publicKeyPem = await this.getPublicKey(keyId)
 
+    // RFC 9421 prescrit du P1363 brut (64 octets pour P-256) mais PawaPay envoie du DER
+    // (71 octets commençant par 0x30, vérifié sur un callback réel). On déduit l'encodage de
+    // la forme reçue plutôt que d'en figer un : les deux sont vérifiés cryptographiquement,
+    // et un passage de leur part à la forme normalisée continuerait de fonctionner.
+    const dsaEncoding = signatureBytes[0] === 0x30 ? 'der' : 'ieee-p1363'
+
     const isValid = cryptoVerify(
       null,
       Buffer.from(signatureBase, 'utf8'),
-      { key: createPublicKey(publicKeyPem), dsaEncoding: 'ieee-p1363' },
+      { key: createPublicKey(publicKeyPem), dsaEncoding },
       signatureBytes
     )
 
     if (!isValid) {
+      // TEMPORAIRE, sandbox uniquement — voir webhooks_controller.ts. Sans la base calculée,
+      // un echec ne dit pas QUEL composant differe de ce que PawaPay a signe.
+      if (SandboxMode.isEnabled()) {
+        appLogger.warn(
+          { signatureBase, coveredComponents, keyId, dsaEncoding },
+          'mobile_money.pawapay.signature_base_mismatch'
+        )
+      }
       throw new PawaPaySignatureException('Signature verification failed')
     }
   }
 
+  /**
+   * RFC 9530 : le champ est un dictionnaire d'algorithmes. PawaPay envoie `sha-512` — vérifié
+   * sur un callback réel du 16/09/2026, dont le condensé correspond au corps octet pour octet.
+   * `sha-256` reste accepté : ce sont les deux seuls algorithmes normalisés, et rien ne garantit
+   * qu'ils n'en changeront pas.
+   */
   private static assertContentDigestMatches(rawBody: string, contentDigestHeader: string): void {
-    const match = contentDigestHeader.match(/sha-256=:([^:]+):/)
+    const match = contentDigestHeader.match(/(sha-256|sha-512)=:([^:]+):/)
     if (!match) {
       throw new PawaPaySignatureException('Unsupported Content-Digest format')
     }
-    const expected = createHash('sha256').update(rawBody, 'utf8').digest('base64')
-    if (match[1] !== expected) {
+
+    const [, algorithm, received] = match
+    const expected = createHash(algorithm === 'sha-512' ? 'sha512' : 'sha256')
+      .update(rawBody, 'utf8')
+      .digest('base64')
+
+    if (received !== expected) {
       throw new PawaPaySignatureException('Content-Digest does not match request body')
     }
   }
@@ -179,7 +206,9 @@ export class PawaPaySignatureService {
       return cached.publicKeyPem
     }
 
-    const response = await fetch(`${mobileMoneyConfig.pawapay.baseUrl}/v2/public-keys`, {
+    // `/v2/public-keys` renvoie un 404 : PawaPay le route vers la recherche de paiement.
+    // Le bon chemin est `/v2/public-key/http`, et il ne demande aucune authentification.
+    const response = await fetch(`${mobileMoneyConfig.pawapay.baseUrl}/v2/public-key/http`, {
       signal: AbortSignal.timeout(mobileMoneyConfig.pawapay.requestTimeoutMs),
     })
 
@@ -189,8 +218,10 @@ export class PawaPaySignatureService {
       )
     }
 
-    const body = (await response.json()) as Array<{ keyId: string; publicKey: string }>
-    const found = body.find((k) => k.keyId === keyId)
+    // Les champs s'appellent `id` et `key`, pas `keyId`/`publicKey` — vérifié contre la
+    // réponse réelle de la sandbox, où `id` vaut exactement le `keyid` du Signature-Input.
+    const body = (await response.json()) as Array<{ id: string; key: string }>
+    const found = body.find((k) => k.id === keyId)
 
     if (!found) {
       throw new PawaPaySignatureException(`Unknown PawaPay keyid: ${keyId}`)
@@ -198,10 +229,10 @@ export class PawaPaySignatureService {
 
     this.keyCache.set(keyId, {
       keyId,
-      publicKeyPem: found.publicKey,
+      publicKeyPem: found.key,
       fetchedAt: Date.now(),
     })
 
-    return found.publicKey
+    return found.key
   }
 }
