@@ -26,8 +26,45 @@ export default class MobileMoneyWebhooksController {
     const body = await this.verifyAndParse(request, response, 'deposit')
     if (!body) return // response already sent by verifyAndParse
 
-    if (!body.depositId) {
-      return response.badRequest({ message: 'Missing depositId' })
+    return this.process(body, response, logger, 'deposit')
+  }
+
+  async handlePayout({ request, response, logger }: HttpContext) {
+    const body = await this.verifyAndParse(request, response, 'payout')
+    if (!body) return
+
+    return this.process(body, response, logger, 'payout')
+  }
+
+  /**
+   * Traite un callback vérifié, en se fiant au CORPS et non à l'URL empruntée.
+   *
+   * PawaPay ne propose qu'un champ d'URL de callback par environnement : en sandbox, les
+   * notifications de dépôt arrivent sur la route des retraits (constaté sur chaque callback
+   * du 16/09/2026 — corps portant `depositId`, chemin `/webhooks/pawapay/payouts`). S'en tenir
+   * à la route signifiait répondre « Missing payoutId » à un dépôt réussi, et laisser la
+   * transaction en `processing` indéfiniment.
+   *
+   * Le corps dit sans ambiguïté de quoi il s'agit : `depositId` ou `payoutId`, jamais les deux.
+   * Se fier à lui ne relâche aucune garantie — la signature, elle, couvre bien le chemin, et
+   * elle a déjà été vérifiée avant d'arriver ici.
+   */
+  private async process(
+    body: PawaPayCallbackBody,
+    response: HttpContext['response'],
+    logger: HttpContext['logger'],
+    route: 'deposit' | 'payout'
+  ) {
+    const kind = body.depositId ? 'deposit' : body.payoutId ? 'payout' : null
+
+    if (!kind) {
+      return response.badRequest({ message: 'Missing depositId or payoutId' })
+    }
+
+    if (kind !== route) {
+      // Pas une erreur : la configuration de PawaPay est ce qu'elle est. Tracé pour que
+      // l'écart reste visible plutôt que d'être absorbé silencieusement.
+      logger?.info({ route, payload: kind }, 'mobile_money.pawapay.callback_routed_by_payload')
     }
 
     if (body.status !== 'COMPLETED' && body.status !== 'FAILED') {
@@ -36,46 +73,30 @@ export default class MobileMoneyWebhooksController {
       return response.ok({ message: 'Ignored: not a final status' })
     }
 
+    const failureReason = body.failureReason
+      ? { code: body.failureReason.failureCode, message: body.failureReason.failureMessage }
+      : undefined
+
     try {
-      await MobileMoneyDepositService.confirmFromCallback('pawapay', body.depositId, body.status, {
-        providerTransactionId: body.providerTransactionId,
-        failureReason: body.failureReason
-          ? { code: body.failureReason.failureCode, message: body.failureReason.failureMessage }
-          : undefined,
-      })
+      if (kind === 'deposit') {
+        await MobileMoneyDepositService.confirmFromCallback(
+          'pawapay',
+          body.depositId!,
+          body.status,
+          { providerTransactionId: body.providerTransactionId, failureReason }
+        )
+      } else {
+        await MobileMoneyPayoutService.confirmFromCallback('pawapay', body.payoutId!, body.status, {
+          providerTransactionId: body.providerTransactionId,
+          failureReason,
+        })
+      }
     } catch (error) {
       // Never surface a 5xx to PawaPay for an internal processing error — that would trigger
       // their retry loop for something a retry can't fix. Log for manual investigation;
       // the reconciliation sweep is also a fallback.
       const err = error as any
-      logger?.error({ error: err }, 'mobile_money.deposit.callback_processing_failed')
-    }
-
-    return response.ok({ message: 'Received' })
-  }
-
-  async handlePayout({ request, response, logger }: HttpContext) {
-    const body = await this.verifyAndParse(request, response, 'payout')
-    if (!body) return
-
-    if (!body.payoutId) {
-      return response.badRequest({ message: 'Missing payoutId' })
-    }
-
-    if (body.status !== 'COMPLETED' && body.status !== 'FAILED') {
-      return response.ok({ message: 'Ignored: not a final status' })
-    }
-
-    try {
-      await MobileMoneyPayoutService.confirmFromCallback('pawapay', body.payoutId, body.status, {
-        providerTransactionId: body.providerTransactionId,
-        failureReason: body.failureReason
-          ? { code: body.failureReason.failureCode, message: body.failureReason.failureMessage }
-          : undefined,
-      })
-    } catch (error) {
-      const err = error as any
-      logger?.error({ error: err }, 'mobile_money.payout.callback_processing_failed')
+      logger?.error({ error: err, kind }, `mobile_money.${kind}.callback_processing_failed`)
     }
 
     return response.ok({ message: 'Received' })
