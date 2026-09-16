@@ -22,14 +22,21 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').notNullable()
       table.integer('user_id').nullable().unsigned().comment('FK to users if owner is a user')
-      table.integer('business_id').nullable().unsigned().comment('FK to businesses if owner is a business')
+      table
+        .integer('business_id')
+        .nullable()
+        .unsigned()
+        .comment('FK to businesses if owner is a business')
       table
         .integer('wallet_id')
         .notNullable()
         .unsigned()
         .comment('FK to wallets — the funding source debited/credited on card fund/withdraw')
       table.string('provider', 30).notNullable().defaultTo('payscribe')
-      table.string('provider_card_id', 100).nullable().comment('Set once the provider confirms creation')
+      table
+        .string('provider_card_id', 100)
+        .nullable()
+        .comment('Set once the provider confirms creation')
       table.string('brand', 20).notNullable().comment('VISA or MASTERCARD')
       table.string('card_type', 20).notNullable().defaultTo('virtual')
       table.string('currency_code', 3).notNullable().defaultTo('USD')
@@ -40,7 +47,11 @@ export default class extends BaseSchema {
       table.string('first_six', 6).nullable()
       table.string('last_four', 4).nullable()
       table.string('masked', 30).nullable()
-      table.bigInteger('balance_cache').notNullable().defaultTo(0).comment('Display-only — see class doc comment')
+      table
+        .bigInteger('balance_cache')
+        .notNullable()
+        .defaultTo(0)
+        .comment('Display-only — see class doc comment')
       table.string('failure_reason').nullable()
       table.timestamps()
 

@@ -52,11 +52,15 @@ export default class AgentFloatController {
     }
 
     try {
-      const outcome = await IdempotencyService.begin({ ...identity, requestHash: IdempotencyService.hashPayload(payload) })
+      const outcome = await IdempotencyService.begin({
+        ...identity,
+        requestHash: IdempotencyService.hashPayload(payload),
+      })
       if (outcome.replay) return response.status(outcome.status).send(outcome.body)
     } catch (error) {
       const err = error as any
-      if (err.name === 'IdempotencyConflictException') return response.conflict({ message: err.message })
+      if (err.name === 'IdempotencyConflictException')
+        return response.conflict({ message: err.message })
       throw error
     }
 
@@ -70,7 +74,9 @@ export default class AgentFloatController {
       }
       if (toAgent.parentAgentId !== fromAgent.id) {
         await IdempotencyService.fail(identity)
-        return response.forbidden({ message: 'You may only send float to your own direct sub-agents' })
+        return response.forbidden({
+          message: 'You may only send float to your own direct sub-agents',
+        })
       }
 
       const pinVerification = await PinService.verifyPin(user, payload.pin)
@@ -89,7 +95,9 @@ export default class AgentFloatController {
         correlationId,
       })
 
-      const body = { data: { transaction_id: txn.id, status: txn.status, created_at: txn.createdAt } }
+      const body = {
+        data: { transaction_id: txn.id, status: txn.status, created_at: txn.createdAt },
+      }
       await IdempotencyService.complete(identity, 201, body)
       return response.created(body)
     } catch (error) {
@@ -121,11 +129,15 @@ export default class AgentFloatController {
     }
 
     try {
-      const outcome = await IdempotencyService.begin({ ...identity, requestHash: IdempotencyService.hashPayload(payload) })
+      const outcome = await IdempotencyService.begin({
+        ...identity,
+        requestHash: IdempotencyService.hashPayload(payload),
+      })
       if (outcome.replay) return response.status(outcome.status).send(outcome.body)
     } catch (error) {
       const err = error as any
-      if (err.name === 'IdempotencyConflictException') return response.conflict({ message: err.message })
+      if (err.name === 'IdempotencyConflictException')
+        return response.conflict({ message: err.message })
       throw error
     }
 
@@ -147,7 +159,9 @@ export default class AgentFloatController {
         correlationId,
       })
 
-      const body = { data: { transaction_id: txn.id, status: txn.status, created_at: txn.createdAt } }
+      const body = {
+        data: { transaction_id: txn.id, status: txn.status, created_at: txn.createdAt },
+      }
       await IdempotencyService.complete(identity, 201, body)
       return response.created(body)
     } catch (error) {

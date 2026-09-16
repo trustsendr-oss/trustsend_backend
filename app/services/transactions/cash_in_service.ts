@@ -80,19 +80,22 @@ export class CashInService {
       await txn.useTransaction(trx).save()
 
       // Create outbox event for notification
-      await db.table('outbox_events').useTransaction(trx).insert({
-        aggregate_type: 'ledger_transaction',
-        aggregate_id: txn.id,
-        event_type: 'cash_in.initiated',
-        payload: {
-          transaction_id: txn.id,
-          agent_id: request.agentId,
-          user_wallet_id: request.userWalletId,
-          amount: request.amount.amount.toString(),
-        },
-        status: 'pending',
-        created_at: new Date(),
-      })
+      await db
+        .table('outbox_events')
+        .useTransaction(trx)
+        .insert({
+          aggregate_type: 'ledger_transaction',
+          aggregate_id: txn.id,
+          event_type: 'cash_in.initiated',
+          payload: {
+            transaction_id: txn.id,
+            agent_id: request.agentId,
+            user_wallet_id: request.userWalletId,
+            amount: request.amount.amount.toString(),
+          },
+          status: 'pending',
+          created_at: new Date(),
+        })
 
       // Audit
       await AuditLoggerService.record({
@@ -207,8 +210,16 @@ export class CashInService {
         'cash_in',
         [
           { accountId: agentAccount.id, direction: 'debit', amount },
-          { accountId: userAccount.id, direction: 'credit', amount: new Money(netToUser, currencyCode) },
-          { accountId: feesAccount.id, direction: 'credit', amount: new Money(commission, currencyCode) },
+          {
+            accountId: userAccount.id,
+            direction: 'credit',
+            amount: new Money(netToUser, currencyCode),
+          },
+          {
+            accountId: feesAccount.id,
+            direction: 'credit',
+            amount: new Money(commission, currencyCode),
+          },
         ],
         'agent',
         metadata.agent_id,

@@ -42,7 +42,10 @@ export default class BusinessPlanController {
     await business.load('plan')
 
     if (!business.plan) {
-      return response.ok({ data: null, message: 'No plan assigned — every API is currently unrestricted (fail-open).' })
+      return response.ok({
+        data: null,
+        message: 'No plan assigned — every API is currently unrestricted (fail-open).',
+      })
     }
 
     return response.ok({
@@ -107,7 +110,10 @@ export default class BusinessPlanController {
       if (error instanceof PlanNotFoundException) {
         return response.notFound({ message: error.message })
       }
-      if (error instanceof PlanWalletMissingException || error instanceof InsufficientPlanBalanceException) {
+      if (
+        error instanceof PlanWalletMissingException ||
+        error instanceof InsufficientPlanBalanceException
+      ) {
         return response.unprocessableEntity({ message: error.message })
       }
       if (error instanceof PlanAlreadyActiveException) {

@@ -3,7 +3,7 @@ import { Money } from '#services/money/money'
 import { IdempotencyService } from '#services/security/idempotency_service'
 import { PinService } from '#services/security/pin_service'
 import { MobileMoneyDepositService } from '#services/mobile_money/mobile_money_deposit_service'
-import { PawaPayProvider } from '#services/mobile_money/pawapay_provider'
+import { PawaPayProvider, amountStepFor } from '#services/mobile_money/pawapay_provider'
 import { createMobileMoneyDepositValidator } from '#validators/mobile_money'
 import Wallet from '#models/wallet'
 
@@ -29,7 +29,9 @@ export default class BusinessDepositsController {
     } catch (error) {
       const err = error as any
       if (err.name === 'PawaPayRequestException') {
-        return response.serviceUnavailable({ message: 'Mobile money provider unavailable, try again' })
+        return response.serviceUnavailable({
+          message: 'Mobile money provider unavailable, try again',
+        })
       }
       throw error
     }
@@ -48,7 +50,13 @@ export default class BusinessDepositsController {
     const requestedAmount = BigInt(payload.amount)
     if (requestedAmount < providerConfig.minAmount || requestedAmount > providerConfig.maxAmount) {
       return response.unprocessableEntity({
-        message: `Amount must be between ${providerConfig.minAmount} and ${providerConfig.maxAmount} (smallest unit) for ${payload.provider}`,
+        message: `Amount must be between ${providerConfig.minAmount} and ${providerConfig.maxAmount} (hundredths of the currency) for ${payload.provider}`,
+      })
+    }
+    const amountStep = amountStepFor(providerConfig.decimalsInAmount)
+    if (requestedAmount % amountStep !== 0n) {
+      return response.unprocessableEntity({
+        message: `${currencyCode} is paid in whole units with ${payload.provider}: the amount (hundredths) must be a multiple of ${amountStep}`,
       })
     }
 
@@ -128,7 +136,9 @@ export default class BusinessDepositsController {
       await IdempotencyService.fail(identity)
       const err = error as any
       if (err.name === 'PawaPayRequestException') {
-        return response.serviceUnavailable({ message: 'Mobile money provider unavailable, try again' })
+        return response.serviceUnavailable({
+          message: 'Mobile money provider unavailable, try again',
+        })
       }
       if (err.name === 'ValidationException') {
         return response.unprocessableEntity({ message: err.message })
@@ -139,7 +149,11 @@ export default class BusinessDepositsController {
 
   async show({ business, params, response }: HttpContext) {
     try {
-      const txn = await MobileMoneyDepositService.getByIdForInitiator(params.id, 'business', business.id)
+      const txn = await MobileMoneyDepositService.getByIdForInitiator(
+        params.id,
+        'business',
+        business.id
+      )
       return response.ok({
         data: {
           deposit_id: txn.id,
@@ -163,7 +177,11 @@ export default class BusinessDepositsController {
    */
   async liveStatus({ business, params, response }: HttpContext) {
     try {
-      const txn = await MobileMoneyDepositService.getByIdForInitiator(params.id, 'business', business.id)
+      const txn = await MobileMoneyDepositService.getByIdForInitiator(
+        params.id,
+        'business',
+        business.id
+      )
       const live = await provider.checkDepositStatus(txn.providerReferenceId!)
 
       // A final status means PawaPay considers this settled — apply it now via the same
@@ -171,10 +189,15 @@ export default class BusinessDepositsController {
       // stale local status back to the caller.
       const updated =
         live.status === 'COMPLETED' || live.status === 'FAILED'
-          ? await MobileMoneyDepositService.confirmFromCallback(provider.name, txn.providerReferenceId!, live.status, {
-              providerTransactionId: live.providerTransactionId,
-              failureReason: live.failureReason,
-            })
+          ? await MobileMoneyDepositService.confirmFromCallback(
+              provider.name,
+              txn.providerReferenceId!,
+              live.status,
+              {
+                providerTransactionId: live.providerTransactionId,
+                failureReason: live.failureReason,
+              }
+            )
           : txn
 
       return response.ok({
@@ -192,7 +215,10 @@ export default class BusinessDepositsController {
         return response.forbidden({ message: err.message })
       }
       if (err.name === 'PawaPayRequestException') {
-        return response.serviceUnavailable({ message: 'Mobile money provider unavailable, or has no record of this deposit yet, try again' })
+        return response.serviceUnavailable({
+          message:
+            'Mobile money provider unavailable, or has no record of this deposit yet, try again',
+        })
       }
       if (err.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({ message: 'Deposit not found' })

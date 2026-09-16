@@ -114,6 +114,12 @@ const routes = {
     tokens: [{"old":"/api/v1/exchange-rates","type":0,"val":"api","end":""},{"old":"/api/v1/exchange-rates","type":0,"val":"v1","end":""},{"old":"/api/v1/exchange-rates","type":0,"val":"exchange-rates","end":""}],
     types: placeholder as Registry['exchange_rates.index']['types'],
   },
+  'pricing.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/pricing',
+    tokens: [{"old":"/api/v1/pricing","type":0,"val":"api","end":""},{"old":"/api/v1/pricing","type":0,"val":"v1","end":""},{"old":"/api/v1/pricing","type":0,"val":"pricing","end":""}],
+    types: placeholder as Registry['pricing.index']['types'],
+  },
   'swaps.swaps.quote': {
     methods: ["POST"],
     pattern: '/api/v1/swaps/quote',

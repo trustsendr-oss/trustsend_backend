@@ -19,6 +19,15 @@ type OperationType = 'DEPOSIT' | 'PAYOUT' | 'REMITTANCE' | 'REFUND' | 'USSD_DEPO
 type DecimalsInAmount = 'TWO_PLACES' | 'NONE'
 
 /**
+ * Smallest amount step, in our ledger unit (hundredths of the currency for every currency), that
+ * the operator can actually move: 100 when it takes whole units only. Anything finer would be
+ * rounded by formatAmount() while the ledger posted the unrounded amount.
+ */
+export function amountStepFor(decimalsInAmount: DecimalsInAmount): bigint {
+  return decimalsInAmount === 'NONE' ? 100n : 1n
+}
+
+/**
  * One step of the USSD sequence a payer follows to authorise a deposit. `text` is already
  * interpolated by PawaPay and is what gets displayed; `template` + the channel's `variables`
  * are only needed to re-render it with custom styling, so we drop them (they survive on
@@ -182,7 +191,8 @@ export class PawaPayProvider implements MobileMoneyProvider {
   // TTLs live in config/mobile_money.ts so they can be tuned without touching this adapter.
   private static activeConfigCache: { data: ActiveConfiguration; fetchedAt: number } | null = null
 
-  private static availabilityCache: { data: AvailabilityResponse[]; fetchedAt: number } | null = null
+  private static availabilityCache: { data: AvailabilityResponse[]; fetchedAt: number } | null =
+    null
 
   /**
    * The composed listPaymentMethods() result, keyed by `${currency}|${operationType}`. The two
@@ -211,9 +221,9 @@ export class PawaPayProvider implements MobileMoneyProvider {
       response = await fetch(url, {
         method,
         headers: {
-          Authorization: `Bearer ${SecretsProvider.getPawaPayApiToken()}`,
+          'Authorization': `Bearer ${SecretsProvider.getPawaPayApiToken()}`,
           'Content-Type': 'application/json',
-          Accept: 'application/json',
+          'Accept': 'application/json',
         },
         body: options.body ? JSON.stringify(options.body) : undefined,
         signal: AbortSignal.timeout(mobileMoneyConfig.pawapay.requestTimeoutMs),
@@ -235,7 +245,11 @@ export class PawaPayProvider implements MobileMoneyProvider {
   }
 
   async initiateDeposit(params: InitiateDepositParams): Promise<InitiateResult> {
-    const config = await this.requireProviderConfig(params.currencyCode, params.providerCode, 'DEPOSIT')
+    const config = await this.requireProviderConfig(
+      params.currencyCode,
+      params.providerCode,
+      'DEPOSIT'
+    )
 
     const result = await this.request<{
       depositId: string
@@ -266,7 +280,11 @@ export class PawaPayProvider implements MobileMoneyProvider {
   }
 
   async initiatePayout(params: InitiatePayoutParams): Promise<InitiateResult> {
-    const config = await this.requireProviderConfig(params.currencyCode, params.providerCode, 'PAYOUT')
+    const config = await this.requireProviderConfig(
+      params.currencyCode,
+      params.providerCode,
+      'PAYOUT'
+    )
 
     const result = await this.request<{
       payoutId: string
@@ -326,7 +344,8 @@ export class PawaPayProvider implements MobileMoneyProvider {
     const result = await this.request<{
       status: 'FOUND' | 'NOT_FOUND'
       data?: {
-        status: 'ACCEPTED' | 'ENQUEUED' | 'PROCESSING' | 'IN_RECONCILIATION' | 'COMPLETED' | 'FAILED'
+        status:
+          'ACCEPTED' | 'ENQUEUED' | 'PROCESSING' | 'IN_RECONCILIATION' | 'COMPLETED' | 'FAILED'
         providerTransactionId?: string
         failureReason?: { failureCode: string; failureMessage: string }
       }
@@ -423,7 +442,10 @@ export class PawaPayProvider implements MobileMoneyProvider {
    * active-conf: a provider can be correctly *configured* (active-conf) yet momentarily down
    * (availability CLOSED). Cached briefly since this is meant to reflect current reality.
    */
-  async getAvailability(providerCode: string, operationType: OperationType): Promise<'OPERATIONAL' | 'DELAYED' | 'CLOSED' | 'UNKNOWN'> {
+  async getAvailability(
+    providerCode: string,
+    operationType: OperationType
+  ): Promise<'OPERATIONAL' | 'DELAYED' | 'CLOSED' | 'UNKNOWN'> {
     const data = await this.fetchAvailability()
 
     for (const country of data) {
@@ -659,7 +681,10 @@ export class PawaPayProvider implements MobileMoneyProvider {
   }
 
   /** Inverse of formatAmount — PawaPay's decimal string back to our internal smallest-unit bigint. */
-  private parseAmountToMinorUnits(decimalAmount: string, decimalsInAmount: DecimalsInAmount): bigint {
+  private parseAmountToMinorUnits(
+    decimalAmount: string,
+    decimalsInAmount: DecimalsInAmount
+  ): bigint {
     const negative = decimalAmount.startsWith('-')
     const clean = negative ? decimalAmount.slice(1) : decimalAmount
 

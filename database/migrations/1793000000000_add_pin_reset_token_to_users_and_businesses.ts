@@ -15,8 +15,14 @@ export default class extends BaseSchema {
   async up() {
     for (const tableName of ['users', 'businesses']) {
       this.schema.alterTable(tableName, (table) => {
-        table.string('pin_reset_token_hash', 64).nullable().comment('SHA-256 hex of the pending PIN reset token, if any')
-        table.timestamp('pin_reset_expires_at').nullable().comment('Reset token expires after this — single-use, short-lived')
+        table
+          .string('pin_reset_token_hash', 64)
+          .nullable()
+          .comment('SHA-256 hex of the pending PIN reset token, if any')
+        table
+          .timestamp('pin_reset_expires_at')
+          .nullable()
+          .comment('Reset token expires after this — single-use, short-lived')
       })
     }
   }

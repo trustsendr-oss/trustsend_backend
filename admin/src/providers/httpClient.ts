@@ -103,10 +103,7 @@ async function requestJson<T = unknown>(path: string, options: RequestInit = {})
 }
 
 /** Unwraps the `{ data }` envelope — what every non-paginated call needs. */
-export async function apiFetch<T = unknown>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
+export async function apiFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   const json = await requestJson<any>(path, options)
   return (json?.data !== undefined ? json.data : json) as T
 }

@@ -202,15 +202,14 @@ test.group('Security: Audit Logging', (group) => {
       .header('Authorization', `Bearer ${adminUserToken}`)
 
     // Check audit log contains before/after
-    const auditLog = await Database.table('audit_logs')
-      .where('action', 'kyc.approved')
-      .first()
+    const auditLog = await Database.table('audit_logs').where('action', 'kyc.approved').first()
 
     assert.exists(auditLog.before, 'Audit log should contain before state')
     assert.exists(auditLog.after, 'Audit log should contain after state')
 
     // Parse JSON fields
-    const before = typeof auditLog.before === 'string' ? JSON.parse(auditLog.before) : auditLog.before
+    const before =
+      typeof auditLog.before === 'string' ? JSON.parse(auditLog.before) : auditLog.before
     const after = typeof auditLog.after === 'string' ? JSON.parse(auditLog.after) : auditLog.after
 
     assert.equal(before.status, 'pending', 'Before state should show pending')

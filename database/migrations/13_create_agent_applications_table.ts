@@ -6,7 +6,11 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').notNullable()
-      table.integer('applicant_user_id').notNullable().unsigned().comment('FK to users (who applied)')
+      table
+        .integer('applicant_user_id')
+        .notNullable()
+        .unsigned()
+        .comment('FK to users (who applied)')
       table
         .enum('tier', ['agent', 'super_agent', 'distributor', 'master'])
         .notNullable()

@@ -11,7 +11,7 @@ export default class OutboxEvent extends BaseModel {
   declare aggregateType: string
 
   @column()
-  declare aggregateId: string  // Alphanumérique: TXN-XXXXXXXX, DSP-XXXXXXXX, etc.
+  declare aggregateId: string // Alphanumérique: TXN-XXXXXXXX, DSP-XXXXXXXX, etc.
 
   @column()
   declare eventType: string

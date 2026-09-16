@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
-import InternalUser from '#models/internal_user'
+import type InternalUser from '#models/internal_user'
 import type Currency from '#models/currency'
 import { CurrencyService, CurrencyNotFoundException } from '#services/money/currency_service'
 
@@ -13,7 +13,13 @@ const listCurrenciesValidator = vine.create({
 const updateCurrencyValidator = vine.create({
   name: vine.string().trim().minLength(2).maxLength(100).optional(),
   symbol: vine.string().trim().maxLength(10).nullable().optional(),
-  logo_url: vine.string().trim().url({ protocols: ['https'] }).maxLength(500).nullable().optional(),
+  logo_url: vine
+    .string()
+    .trim()
+    .url({ protocols: ['https'] })
+    .maxLength(500)
+    .nullable()
+    .optional(),
   is_active: vine.boolean().optional(),
   sort_order: vine.number().withoutDecimals().min(0).max(100000).optional(),
 })
@@ -68,7 +74,12 @@ export default class CurrenciesController {
     const payload = await request.validateUsing(updateCurrencyValidator)
 
     try {
-      const currency = await CurrencyService.update(String(params.id), payload, user.id, correlationId)
+      const currency = await CurrencyService.update(
+        String(params.id),
+        payload,
+        user.id,
+        correlationId
+      )
       return response.ok({ data: adminRecord(currency) })
     } catch (error) {
       if (error instanceof CurrencyNotFoundException) {

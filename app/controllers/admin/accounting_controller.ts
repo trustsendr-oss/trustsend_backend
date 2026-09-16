@@ -57,7 +57,13 @@ export default class AdminAccountingController {
         `CASE WHEN la.owner_type IN ('${WALLET_OWNER_TYPES.join("','")}') THEN 'liability' ELSE la.account_type END`
       )
 
-    const byType: Record<string, bigint> = { asset: 0n, liability: 0n, equity: 0n, revenue: 0n, expense: 0n }
+    const byType: Record<string, bigint> = {
+      asset: 0n,
+      liability: 0n,
+      equity: 0n,
+      revenue: 0n,
+      expense: 0n,
+    }
     for (const row of rows as any[]) {
       // db.query() is the raw builder, not a Lucid Model — rows keep Postgres's own column
       // names (snake_case), never auto-camelCased.

@@ -5,7 +5,11 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.table(this.tableName, (table) => {
-      table.string('code', 9).unique().nullable().comment('Unique user code - 9 digits (like phone number)')
+      table
+        .string('code', 9)
+        .unique()
+        .nullable()
+        .comment('Unique user code - 9 digits (like phone number)')
     })
   }
 

@@ -119,7 +119,11 @@ export class AgentLifecycleService {
   /**
    * Activate a suspended agent (suspended → active)
    */
-  static async activate(agentId: number, reactivatedBy: number, correlationId: string): Promise<Agent> {
+  static async activate(
+    agentId: number,
+    reactivatedBy: number,
+    correlationId: string
+  ): Promise<Agent> {
     return db.transaction(async (trx) => {
       const agent = await Agent.findOrFail(agentId, { client: trx })
 
@@ -163,7 +167,12 @@ export class AgentLifecycleService {
   /**
    * Deactivate an agent (terminate using proper service)
    */
-  static async deactivate(agentId: number, terminatedBy: number, reason: string, correlationId: string): Promise<Agent> {
+  static async deactivate(
+    agentId: number,
+    terminatedBy: number,
+    reason: string,
+    correlationId: string
+  ): Promise<Agent> {
     // Import at usage to avoid circular dependencies
     const { AgentTerminationService } = await import('#services/agents/agent_termination_service')
     return AgentTerminationService.terminate(agentId, terminatedBy, reason, correlationId)

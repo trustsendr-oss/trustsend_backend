@@ -71,7 +71,10 @@ export default class AccessTokensController {
       })
 
       // Delete old token
-      await User.accessTokens.delete(authenticatedUser, authenticatedUser.currentAccessToken.identifier)
+      await User.accessTokens.delete(
+        authenticatedUser,
+        authenticatedUser.currentAccessToken.identifier
+      )
 
       return serialize({
         user: UserTransformer.transform(authenticatedUser),

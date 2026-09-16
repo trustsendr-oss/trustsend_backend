@@ -21,7 +21,10 @@ export default class extends BaseSchema {
       table.string('otp_hash', 64).notNullable()
       table.integer('attempts').notNullable().defaultTo(0)
       table.timestamp('expires_at').notNullable()
-      table.timestamp('consumed_at').nullable().comment('Set once successfully verified — single-use')
+      table
+        .timestamp('consumed_at')
+        .nullable()
+        .comment('Set once successfully verified — single-use')
       table.timestamps()
 
       table.index(['email'])

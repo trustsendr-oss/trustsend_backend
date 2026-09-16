@@ -12,20 +12,20 @@ test.group('P2P Transfers', (group) => {
     // Cleanup
   })
 
-  test('POST /api/v1/transfers - should create transfer between two wallets', async ({ client, assert }) => {
+  test('POST /api/v1/transfers - should create transfer between two wallets', async ({
+    client,
+    assert,
+  }) => {
     const sender = await createUserWithWallet({ email: 'sender@test.com', balance: 100000n })
     const recipient = await createUserWithWallet({ email: 'recipient@test.com', balance: 0n })
 
-    const response = await client
-      .post('/api/v1/transfers/p2p')
-      .loginAs(sender.user)
-      .json({
-        recipient_wallet_id: recipient.wallet.id,
-        amount: '50000',
-        currency_code: 'USD',
-        idempotency_key: '11111111-1111-4111-8111-111111111012',
-        pin: TEST_PIN,
-      })
+    const response = await client.post('/api/v1/transfers/p2p').loginAs(sender.user).json({
+      recipient_wallet_id: recipient.wallet.id,
+      amount: '50000',
+      currency_code: 'USD',
+      idempotency_key: '11111111-1111-4111-8111-111111111012',
+      pin: TEST_PIN,
+    })
 
     assert.equal(response.status(), 201)
     assert.exists(response.body().data.transaction_uuid)
@@ -33,26 +33,29 @@ test.group('P2P Transfers', (group) => {
     assert.equal(response.body().data.amount.amount, '50000')
   })
 
-  test('POST /api/v1/transfers - should reject transfer with insufficient balance', async ({ client, assert }) => {
+  test('POST /api/v1/transfers - should reject transfer with insufficient balance', async ({
+    client,
+    assert,
+  }) => {
     const sender = await createUserWithWallet({ email: 'poor@test.com', balance: 1000n })
     const recipient = await createUserWithWallet({ email: 'rich@test.com', balance: 0n })
 
-    const response = await client
-      .post('/api/v1/transfers/p2p')
-      .loginAs(sender.user)
-      .json({
-        recipient_wallet_id: recipient.wallet.id,
-        amount: '50000',
-        currency_code: 'USD',
-        idempotency_key: '11111111-1111-4111-8111-111111111013',
-        pin: TEST_PIN,
-      })
+    const response = await client.post('/api/v1/transfers/p2p').loginAs(sender.user).json({
+      recipient_wallet_id: recipient.wallet.id,
+      amount: '50000',
+      currency_code: 'USD',
+      idempotency_key: '11111111-1111-4111-8111-111111111013',
+      pin: TEST_PIN,
+    })
 
     assert.equal(response.status(), 402) // Payment Required
     assert.match(response.body().message, /insufficient balance/i)
   })
 
-  test('POST /api/v1/transfers - should reject transfer above transaction limit', async ({ client, assert }) => {
+  test('POST /api/v1/transfers - should reject transfer above transaction limit', async ({
+    client,
+    assert,
+  }) => {
     const sender = await createUserWithWallet({
       email: 'limited@test.com',
       balance: 1000000n,
@@ -60,16 +63,13 @@ test.group('P2P Transfers', (group) => {
     })
     const recipient = await createUserWithWallet({ email: 'recipient2@test.com', balance: 0n })
 
-    const response = await client
-      .post('/api/v1/transfers/p2p')
-      .loginAs(sender.user)
-      .json({
-        recipient_wallet_id: recipient.wallet.id,
-        amount: '500000',
-        currency_code: 'USD',
-        idempotency_key: '11111111-1111-4111-8111-111111111014',
-        pin: TEST_PIN,
-      })
+    const response = await client.post('/api/v1/transfers/p2p').loginAs(sender.user).json({
+      recipient_wallet_id: recipient.wallet.id,
+      amount: '500000',
+      currency_code: 'USD',
+      idempotency_key: '11111111-1111-4111-8111-111111111014',
+      pin: TEST_PIN,
+    })
 
     assert.equal(response.status(), 400)
     assert.match(response.body().message, /limit exceeded/i)
@@ -79,53 +79,50 @@ test.group('P2P Transfers', (group) => {
     const sender = await createUserWithWallet({ email: 'user1@test.com', balance: 100000n })
     const recipient = await createUserWithWallet({ email: 'user2@test.com', balance: 0n })
 
-    const response = await client
-      .post('/api/v1/transfers/p2p')
-      .loginAs(sender.user)
-      .json({
-        recipient_wallet_id: recipient.wallet.id,
-        amount: '50000',
-        currency_code: 'INVALID',
-        idempotency_key: '11111111-1111-4111-8111-111111111015',
-        pin: TEST_PIN,
-      })
+    const response = await client.post('/api/v1/transfers/p2p').loginAs(sender.user).json({
+      recipient_wallet_id: recipient.wallet.id,
+      amount: '50000',
+      currency_code: 'INVALID',
+      idempotency_key: '11111111-1111-4111-8111-111111111015',
+      pin: TEST_PIN,
+    })
 
     assert.equal(response.status(), 422) // Unprocessable Entity
   })
 
-  test('POST /api/v1/transfers - should require valid idempotency key', async ({ client, assert }) => {
+  test('POST /api/v1/transfers - should require valid idempotency key', async ({
+    client,
+    assert,
+  }) => {
     const sender = await createUserWithWallet({ email: 'user3@test.com', balance: 100000n })
     const recipient = await createUserWithWallet({ email: 'user4@test.com', balance: 0n })
 
-    const response = await client
-      .post('/api/v1/transfers/p2p')
-      .loginAs(sender.user)
-      .json({
-        recipient_wallet_id: recipient.wallet.id,
-        amount: '50000',
-        currency_code: 'USD',
-        idempotency_key: 'not-a-uuid',
-        pin: TEST_PIN,
-      })
+    const response = await client.post('/api/v1/transfers/p2p').loginAs(sender.user).json({
+      recipient_wallet_id: recipient.wallet.id,
+      amount: '50000',
+      currency_code: 'USD',
+      idempotency_key: 'not-a-uuid',
+      pin: TEST_PIN,
+    })
 
     assert.equal(response.status(), 422)
   })
 
-  test('GET /api/v1/transfers/:uuid - should retrieve transfer details', async ({ client, assert }) => {
+  test('GET /api/v1/transfers/:uuid - should retrieve transfer details', async ({
+    client,
+    assert,
+  }) => {
     const sender = await createUserWithWallet({ email: 'sender5@test.com', balance: 100000n })
     const recipient = await createUserWithWallet({ email: 'recipient5@test.com', balance: 0n })
 
     // Create transfer
-    const createResponse = await client
-      .post('/api/v1/transfers/p2p')
-      .loginAs(sender.user)
-      .json({
-        recipient_wallet_id: recipient.wallet.id,
-        amount: '30000',
-        currency_code: 'USD',
-        idempotency_key: '11111111-1111-4111-8111-111111111016',
-        pin: TEST_PIN,
-      })
+    const createResponse = await client.post('/api/v1/transfers/p2p').loginAs(sender.user).json({
+      recipient_wallet_id: recipient.wallet.id,
+      amount: '30000',
+      currency_code: 'USD',
+      idempotency_key: '11111111-1111-4111-8111-111111111016',
+      pin: TEST_PIN,
+    })
 
     const transferUuid = createResponse.body().data.transaction_uuid
 
@@ -147,16 +144,13 @@ test.group('P2P Transfers', (group) => {
     const stranger = await createUserWithWallet({ email: 'stranger@test.com', balance: 0n })
 
     // Create transfer
-    const createResponse = await client
-      .post('/api/v1/transfers/p2p')
-      .loginAs(sender.user)
-      .json({
-        recipient_wallet_id: recipient.wallet.id,
-        amount: '30000',
-        currency_code: 'USD',
-        idempotency_key: '11111111-1111-4111-8111-111111111017',
-        pin: TEST_PIN,
-      })
+    const createResponse = await client.post('/api/v1/transfers/p2p').loginAs(sender.user).json({
+      recipient_wallet_id: recipient.wallet.id,
+      amount: '30000',
+      currency_code: 'USD',
+      idempotency_key: '11111111-1111-4111-8111-111111111017',
+      pin: TEST_PIN,
+    })
 
     const transferUuid = createResponse.body().data.transaction_uuid
 
@@ -168,7 +162,10 @@ test.group('P2P Transfers', (group) => {
     assert.equal(getResponse.status(), 403)
   })
 
-  test('GET /api/v1/transfers - should list user transfers with pagination', async ({ client, assert }) => {
+  test('GET /api/v1/transfers - should list user transfers with pagination', async ({
+    client,
+    assert,
+  }) => {
     const sender = await createUserWithWallet({ email: 'sender7@test.com', balance: 1000000n })
     const recipient = await createUserWithWallet({ email: 'recipient7@test.com', balance: 0n })
 
@@ -182,14 +179,12 @@ test.group('P2P Transfers', (group) => {
           amount: '10000',
           currency_code: 'USD',
           idempotency_key: `11111111-1111-4111-8111-11111111120${i}`,
-        pin: TEST_PIN,
+          pin: TEST_PIN,
         })
     }
 
     // List transfers with pagination
-    const response = await client
-      .get('/api/v1/transfers/p2p?page=1&limit=10')
-      .loginAs(sender.user)
+    const response = await client.get('/api/v1/transfers/p2p?page=1&limit=10').loginAs(sender.user)
 
     assert.equal(response.status(), 200)
     assert.equal(response.body().data.length, 5)
@@ -197,7 +192,10 @@ test.group('P2P Transfers', (group) => {
     assert.equal(response.body().meta.page, 1)
   })
 
-  test('POST /api/v1/transfers - should handle idempotency (duplicate request)', async ({ client, assert }) => {
+  test('POST /api/v1/transfers - should handle idempotency (duplicate request)', async ({
+    client,
+    assert,
+  }) => {
     const sender = await createUserWithWallet({ email: 'idempotent@test.com', balance: 100000n })
     const recipient = await createUserWithWallet({ email: 'idempotent-recv@test.com', balance: 0n })
 
@@ -206,20 +204,14 @@ test.group('P2P Transfers', (group) => {
       amount: '25000',
       currency_code: 'USD',
       idempotency_key: '11111111-1111-4111-8111-111111111099',
-        pin: TEST_PIN,
+      pin: TEST_PIN,
     }
 
     // First request
-    const response1 = await client
-      .post('/api/v1/transfers/p2p')
-      .loginAs(sender.user)
-      .json(payload)
+    const response1 = await client.post('/api/v1/transfers/p2p').loginAs(sender.user).json(payload)
 
     // Duplicate request
-    const response2 = await client
-      .post('/api/v1/transfers/p2p')
-      .loginAs(sender.user)
-      .json(payload)
+    const response2 = await client.post('/api/v1/transfers/p2p').loginAs(sender.user).json(payload)
 
     assert.equal(response1.status(), 201)
     assert.equal(response2.status(), 201)

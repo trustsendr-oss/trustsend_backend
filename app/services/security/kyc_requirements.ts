@@ -13,21 +13,19 @@ export type KycVerificationType = 'identity' | 'address' | 'liveness' | 'documen
  * pep_screening has no combinations at all — it's a watchlist/database check, not evidence a
  * subject uploads, so no file is required for it.
  */
-export const KYC_REQUIRED_DOCUMENT_COMBINATIONS: Record<KycVerificationType, KycDocumentType[][]> = {
-  identity: [
-    ['passport'],
-    ['id_card_front', 'id_card_back'],
-    ['driver_license_front', 'driver_license_back'],
-    ['representative_id_front', 'representative_id_back'], // business's representative
-  ],
-  address: [['proof_of_address']],
-  liveness: [['selfie']],
-  document: [
-    ['business_registration_certificate'],
-    ['tax_identification_certificate'],
-  ],
-  pep_screening: [],
-}
+export const KYC_REQUIRED_DOCUMENT_COMBINATIONS: Record<KycVerificationType, KycDocumentType[][]> =
+  {
+    identity: [
+      ['passport'],
+      ['id_card_front', 'id_card_back'],
+      ['driver_license_front', 'driver_license_back'],
+      ['representative_id_front', 'representative_id_back'], // business's representative
+    ],
+    address: [['proof_of_address']],
+    liveness: [['selfie']],
+    document: [['business_registration_certificate'], ['tax_identification_certificate']],
+    pep_screening: [],
+  }
 
 /**
  * Checks whether the set of document types actually present in a submission satisfies the

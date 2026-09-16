@@ -77,6 +77,8 @@ export default class CreateInternalAdmin extends BaseCommand {
     this.logger.success(`Staff account created for ${email} (id ${user.id})`)
     this.logger.warning('Temporary password — shown only once, share it through a secure channel:')
     console.log(`\n  ${password}\n`)
-    this.logger.info('On first sign-in the account must change this password and enable two-factor authentication.')
+    this.logger.info(
+      'On first sign-in the account must change this password and enable two-factor authentication.'
+    )
   }
 }

@@ -47,7 +47,12 @@ export default class BusinessWebhooksController {
     const payload = await request.validateUsing(createWebhookValidator)
 
     try {
-      const subscription = await WebhookService.subscribe('business', business.id, payload.url, payload.events)
+      const subscription = await WebhookService.subscribe(
+        'business',
+        business.id,
+        payload.url,
+        payload.events
+      )
 
       return response.created({
         data: {
@@ -55,7 +60,8 @@ export default class BusinessWebhooksController {
           events: subscription.events,
           active: subscription.active,
           secret: subscription.secret,
-          message: 'Webhook subscribed. Store the secret securely — used to verify X-Webhook-Signature on delivery.',
+          message:
+            'Webhook subscribed. Store the secret securely — used to verify X-Webhook-Signature on delivery.',
         },
       })
     } catch (error) {

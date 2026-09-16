@@ -81,15 +81,15 @@ export class ReconciliationService {
       difference: bigint
     }> = []
 
-    const result = await db.query().from('ledger_entries').select(
-      'ledger_transaction_id',
-      db.raw(
-        `SUM(CASE WHEN direction = 'debit' THEN amount ELSE 0 END) as total_debits`
-      ),
-      db.raw(
-        `SUM(CASE WHEN direction = 'credit' THEN amount ELSE 0 END) as total_credits`
+    const result = await db
+      .query()
+      .from('ledger_entries')
+      .select(
+        'ledger_transaction_id',
+        db.raw(`SUM(CASE WHEN direction = 'debit' THEN amount ELSE 0 END) as total_debits`),
+        db.raw(`SUM(CASE WHEN direction = 'credit' THEN amount ELSE 0 END) as total_credits`)
       )
-    ).groupBy('ledger_transaction_id')
+      .groupBy('ledger_transaction_id')
 
     for (const row of result) {
       const debits = BigInt(row.totalDebits || 0)

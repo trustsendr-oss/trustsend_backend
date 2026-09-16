@@ -70,7 +70,10 @@ export default class CardWebhooksController {
   }
 
   private async handleAuthRefund(providerCardId: string, body: Record<string, any>): Promise<void> {
-    const card = await Card.query().where('provider', 'payscribe').where('provider_card_id', providerCardId).first()
+    const card = await Card.query()
+      .where('provider', 'payscribe')
+      .where('provider_card_id', providerCardId)
+      .first()
     if (!card) return // Not one of ours (or not yet synced) — nothing to update.
 
     const newBalance = body.card?.balance
@@ -102,13 +105,20 @@ export default class CardWebhooksController {
       recipientId: ownerId,
       type: 'card.spend',
       title: 'Card transaction',
-      message: `${body.amount} ${body.auth_currency || ''} at ${body.acceptor_name || 'a merchant'}`.trim(),
+      message:
+        `${body.amount} ${body.auth_currency || ''} at ${body.acceptor_name || 'a merchant'}`.trim(),
       data: { card_id: card.id },
     })
   }
 
-  private async handleStatusChanged(providerCardId: string, body: Record<string, any>): Promise<void> {
-    const card = await Card.query().where('provider', 'payscribe').where('provider_card_id', providerCardId).first()
+  private async handleStatusChanged(
+    providerCardId: string,
+    body: Record<string, any>
+  ): Promise<void> {
+    const card = await Card.query()
+      .where('provider', 'payscribe')
+      .where('provider_card_id', providerCardId)
+      .first()
     if (!card) return
 
     const newStatus = body.new_status as string | undefined

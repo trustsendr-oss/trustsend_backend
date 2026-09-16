@@ -5,7 +5,11 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.integer('plan_id').nullable().unsigned().comment('FK to plans — gates which business APIs this business may call')
+      table
+        .integer('plan_id')
+        .nullable()
+        .unsigned()
+        .comment('FK to plans — gates which business APIs this business may call')
     })
 
     // Backfill every existing business onto the 'default' plan (seeded in the previous

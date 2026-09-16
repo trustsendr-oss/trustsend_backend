@@ -61,9 +61,7 @@ export class PinService {
   ): Promise<{ valid: boolean; message: string; code: PinVerificationCode }> {
     // Check if account is locked
     if (user.pinLockedUntil && user.pinLockedUntil > DateTime.now()) {
-      const minutesLeft = Math.ceil(
-        user.pinLockedUntil.diffNow('minutes').minutes
-      )
+      const minutesLeft = Math.ceil(user.pinLockedUntil.diffNow('minutes').minutes)
       return {
         valid: false,
         code: 'PIN_LOCKED',
@@ -169,7 +167,11 @@ export class PinService {
    *
    * @throws Error if the token is missing, expired, or doesn't match.
    */
-  static async confirmReset(account: PinResettableAccount, token: string, newPin: string): Promise<void> {
+  static async confirmReset(
+    account: PinResettableAccount,
+    token: string,
+    newPin: string
+  ): Promise<void> {
     if (
       !account.pinResetTokenHash ||
       !account.pinResetExpiresAt ||

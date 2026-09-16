@@ -74,7 +74,9 @@ export default class DirectoryController {
       })
     }
 
-    const walletCurrency = (await CurrencyService.serializeMany([wallet.currencyCode])).get(wallet.currencyCode)!
+    const walletCurrency = (await CurrencyService.serializeMany([wallet.currencyCode])).get(
+      wallet.currencyCode
+    )!
 
     return response.ok({
       data: {

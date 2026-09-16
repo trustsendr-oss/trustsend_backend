@@ -36,7 +36,9 @@ export class BusinessSignupOtpService {
    * enumeration concern: the whole point is finding out if this email can open a new account).
    */
   static async requestOtp(email: string): Promise<string> {
-    const otp = randomInt(0, 10 ** OTP_LENGTH).toString().padStart(OTP_LENGTH, '0')
+    const otp = randomInt(0, 10 ** OTP_LENGTH)
+      .toString()
+      .padStart(OTP_LENGTH, '0')
 
     await BusinessSignupOtp.create({
       email,

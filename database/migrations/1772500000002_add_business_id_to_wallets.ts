@@ -5,7 +5,11 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.integer('business_id').nullable().unsigned().comment('FK to businesses if owner is a business')
+      table
+        .integer('business_id')
+        .nullable()
+        .unsigned()
+        .comment('FK to businesses if owner is a business')
       table.index(['business_id'])
       table.unique(['business_id', 'currency_code'])
     })

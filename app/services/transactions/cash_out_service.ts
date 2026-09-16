@@ -75,19 +75,22 @@ export class CashOutService {
       await txn.useTransaction(trx).save()
 
       // Create outbox event for agent notification
-      await db.table('outbox_events').useTransaction(trx).insert({
-        aggregate_type: 'ledger_transaction',
-        aggregate_id: txn.id,
-        event_type: 'cash_out.initiated',
-        payload: {
-          transaction_id: txn.id,
-          agent_id: request.agentId,
-          user_wallet_id: request.userWalletId,
-          amount: request.amount.amount.toString(),
-        },
-        status: 'pending',
-        created_at: new Date(),
-      })
+      await db
+        .table('outbox_events')
+        .useTransaction(trx)
+        .insert({
+          aggregate_type: 'ledger_transaction',
+          aggregate_id: txn.id,
+          event_type: 'cash_out.initiated',
+          payload: {
+            transaction_id: txn.id,
+            agent_id: request.agentId,
+            user_wallet_id: request.userWalletId,
+            amount: request.amount.amount.toString(),
+          },
+          status: 'pending',
+          created_at: new Date(),
+        })
 
       // Audit
       await AuditLoggerService.record({
@@ -203,8 +206,16 @@ export class CashOutService {
         'cash_out',
         [
           { accountId: userAccount.id, direction: 'debit', amount },
-          { accountId: agentAccount.id, direction: 'credit', amount: new Money(netToAgent, currencyCode) },
-          { accountId: feesAccount.id, direction: 'credit', amount: new Money(commission, currencyCode) },
+          {
+            accountId: agentAccount.id,
+            direction: 'credit',
+            amount: new Money(netToAgent, currencyCode),
+          },
+          {
+            accountId: feesAccount.id,
+            direction: 'credit',
+            amount: new Money(commission, currencyCode),
+          },
         ],
         'agent',
         metadata.agent_id,

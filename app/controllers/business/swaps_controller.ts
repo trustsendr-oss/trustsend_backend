@@ -18,7 +18,11 @@ export default class BusinessSwapsController {
     try {
       const quote = await SwapService.createQuote(
         { type: 'business', id: business.id },
-        { fromCurrency: payload.from_currency, toCurrency: payload.to_currency, amountIn: BigInt(payload.amount) }
+        {
+          fromCurrency: payload.from_currency,
+          toCurrency: payload.to_currency,
+          amountIn: BigInt(payload.amount),
+        }
       )
       return response.created({ data: SwapService.serializeQuote(quote) })
     } catch (error) {
@@ -31,7 +35,9 @@ export default class BusinessSwapsController {
   async store({ business, businessAuthMethod, request, response, correlationId }: HttpContext) {
     const payload = await request.validateUsing(executeSwapValidator)
     if (businessAuthMethod === 'dashboard' && !payload.pin) {
-      return response.unprocessableEntity({ errors: [{ field: 'pin', message: 'PIN is required' }] })
+      return response.unprocessableEntity({
+        errors: [{ field: 'pin', message: 'PIN is required' }],
+      })
     }
 
     const identity = {
@@ -58,7 +64,10 @@ export default class BusinessSwapsController {
         const pinVerification = await PinService.verifyPin(business, payload.pin!)
         if (!pinVerification.valid) {
           await IdempotencyService.fail(identity)
-          return response.unauthorized({ message: pinVerification.message, code: pinVerification.code })
+          return response.unauthorized({
+            message: pinVerification.message,
+            code: pinVerification.code,
+          })
         }
       }
 

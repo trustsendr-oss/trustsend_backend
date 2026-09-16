@@ -85,7 +85,10 @@ export class LedgerService {
       const netByCurrency = new Map<string, bigint>()
       for (const e of entries) {
         const signed = e.direction === 'debit' ? e.amount.amount : -e.amount.amount
-        netByCurrency.set(e.amount.currencyCode, (netByCurrency.get(e.amount.currencyCode) ?? 0n) + signed)
+        netByCurrency.set(
+          e.amount.currencyCode,
+          (netByCurrency.get(e.amount.currencyCode) ?? 0n) + signed
+        )
       }
       for (const [currencyCode, net] of netByCurrency) {
         if (net !== 0n) {
@@ -351,7 +354,11 @@ export class LedgerService {
         .from('ledger_entries as le')
         .join('ledger_accounts as la', 'le.ledger_account_id', 'la.id')
         .where('la.owner_id', wallet.id)
-        .select(db.raw("SUM(CASE WHEN le.direction = 'debit' THEN -le.amount ELSE le.amount END) as net_balance"))
+        .select(
+          db.raw(
+            "SUM(CASE WHEN le.direction = 'debit' THEN -le.amount ELSE le.amount END) as net_balance"
+          )
+        )
         .first()
 
       // db.query() is the raw query builder (not a Lucid Model), so its rows keep whatever
@@ -381,7 +388,10 @@ export class LedgerService {
       const debits = BigInt(row.debits || 0)
       const credits = BigInt(row.credits || 0)
       balancedByCurrency[row.currency_code] = debits === credits
-      totalsByCurrency[row.currency_code] = { debits: debits.toString(), credits: credits.toString() }
+      totalsByCurrency[row.currency_code] = {
+        debits: debits.toString(),
+        credits: credits.toString(),
+      }
     }
 
     return {
@@ -408,7 +418,9 @@ export class LedgerService {
       .query()
       .from('ledger_entries')
       .where('ledger_account_id', account.id)
-      .select(db.raw("SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END) as net_balance"))
+      .select(
+        db.raw("SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END) as net_balance")
+      )
       .first()
 
     const netOnDebitPositiveConvention = BigInt(result?.netBalance || 0)

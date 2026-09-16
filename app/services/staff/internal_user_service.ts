@@ -95,7 +95,12 @@ export class InternalUserService {
   }
 
   /** Temporary hold — e.g. under investigation. Distinct from deactivate (permanent offboarding). */
-  static async suspend(id: number, actorId: number, reason: string, correlationId: string): Promise<InternalUser> {
+  static async suspend(
+    id: number,
+    actorId: number,
+    reason: string,
+    correlationId: string
+  ): Promise<InternalUser> {
     if (id === actorId) throw new CannotModifySelfException()
 
     const user = await this.findByIdOrFail(id)
@@ -119,7 +124,12 @@ export class InternalUserService {
   }
 
   /** Permanent offboarding — e.g. the staff member left. */
-  static async deactivate(id: number, actorId: number, reason: string, correlationId: string): Promise<InternalUser> {
+  static async deactivate(
+    id: number,
+    actorId: number,
+    reason: string,
+    correlationId: string
+  ): Promise<InternalUser> {
     if (id === actorId) throw new CannotModifySelfException()
 
     const user = await this.findByIdOrFail(id)

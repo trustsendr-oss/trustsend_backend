@@ -11,7 +11,12 @@ export class AgentTerminationService {
    * REQUIRES: agent wallet must have zero balance
    * Cannot terminate if agent still holds float
    */
-  static async terminate(agentId: number, terminatedBy: number, reason: string, correlationId: string): Promise<Agent> {
+  static async terminate(
+    agentId: number,
+    terminatedBy: number,
+    reason: string,
+    correlationId: string
+  ): Promise<Agent> {
     return db.transaction(async (trx) => {
       const agent = await Agent.findOrFail(agentId, { client: trx })
 

@@ -78,7 +78,10 @@ export class CurrencyService {
   }
 
   static listActive(): Promise<Currency[]> {
-    return Currency.query().where('is_active', true).orderBy('sort_order', 'asc').orderBy('code', 'asc')
+    return Currency.query()
+      .where('is_active', true)
+      .orderBy('sort_order', 'asc')
+      .orderBy('code', 'asc')
   }
 
   static listAll(filters: { q?: string; isActive?: boolean } = {}): Promise<Currency[]> {

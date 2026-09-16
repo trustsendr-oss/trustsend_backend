@@ -1,5 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import InternalUser from '#models/internal_user'
+import type InternalUser from '#models/internal_user'
 import { listExchangeRatesValidator, updateExchangeRateValidator } from '#validators/fx'
 import {
   ExchangeRateService,
@@ -33,7 +33,8 @@ export default class ExchangeRatesController {
     try {
       return response.ok({ data: await ExchangeRateService.findForAdmin(String(params.id)) })
     } catch (error) {
-      if (error instanceof CurrencyNotFoundException) return response.notFound({ message: error.message })
+      if (error instanceof CurrencyNotFoundException)
+        return response.notFound({ message: error.message })
       throw error
     }
   }
@@ -43,11 +44,18 @@ export default class ExchangeRatesController {
     const user = (await auth.authenticateUsing(['internal'])) as InternalUser
     const payload = await request.validateUsing(updateExchangeRateValidator)
     try {
-      const data = await ExchangeRateService.update(String(params.id), payload, user.id, correlationId)
+      const data = await ExchangeRateService.update(
+        String(params.id),
+        payload,
+        user.id,
+        correlationId
+      )
       return response.ok({ data })
     } catch (error) {
-      if (error instanceof CurrencyNotFoundException) return response.notFound({ message: error.message })
-      if (error instanceof BaseCurrencyRateException) return response.unprocessableEntity({ message: error.message })
+      if (error instanceof CurrencyNotFoundException)
+        return response.notFound({ message: error.message })
+      if (error instanceof BaseCurrencyRateException)
+        return response.unprocessableEntity({ message: error.message })
       throw error
     }
   }

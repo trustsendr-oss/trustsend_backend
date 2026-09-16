@@ -652,14 +652,18 @@ router
         // a new authenticator (see internal_auth_controller.ts).
         router
           .post('mfa/verify', [InternalAuthController, 'verifyMfa'])
-          .use(middleware.throttle({ maxRequests: 10, windowMinutes: 15, name: 'internal-mfa-verify' }))
+          .use(
+            middleware.throttle({ maxRequests: 10, windowMinutes: 15, name: 'internal-mfa-verify' })
+          )
           .use(middleware.auth({ guards: ['internal'] }))
         router
           .post('mfa/setup', [InternalAuthController, 'setupMfa'])
           .use(middleware.auth({ guards: ['internal'] }))
         router
           .post('mfa/enable', [InternalAuthController, 'enableMfa'])
-          .use(middleware.throttle({ maxRequests: 10, windowMinutes: 15, name: 'internal-mfa-enable' }))
+          .use(
+            middleware.throttle({ maxRequests: 10, windowMinutes: 15, name: 'internal-mfa-enable' })
+          )
           .use(middleware.auth({ guards: ['internal'] }))
         // Cheap session check for the admin panel's checkAuth() — the access token now lives in
         // an httpOnly cookie the frontend can't read (see auth_cookie_service.ts).

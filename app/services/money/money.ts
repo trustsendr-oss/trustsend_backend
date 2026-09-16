@@ -26,7 +26,9 @@ export class Money {
       }
     } else if (typeof amount === 'number') {
       if (!Number.isInteger(amount)) {
-        throw new Error(`Invalid amount: ${amount} has decimal places. Use integers only (smallest currency unit).`)
+        throw new Error(
+          `Invalid amount: ${amount} has decimal places. Use integers only (smallest currency unit).`
+        )
       }
       normalizedAmount = BigInt(Math.trunc(amount))
     } else {

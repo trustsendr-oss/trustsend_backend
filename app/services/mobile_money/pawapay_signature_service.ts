@@ -160,7 +160,9 @@ export class PawaPaySignatureService {
       default: {
         const value = req.headers[component.toLowerCase()]
         if (value === undefined) {
-          throw new PawaPaySignatureException(`Signed component "${component}" missing from request`)
+          throw new PawaPaySignatureException(
+            `Signed component "${component}" missing from request`
+          )
         }
         return value.trim()
       }
@@ -182,7 +184,9 @@ export class PawaPaySignatureService {
     })
 
     if (!response.ok) {
-      throw new PawaPaySignatureException(`Failed to fetch PawaPay public keys (${response.status})`)
+      throw new PawaPaySignatureException(
+        `Failed to fetch PawaPay public keys (${response.status})`
+      )
     }
 
     const body = (await response.json()) as Array<{ keyId: string; publicKey: string }>

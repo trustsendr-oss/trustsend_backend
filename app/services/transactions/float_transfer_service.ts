@@ -1,7 +1,7 @@
 import db from '@adonisjs/lucid/services/db'
-import LedgerTransaction from '#models/ledger_transaction'
+import type LedgerTransaction from '#models/ledger_transaction'
 import Wallet from '#models/wallet'
-import { Money } from '#services/money/money'
+import { type Money } from '#services/money/money'
 import { LedgerService } from '#services/ledger/ledger_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 
@@ -34,14 +34,16 @@ export class FloatTransferService {
       }
 
       // Load both wallets
-      const fromAgentData = await db.query()
+      const fromAgentData = await db
+        .query()
         .from('agents')
         .where('id', request.fromAgentId)
         .select('wallet_id')
         .useTransaction(trx)
         .first()
 
-      const toAgentData = await db.query()
+      const toAgentData = await db
+        .query()
         .from('agents')
         .where('id', request.toAgentId)
         .select('wallet_id')
@@ -92,12 +94,28 @@ export class FloatTransferService {
         'agent_float_transfer',
         [
           {
-            accountId: (await db.query().from('ledger_accounts').where('owner_id', fromWallet.id).select('id').first())?.id || 0,
+            accountId:
+              (
+                await db
+                  .query()
+                  .from('ledger_accounts')
+                  .where('owner_id', fromWallet.id)
+                  .select('id')
+                  .first()
+              )?.id || 0,
             direction: 'debit',
             amount: request.amount,
           },
           {
-            accountId: (await db.query().from('ledger_accounts').where('owner_id', toWallet.id).select('id').first())?.id || 0,
+            accountId:
+              (
+                await db
+                  .query()
+                  .from('ledger_accounts')
+                  .where('owner_id', toWallet.id)
+                  .select('id')
+                  .first()
+              )?.id || 0,
             direction: 'credit',
             amount: request.amount,
           },
@@ -106,7 +124,9 @@ export class FloatTransferService {
         0,
         {
           correlationId: request.correlationId,
-          description: request.description || `Float transfer from agent ${request.fromAgentId} to ${request.toAgentId}`,
+          description:
+            request.description ||
+            `Float transfer from agent ${request.fromAgentId} to ${request.toAgentId}`,
           metadata: {
             from_agent_id: request.fromAgentId,
             to_agent_id: request.toAgentId,

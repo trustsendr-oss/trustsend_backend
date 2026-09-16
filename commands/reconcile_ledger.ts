@@ -17,7 +17,8 @@ import { ReconciliationService } from '#services/ledger/reconciliation_service'
  */
 export default class ReconcileLedger extends BaseCommand {
   static commandName = 'ledger:reconcile'
-  static description = 'Detect drift between wallet balance_cache, ledger_entries, and per-transaction debit/credit balance'
+  static description =
+    'Detect drift between wallet balance_cache, ledger_entries, and per-transaction debit/credit balance'
 
   static options = {
     startApp: true,
@@ -30,13 +31,17 @@ export default class ReconcileLedger extends BaseCommand {
     if (balanceMismatches.length === 0) {
       this.logger.info('No wallet balance mismatches found')
     } else {
-      this.logger.error(`${balanceMismatches.length} wallet balance mismatch(es) found — see [CRITICAL] lines above`)
+      this.logger.error(
+        `${balanceMismatches.length} wallet balance mismatch(es) found — see [CRITICAL] lines above`
+      )
     }
 
     if (transactionImbalances.length === 0) {
       this.logger.info('No unbalanced ledger transactions found')
     } else {
-      this.logger.error(`${transactionImbalances.length} unbalanced ledger transaction(s) found — see [CRITICAL] lines above`)
+      this.logger.error(
+        `${transactionImbalances.length} unbalanced ledger transaction(s) found — see [CRITICAL] lines above`
+      )
     }
 
     if (balanceMismatches.length > 0 || transactionImbalances.length > 0) {

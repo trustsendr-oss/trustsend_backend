@@ -138,7 +138,8 @@ export class UserAdminService {
   ): Promise<Wallet> {
     const wallet = await this.findOwnedWalletOrFail(userId, walletId)
 
-    if (wallet.status !== 'frozen') throw new WalletStatusException(`Wallet is ${wallet.status}, not frozen`)
+    if (wallet.status !== 'frozen')
+      throw new WalletStatusException(`Wallet is ${wallet.status}, not frozen`)
 
     const before = { status: wallet.status }
     wallet.status = 'active'

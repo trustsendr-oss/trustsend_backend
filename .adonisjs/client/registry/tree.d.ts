@@ -52,6 +52,9 @@ export interface ApiDefinition {
   exchangeRates: {
     index: typeof routes['exchange_rates.index']
   }
+  pricing: {
+    index: typeof routes['pricing.index']
+  }
   swaps: {
     swaps: {
       quote: typeof routes['swaps.swaps.quote']

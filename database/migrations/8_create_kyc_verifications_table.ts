@@ -21,14 +21,7 @@ export default class extends BaseSchema {
         .notNullable()
         .comment('Type of verification')
       table
-        .enum('status', [
-          'not_started',
-          'pending',
-          'in_review',
-          'approved',
-          'rejected',
-          'expired',
-        ])
+        .enum('status', ['not_started', 'pending', 'in_review', 'approved', 'rejected', 'expired'])
         .notNullable()
         .defaultTo('not_started')
       table.string('decision_reason').nullable().comment('Reason for approval/rejection')

@@ -61,25 +61,37 @@ export default class DeliverPendingWebhooks extends BaseCommand {
         })
 
         if (response.type === 'opaqueredirect') {
-          await WebhookService.markFailed(delivery.id, 'Redirect blocked (SSRF protection)', delivery.retryCount)
+          await WebhookService.markFailed(
+            delivery.id,
+            'Redirect blocked (SSRF protection)',
+            delivery.retryCount
+          )
           failed++
         } else if (response.ok) {
           await WebhookService.markSuccess(delivery.id)
           sent++
         } else {
-          await WebhookService.markFailed(delivery.id, `HTTP ${response.status}`, delivery.retryCount)
+          await WebhookService.markFailed(
+            delivery.id,
+            `HTTP ${response.status}`,
+            delivery.retryCount
+          )
           failed++
         }
       } catch (error) {
         const err = error as Error
         if (err instanceof UnsafeWebhookUrlException) {
-          this.logger.warning(`Blocked unsafe webhook URL for subscription ${subscription.id}: ${err.message}`)
+          this.logger.warning(
+            `Blocked unsafe webhook URL for subscription ${subscription.id}: ${err.message}`
+          )
         }
         await WebhookService.markFailed(delivery.id, err.message, delivery.retryCount)
         failed++
       }
     }
 
-    this.logger.info(`Delivered ${sent}, failed/retrying ${failed}, out of ${deliveries.length} due`)
+    this.logger.info(
+      `Delivered ${sent}, failed/retrying ${failed}, out of ${deliveries.length} due`
+    )
   }
 }

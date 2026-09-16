@@ -69,15 +69,25 @@ export class MobileMoneyReconciliationService {
 
         if (status.status === 'COMPLETED' || status.status === 'FAILED') {
           if (isDeposit) {
-            await MobileMoneyDepositService.confirmFromCallback('pawapay', referenceId, status.status, {
-              providerTransactionId: status.providerTransactionId,
-              failureReason: status.failureReason,
-            })
+            await MobileMoneyDepositService.confirmFromCallback(
+              'pawapay',
+              referenceId,
+              status.status,
+              {
+                providerTransactionId: status.providerTransactionId,
+                failureReason: status.failureReason,
+              }
+            )
           } else {
-            await MobileMoneyPayoutService.confirmFromCallback('pawapay', referenceId, status.status, {
-              providerTransactionId: status.providerTransactionId,
-              failureReason: status.failureReason,
-            })
+            await MobileMoneyPayoutService.confirmFromCallback(
+              'pawapay',
+              referenceId,
+              status.status,
+              {
+                providerTransactionId: status.providerTransactionId,
+                failureReason: status.failureReason,
+              }
+            )
           }
           result.healed++
         } else {
@@ -87,11 +97,18 @@ export class MobileMoneyReconciliationService {
         // Not found at the provider (the initial call may never have landed) — only give up
         // after a generous grace period, to avoid racing a request that's simply slow.
         if (txn.createdAt.toJSDate() < giveUpBefore) {
-          const failureReason = { code: 'RECONCILIATION_TIMEOUT', message: 'No record found at provider after grace period' }
+          const failureReason = {
+            code: 'RECONCILIATION_TIMEOUT',
+            message: 'No record found at provider after grace period',
+          }
           if (isDeposit) {
-            await MobileMoneyDepositService.confirmFromCallback('pawapay', referenceId, 'FAILED', { failureReason })
+            await MobileMoneyDepositService.confirmFromCallback('pawapay', referenceId, 'FAILED', {
+              failureReason,
+            })
           } else {
-            await MobileMoneyPayoutService.confirmFromCallback('pawapay', referenceId, 'FAILED', { failureReason })
+            await MobileMoneyPayoutService.confirmFromCallback('pawapay', referenceId, 'FAILED', {
+              failureReason,
+            })
           }
           result.markedFailed++
         } else {
@@ -123,7 +140,9 @@ export class MobileMoneyReconciliationService {
     const drifts: WalletBalanceDrift[] = []
 
     for (const balance of balances) {
-      const ourBalance = await LedgerService.getAccountBalance(`MOBILE_MONEY_CLEARING.${balance.currency}`)
+      const ourBalance = await LedgerService.getAccountBalance(
+        `MOBILE_MONEY_CLEARING.${balance.currency}`
+      )
       const difference = balance.amount - ourBalance
 
       drifts.push({

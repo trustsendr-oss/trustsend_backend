@@ -6,14 +6,24 @@ import Currency from '#models/currency'
 import ExchangeRate from '#models/exchange_rate'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { CurrencyService, CurrencyNotFoundException } from '#services/money/currency_service'
-import { applyMargin, crossRate, formatRate, parseRate, RATE_DECIMALS, RATE_SCALE } from '#services/fx/fx_math'
+import {
+  applyMargin,
+  crossRate,
+  formatRate,
+  parseRate,
+  RATE_DECIMALS,
+  RATE_SCALE,
+} from '#services/fx/fx_math'
 
 export const BASE_CURRENCY = 'USD'
 
 // ExchangeRate-API open access: no key, 160+ currencies (CDF, XAF, BIF…), published once a day.
 // Its terms require attribution wherever the rates are displayed.
 const DEFAULT_FEED_URL = 'https://open.er-api.com/v6/latest/USD'
-export const RATE_ATTRIBUTION = { name: 'ExchangeRate-API', url: 'https://www.exchangerate-api.com' }
+export const RATE_ATTRIBUTION = {
+  name: 'ExchangeRate-API',
+  url: 'https://www.exchangerate-api.com',
+}
 
 const FEED_TIMEOUT_MS = 8000
 /** Past this age a swap quote triggers a background-safe refresh first. */
@@ -96,7 +106,11 @@ export class ExchangeRateService {
       }
 
       const rates = payload?.rates
-      if ((payload?.result && payload.result !== 'success') || !rates || typeof rates !== 'object') {
+      if (
+        (payload?.result && payload.result !== 'success') ||
+        !rates ||
+        typeof rates !== 'object'
+      ) {
         throw new ExchangeRateFeedException('Rate feed returned an unexpected payload')
       }
 
@@ -153,10 +167,22 @@ export class ExchangeRateService {
     }
     if (!row) return null
     if (row.manualRate) {
-      return { currencyCode: code, perUsd: parseRate(row.manualRate), source: 'manual', marginBps, updatedAt: row.updatedAt }
+      return {
+        currencyCode: code,
+        perUsd: parseRate(row.manualRate),
+        source: 'manual',
+        marginBps,
+        updatedAt: row.updatedAt,
+      }
     }
     if (row.marketRate && isFresh(row, MAX_MARKET_RATE_AGE_HOURS)) {
-      return { currencyCode: code, perUsd: parseRate(row.marketRate), source: 'market', marginBps, updatedAt: row.marketUpdatedAt }
+      return {
+        currencyCode: code,
+        perUsd: parseRate(row.marketRate),
+        source: 'market',
+        marginBps,
+        updatedAt: row.marketUpdatedAt,
+      }
     }
     return null
   }
@@ -164,9 +190,15 @@ export class ExchangeRateService {
   /** @throws ExchangeRateUnavailableException */
   static async pairRate(fromCode: string, toCode: string): Promise<PairRate> {
     const rows = await ExchangeRate.query().whereIn('currency_code', [fromCode, toCode])
-    const from = this.resolve(fromCode, rows.find((r) => r.currencyCode === fromCode))
+    const from = this.resolve(
+      fromCode,
+      rows.find((r) => r.currencyCode === fromCode)
+    )
     if (!from) throw new ExchangeRateUnavailableException(fromCode)
-    const to = this.resolve(toCode, rows.find((r) => r.currencyCode === toCode))
+    const to = this.resolve(
+      toCode,
+      rows.find((r) => r.currencyCode === toCode)
+    )
     if (!to) throw new ExchangeRateUnavailableException(toCode)
 
     // The stricter of the two currencies' margins applies to the pair.
@@ -179,14 +211,23 @@ export class ExchangeRateService {
   static async listPublic(base = BASE_CURRENCY) {
     const baseCode = CurrencyService.normalize(base)
     const currencies = await CurrencyService.listActive()
-    const rows = await ExchangeRate.query().whereIn('currency_code', [...currencies.map((c) => c.code), baseCode])
-    const baseRate = this.resolve(baseCode, rows.find((r) => r.currencyCode === baseCode))
+    const rows = await ExchangeRate.query().whereIn('currency_code', [
+      ...currencies.map((c) => c.code),
+      baseCode,
+    ])
+    const baseRate = this.resolve(
+      baseCode,
+      rows.find((r) => r.currencyCode === baseCode)
+    )
     if (!baseRate) throw new ExchangeRateUnavailableException(baseCode)
 
     const data = []
     for (const currency of currencies) {
       if (currency.code === baseCode) continue
-      const rate = this.resolve(currency.code, rows.find((r) => r.currencyCode === currency.code))
+      const rate = this.resolve(
+        currency.code,
+        rows.find((r) => r.currencyCode === currency.code)
+      )
       if (!rate) continue
       data.push({
         currency_code: currency.code,
@@ -207,7 +248,11 @@ export class ExchangeRateService {
       name: currency.name,
       logo_url: currency.logoUrl || CurrencyService.defaultLogoUrl(currency.code),
       is_active: currency.isActive,
-      market_rate: row?.marketRate ? formatRate(parseRate(row.marketRate)) : currency.code === BASE_CURRENCY ? '1' : null,
+      market_rate: row?.marketRate
+        ? formatRate(parseRate(row.marketRate))
+        : currency.code === BASE_CURRENCY
+          ? '1'
+          : null,
       manual_rate: row?.manualRate ? formatRate(parseRate(row.manualRate)) : null,
       effective_rate: effective ? formatRate(effective.perUsd) : null,
       source: effective?.source ?? null,
@@ -215,7 +260,10 @@ export class ExchangeRateService {
       margin_percent: marginBps / 100,
       market_source: row?.marketSource ?? null,
       market_updated_at: row?.marketUpdatedAt ?? null,
-      is_stale: currency.code !== BASE_CURRENCY && !row?.manualRate && (!row || !isFresh(row, MAX_MARKET_RATE_AGE_HOURS)),
+      is_stale:
+        currency.code !== BASE_CURRENCY &&
+        !row?.manualRate &&
+        (!row || !isFresh(row, MAX_MARKET_RATE_AGE_HOURS)),
       updated_at: row?.updatedAt ?? null,
     }
   }
@@ -228,7 +276,12 @@ export class ExchangeRateService {
       .where((q) => q.where('is_active', true).orWhereIn('code', withRows))
       .orderBy('sort_order', 'asc')
       .orderBy('code', 'asc')
-    return currencies.map((c) => this.serializeAdmin(c, rows.find((r) => r.currencyCode === c.code)))
+    return currencies.map((c) =>
+      this.serializeAdmin(
+        c,
+        rows.find((r) => r.currencyCode === c.code)
+      )
+    )
   }
 
   static async findForAdmin(code: string) {

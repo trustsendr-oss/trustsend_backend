@@ -102,8 +102,7 @@ async function fetchList(resource: string, filter: Record<string, any> = {}) {
  */
 function toFormDataIfFile(data: Record<string, unknown>): FormData | null {
   const fileEntries = Object.entries(data).filter(
-    ([, value]) =>
-      typeof value === 'object' && value !== null && 'rawFile' in (value as object)
+    ([, value]) => typeof value === 'object' && value !== null && 'rawFile' in (value as object)
   )
   if (fileEntries.length === 0) return null
 
@@ -156,12 +155,18 @@ export const dataProvider: DataProvider = {
     return { data: pageData as RecordType[], total: sorted.length }
   },
 
-  async getOne<RecordType extends RaRecord = any>(resource: string, params: { id: RecordType['id'] }) {
+  async getOne<RecordType extends RaRecord = any>(
+    resource: string,
+    params: { id: RecordType['id'] }
+  ) {
     const data = await apiFetch<RecordType>(`${pathFor(resource)}/${params.id}`)
     return { data }
   },
 
-  async getMany<RecordType extends RaRecord = any>(resource: string, params: { ids: RecordType['id'][] }) {
+  async getMany<RecordType extends RaRecord = any>(
+    resource: string,
+    params: { ids: RecordType['id'][] }
+  ) {
     const results = await Promise.all(
       params.ids.map((id) => apiFetch<RecordType>(`${pathFor(resource)}/${id}`))
     )
@@ -185,10 +190,10 @@ export const dataProvider: DataProvider = {
     return { data: sorted.slice(start, start + perPage) as RecordType[], total: sorted.length }
   },
 
-  async create<RecordType extends Omit<RaRecord, 'id'> = any, ResultRecordType extends RaRecord = RecordType & { id: RaRecord['id'] }>(
-    resource: string,
-    params: { data: Partial<RecordType> }
-  ) {
+  async create<
+    RecordType extends Omit<RaRecord, 'id'> = any,
+    ResultRecordType extends RaRecord = RecordType & { id: RaRecord['id'] },
+  >(resource: string, params: { data: Partial<RecordType> }) {
     const form = toFormDataIfFile(params.data as Record<string, unknown>)
     const data = await apiFetch<ResultRecordType>(pathFor(resource), {
       method: 'POST',
@@ -209,7 +214,10 @@ export const dataProvider: DataProvider = {
     return { data: { ...params.previousData, ...data } as RecordType }
   },
 
-  async updateMany(resource: string, params: { ids: RaRecord['id'][]; data: Record<string, unknown> }) {
+  async updateMany(
+    resource: string,
+    params: { ids: RaRecord['id'][]; data: Record<string, unknown> }
+  ) {
     await Promise.all(
       params.ids.map((id) =>
         apiFetch(`${pathFor(resource)}/${id}`, {
@@ -263,7 +271,10 @@ export const adminActions = {
   businessDeactivate: (id: number | string, reason: string) =>
     apiFetch(`/businesses/${id}/deactivate`, { method: 'POST', body: JSON.stringify({ reason }) }),
   businessAssignPlan: (id: number | string, planId: number) =>
-    apiFetch(`/businesses/${id}/plan`, { method: 'POST', body: JSON.stringify({ plan_id: planId }) }),
+    apiFetch(`/businesses/${id}/plan`, {
+      method: 'POST',
+      body: JSON.stringify({ plan_id: planId }),
+    }),
   businessIssueApiKey: (id: number | string) =>
     apiFetch<{ key_id: string; api_key: string; message: string }>(`/businesses/${id}/api-keys`, {
       method: 'POST',
@@ -305,9 +316,7 @@ export const adminActions = {
   kycReject: (id: number | string, reason: string) =>
     apiFetch(`/kyc/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
   kycDocuments: (id: number | string) =>
-    apiFetch<{ id: number; document_type: string; created_at: string }[]>(
-      `/kyc/${id}/documents`
-    ),
+    apiFetch<{ id: number; document_type: string; created_at: string }[]>(`/kyc/${id}/documents`),
 
   disputeClose: (id: number | string, outcome: 'approved' | 'rejected', resolutionNotes: string) =>
     apiFetch(`/disputes/${id}/close`, {
@@ -325,14 +334,17 @@ export const adminActions = {
       body: JSON.stringify({ reason }),
     }),
   internalUserResetMfa: (id: number | string) =>
-    apiFetch<{ id: number; mfa_enabled: boolean }>(`/internal-users/${id}/reset-mfa`, { method: 'POST' }),
+    apiFetch<{ id: number; mfa_enabled: boolean }>(`/internal-users/${id}/reset-mfa`, {
+      method: 'POST',
+    }),
   internalUserResetPassword: (id: number | string) =>
     apiFetch<{ new_password: string; message: string }>(`/internal-users/${id}/reset-password`, {
       method: 'POST',
     }),
 
   cardFreeze: (id: number | string) => apiFetch(`/admin/cards/${id}/freeze`, { method: 'POST' }),
-  cardUnfreeze: (id: number | string) => apiFetch(`/admin/cards/${id}/unfreeze`, { method: 'POST' }),
+  cardUnfreeze: (id: number | string) =>
+    apiFetch(`/admin/cards/${id}/unfreeze`, { method: 'POST' }),
   cardTerminate: (id: number | string, reason: string) =>
     apiFetch(`/admin/cards/${id}/terminate`, { method: 'POST', body: JSON.stringify({ reason }) }),
   cardTopup: (id: number | string, amount: string) =>

@@ -39,19 +39,28 @@ test.group('Business API key middleware', () => {
   })
 
   test('rejects an invalid API key', async ({ client, assert }) => {
-    const response = await client.get('/api/v1/business/wallet').header('Authorization', 'Bearer biz_sandbox_bogus')
+    const response = await client
+      .get('/api/v1/business/wallet')
+      .header('Authorization', 'Bearer biz_sandbox_bogus')
     assert.equal(response.status(), 401)
   })
 
-  test('accepts a valid API key and scopes the wallet to that business only', async ({ client, assert }) => {
+  test('accepts a valid API key and scopes the wallet to that business only', async ({
+    client,
+    assert,
+  }) => {
     const { apiKey } = await createActiveBusinessWithKey('http-a@biz.test')
     const { apiKey: otherKey } = await createActiveBusinessWithKey('http-b@biz.test')
 
-    const response = await client.get('/api/v1/business/wallet').header('Authorization', `Bearer ${apiKey}`)
+    const response = await client
+      .get('/api/v1/business/wallet')
+      .header('Authorization', `Bearer ${apiKey}`)
     assert.equal(response.status(), 200)
     assert.equal(response.body().data.length, 1)
 
-    const otherResponse = await client.get('/api/v1/business/wallet').header('Authorization', `Bearer ${otherKey}`)
+    const otherResponse = await client
+      .get('/api/v1/business/wallet')
+      .header('Authorization', `Bearer ${otherKey}`)
     assert.equal(otherResponse.status(), 200)
     // Different business must see a DIFFERENT wallet id — isolation, not just "some wallet"
     assert.notEqual(response.body().data[0].id, otherResponse.body().data[0].id)
@@ -69,12 +78,16 @@ test.group('Business API key middleware', () => {
     await BusinessLifecycleService.approve(business.id, 1, 'debug')
     const { apiKey, keyId } = await BusinessApiKeyService.generate(business.id, 1, 'debug')
 
-    const before = await client.get('/api/v1/business/wallet').header('Authorization', `Bearer ${apiKey}`)
+    const before = await client
+      .get('/api/v1/business/wallet')
+      .header('Authorization', `Bearer ${apiKey}`)
     assert.equal(before.status(), 200)
 
     await BusinessApiKeyService.revoke(keyId, 1, 'debug')
 
-    const after = await client.get('/api/v1/business/wallet').header('Authorization', `Bearer ${apiKey}`)
+    const after = await client
+      .get('/api/v1/business/wallet')
+      .header('Authorization', `Bearer ${apiKey}`)
     assert.equal(after.status(), 401)
   })
 })

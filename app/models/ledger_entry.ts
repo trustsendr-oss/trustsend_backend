@@ -5,10 +5,10 @@ export default class LedgerEntry extends BaseModel {
   static table = 'ledger_entries'
 
   @column({ isPrimary: true })
-  declare id: string  // Alphanumérique: LDG-XXXXXXXX
+  declare id: string // Alphanumérique: LDG-XXXXXXXX
 
   @column()
-  declare ledgerTransactionId: string  // FK to ledger_transactions.id (TXN-XXXXXXXX)
+  declare ledgerTransactionId: string // FK to ledger_transactions.id (TXN-XXXXXXXX)
 
   @column()
   declare ledgerAccountId: number

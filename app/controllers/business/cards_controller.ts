@@ -67,11 +67,15 @@ export default class BusinessCardsController {
     }
 
     try {
-      const outcome = await IdempotencyService.begin({ ...identity, requestHash: IdempotencyService.hashPayload(payload) })
+      const outcome = await IdempotencyService.begin({
+        ...identity,
+        requestHash: IdempotencyService.hashPayload(payload),
+      })
       if (outcome.replay) return response.status(outcome.status).send(outcome.body)
     } catch (error) {
       const err = error as any
-      if (err.name === 'IdempotencyConflictException') return response.conflict({ message: err.message })
+      if (err.name === 'IdempotencyConflictException')
+        return response.conflict({ message: err.message })
       throw error
     }
 
@@ -92,7 +96,13 @@ export default class BusinessCardsController {
       }
 
       const { card, details } = await cardService.createCard({
-        owner: { ownerType: 'business', ownerId: business.id, fullName: business.name, email: business.email, phone: business.phone },
+        owner: {
+          ownerType: 'business',
+          ownerId: business.id,
+          fullName: business.name,
+          email: business.email,
+          phone: business.phone,
+        },
         walletId: payload.wallet_id,
         brand: payload.brand,
         amount: new Money(BigInt(payload.amount), currencyCode),
@@ -121,7 +131,10 @@ export default class BusinessCardsController {
       if (err.name === 'CardWalletException' || err instanceof CardWalletException) {
         return response.badRequest({ message: err.message })
       }
-      if (err.name === 'InsufficientWalletBalanceException' || err instanceof InsufficientWalletBalanceException) {
+      if (
+        err.name === 'InsufficientWalletBalanceException' ||
+        err instanceof InsufficientWalletBalanceException
+      ) {
         return response.paymentRequired({ message: err.message })
       }
       if (err.name === 'CardProviderException') {
@@ -134,7 +147,11 @@ export default class BusinessCardsController {
   /** GET /business/cards/:id — decrypted card details, straight from the provider, never persisted */
   async show({ business, params, response }: HttpContext) {
     try {
-      const { card, details } = await cardService.getDetails(Number(params.id), 'business', business.id)
+      const { card, details } = await cardService.getDetails(
+        Number(params.id),
+        'business',
+        business.id
+      )
       return response.ok({
         data: {
           id: card.id,
@@ -153,7 +170,14 @@ export default class BusinessCardsController {
   }
 
   /** PATCH /business/cards/:id/topup */
-  async topup({ business, businessAuthMethod, params, request, correlationId, response }: HttpContext) {
+  async topup({
+    business,
+    businessAuthMethod,
+    params,
+    request,
+    correlationId,
+    response,
+  }: HttpContext) {
     const payload = await request.validateUsing(businessCardAmountValidator)
     const identity = {
       key: payload.idempotency_key,
@@ -163,11 +187,15 @@ export default class BusinessCardsController {
     }
 
     try {
-      const outcome = await IdempotencyService.begin({ ...identity, requestHash: IdempotencyService.hashPayload(payload) })
+      const outcome = await IdempotencyService.begin({
+        ...identity,
+        requestHash: IdempotencyService.hashPayload(payload),
+      })
       if (outcome.replay) return response.status(outcome.status).send(outcome.body)
     } catch (error) {
       const err = error as any
-      if (err.name === 'IdempotencyConflictException') return response.conflict({ message: err.message })
+      if (err.name === 'IdempotencyConflictException')
+        return response.conflict({ message: err.message })
       throw error
     }
 
@@ -195,7 +223,9 @@ export default class BusinessCardsController {
         correlationId,
       })
 
-      const body = { data: { id: card.id, balance: card.balanceCache.toString(), status: card.status } }
+      const body = {
+        data: { id: card.id, balance: card.balanceCache.toString(), status: card.status },
+      }
       await IdempotencyService.complete(identity, 200, body)
       return response.ok(body)
     } catch (error) {
@@ -205,7 +235,14 @@ export default class BusinessCardsController {
   }
 
   /** PATCH /business/cards/:id/withdraw — moves money back from the card to its funding wallet */
-  async withdraw({ business, businessAuthMethod, params, request, correlationId, response }: HttpContext) {
+  async withdraw({
+    business,
+    businessAuthMethod,
+    params,
+    request,
+    correlationId,
+    response,
+  }: HttpContext) {
     const payload = await request.validateUsing(businessCardAmountValidator)
     const identity = {
       key: payload.idempotency_key,
@@ -215,11 +252,15 @@ export default class BusinessCardsController {
     }
 
     try {
-      const outcome = await IdempotencyService.begin({ ...identity, requestHash: IdempotencyService.hashPayload(payload) })
+      const outcome = await IdempotencyService.begin({
+        ...identity,
+        requestHash: IdempotencyService.hashPayload(payload),
+      })
       if (outcome.replay) return response.status(outcome.status).send(outcome.body)
     } catch (error) {
       const err = error as any
-      if (err.name === 'IdempotencyConflictException') return response.conflict({ message: err.message })
+      if (err.name === 'IdempotencyConflictException')
+        return response.conflict({ message: err.message })
       throw error
     }
 
@@ -247,7 +288,9 @@ export default class BusinessCardsController {
         correlationId,
       })
 
-      const body = { data: { id: card.id, balance: card.balanceCache.toString(), status: card.status } }
+      const body = {
+        data: { id: card.id, balance: card.balanceCache.toString(), status: card.status },
+      }
       await IdempotencyService.complete(identity, 200, body)
       return response.ok(body)
     } catch (error) {
@@ -260,7 +303,12 @@ export default class BusinessCardsController {
   async freeze({ business, params, request, correlationId, response }: HttpContext) {
     await request.validateUsing(businessCardActionValidator)
     try {
-      const card = await cardService.freeze(Number(params.id), 'business', business.id, correlationId)
+      const card = await cardService.freeze(
+        Number(params.id),
+        'business',
+        business.id,
+        correlationId
+      )
       return response.ok({ data: { id: card.id, status: card.status } })
     } catch (error) {
       return this.handleLookupError(error, response)
@@ -271,7 +319,12 @@ export default class BusinessCardsController {
   async unfreeze({ business, params, request, correlationId, response }: HttpContext) {
     await request.validateUsing(businessCardActionValidator)
     try {
-      const card = await cardService.unfreeze(Number(params.id), 'business', business.id, correlationId)
+      const card = await cardService.unfreeze(
+        Number(params.id),
+        'business',
+        business.id,
+        correlationId
+      )
       return response.ok({ data: { id: card.id, status: card.status } })
     } catch (error) {
       return this.handleLookupError(error, response)
@@ -282,7 +335,12 @@ export default class BusinessCardsController {
   async terminate({ business, params, request, correlationId, response }: HttpContext) {
     await request.validateUsing(businessCardActionValidator)
     try {
-      const card = await cardService.terminate(Number(params.id), 'business', business.id, correlationId)
+      const card = await cardService.terminate(
+        Number(params.id),
+        'business',
+        business.id,
+        correlationId
+      )
       return response.ok({ data: { id: card.id, status: card.status } })
     } catch (error) {
       return this.handleLookupError(error, response)
@@ -293,12 +351,17 @@ export default class BusinessCardsController {
   async transactions({ business, params, request, response }: HttpContext) {
     const payload = await request.validateUsing(listBusinessCardTransactionsValidator)
     try {
-      const transactions = await cardService.getTransactions(Number(params.id), 'business', business.id, {
-        startDate: payload.start_date,
-        endDate: payload.end_date,
-        page: payload.page,
-        pageSize: payload.page_size,
-      })
+      const transactions = await cardService.getTransactions(
+        Number(params.id),
+        'business',
+        business.id,
+        {
+          startDate: payload.start_date,
+          endDate: payload.end_date,
+          page: payload.page,
+          pageSize: payload.page_size,
+        }
+      )
       return response.ok({ data: transactions })
     } catch (error) {
       return this.handleLookupError(error, response)
@@ -324,7 +387,10 @@ export default class BusinessCardsController {
 
   private handleMoneyActionError(error: unknown, response: HttpContext['response']) {
     const err = error as any
-    if (err instanceof InsufficientWalletBalanceException || err.name === 'InsufficientWalletBalanceException') {
+    if (
+      err instanceof InsufficientWalletBalanceException ||
+      err.name === 'InsufficientWalletBalanceException'
+    ) {
       return response.paymentRequired({ message: err.message })
     }
     return this.handleLookupError(error, response)

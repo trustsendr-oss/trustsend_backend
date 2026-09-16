@@ -42,7 +42,9 @@ export default class BusinessToolkitController {
     } catch (error) {
       const err = error as any
       if (err.name === 'PawaPayRequestException') {
-        return response.serviceUnavailable({ message: 'Mobile money provider unavailable, try again' })
+        return response.serviceUnavailable({
+          message: 'Mobile money provider unavailable, try again',
+        })
       }
       throw error
     }
@@ -65,7 +67,9 @@ export default class BusinessToolkitController {
     } catch (error) {
       const err = error as any
       if (err.name === 'PawaPayRequestException') {
-        return response.serviceUnavailable({ message: 'Mobile money provider unavailable, try again' })
+        return response.serviceUnavailable({
+          message: 'Mobile money provider unavailable, try again',
+        })
       }
       throw error
     }

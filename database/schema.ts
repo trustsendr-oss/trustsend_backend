@@ -8,7 +8,18 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AgentApplicationSchema extends BaseModel {
-  static $columns = ['applicantUserId', 'createdAt', 'id', 'rejectionReason', 'reviewedAt', 'reviewedBy', 'sponsorAgentId', 'status', 'tier', 'updatedAt'] as const
+  static $columns = [
+    'applicantUserId',
+    'createdAt',
+    'id',
+    'rejectionReason',
+    'reviewedAt',
+    'reviewedBy',
+    'sponsorAgentId',
+    'status',
+    'tier',
+    'updatedAt',
+  ] as const
   $columns = AgentApplicationSchema.$columns
   @column()
   declare applicantUserId: number
@@ -33,7 +44,16 @@ export class AgentApplicationSchema extends BaseModel {
 }
 
 export class AgentDeviceSchema extends BaseModel {
-  static $columns = ['agentId', 'createdAt', 'deviceFingerprint', 'id', 'lastUsedAt', 'registeredAt', 'status', 'updatedAt'] as const
+  static $columns = [
+    'agentId',
+    'createdAt',
+    'deviceFingerprint',
+    'id',
+    'lastUsedAt',
+    'registeredAt',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = AgentDeviceSchema.$columns
   @column()
   declare agentId: number
@@ -54,7 +74,18 @@ export class AgentDeviceSchema extends BaseModel {
 }
 
 export class AgentDocumentSchema extends BaseModel {
-  static $columns = ['agentId', 'createdAt', 'documentType', 'fileRef', 'id', 'rejectionReason', 'reviewedAt', 'reviewedBy', 'status', 'updatedAt'] as const
+  static $columns = [
+    'agentId',
+    'createdAt',
+    'documentType',
+    'fileRef',
+    'id',
+    'rejectionReason',
+    'reviewedAt',
+    'reviewedBy',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = AgentDocumentSchema.$columns
   @column()
   declare agentId: number
@@ -79,7 +110,16 @@ export class AgentDocumentSchema extends BaseModel {
 }
 
 export class AgentStatusHistorySchema extends BaseModel {
-  static $columns = ['agentId', 'changedBy', 'changedById', 'createdAt', 'id', 'newStatus', 'previousStatus', 'reason'] as const
+  static $columns = [
+    'agentId',
+    'changedBy',
+    'changedById',
+    'createdAt',
+    'id',
+    'newStatus',
+    'previousStatus',
+    'reason',
+  ] as const
   $columns = AgentStatusHistorySchema.$columns
   @column()
   declare agentId: number
@@ -100,7 +140,36 @@ export class AgentStatusHistorySchema extends BaseModel {
 }
 
 export class AgentSchema extends BaseModel {
-  static $columns = ['address', 'approvedAt', 'approvedBy', 'businessName', 'city', 'code', 'commissionRate', 'createdAt', 'dailyLimit', 'email', 'fullName', 'id', 'latitude', 'longitude', 'monthlyLimit', 'parentAgentId', 'perTransactionLimit', 'phone', 'region', 'status', 'suspendedAt', 'suspensionReason', 'terminatedAt', 'terminationReason', 'tier', 'updatedAt', 'userId', 'walletId'] as const
+  static $columns = [
+    'address',
+    'approvedAt',
+    'approvedBy',
+    'businessName',
+    'city',
+    'code',
+    'commissionRate',
+    'createdAt',
+    'dailyLimit',
+    'email',
+    'fullName',
+    'id',
+    'latitude',
+    'longitude',
+    'monthlyLimit',
+    'parentAgentId',
+    'perTransactionLimit',
+    'phone',
+    'region',
+    'status',
+    'suspendedAt',
+    'suspensionReason',
+    'terminatedAt',
+    'terminationReason',
+    'tier',
+    'updatedAt',
+    'userId',
+    'walletId',
+  ] as const
   $columns = AgentSchema.$columns
   @column()
   declare address: string | null
@@ -161,7 +230,21 @@ export class AgentSchema extends BaseModel {
 }
 
 export class AuditLogSchema extends BaseModel {
-  static $columns = ['action', 'actorId', 'actorType', 'after', 'before', 'correlationId', 'createdAt', 'deviceId', 'id', 'ipAddress', 'resourceId', 'resourceType', 'userAgent'] as const
+  static $columns = [
+    'action',
+    'actorId',
+    'actorType',
+    'after',
+    'before',
+    'correlationId',
+    'createdAt',
+    'deviceId',
+    'id',
+    'ipAddress',
+    'resourceId',
+    'resourceType',
+    'userAgent',
+  ] as const
   $columns = AuditLogSchema.$columns
   @column()
   declare action: string
@@ -192,7 +275,18 @@ export class AuditLogSchema extends BaseModel {
 }
 
 export class AuthAccessTokenSchema extends BaseModel {
-  static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
+  static $columns = [
+    'abilities',
+    'createdAt',
+    'expiresAt',
+    'hash',
+    'id',
+    'lastUsedAt',
+    'name',
+    'tokenableId',
+    'type',
+    'updatedAt',
+  ] as const
   $columns = AuthAccessTokenSchema.$columns
   @column()
   declare abilities: string
@@ -217,7 +311,18 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class BusinessAccessTokenSchema extends BaseModel {
-  static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
+  static $columns = [
+    'abilities',
+    'createdAt',
+    'expiresAt',
+    'hash',
+    'id',
+    'lastUsedAt',
+    'name',
+    'tokenableId',
+    'type',
+    'updatedAt',
+  ] as const
   $columns = BusinessAccessTokenSchema.$columns
   @column()
   declare abilities: string
@@ -242,7 +347,17 @@ export class BusinessAccessTokenSchema extends BaseModel {
 }
 
 export class BusinessApiKeySchema extends BaseModel {
-  static $columns = ['businessId', 'createdAt', 'id', 'keyHash', 'keyPrefix', 'lastUsedAt', 'revokedAt', 'status', 'updatedAt'] as const
+  static $columns = [
+    'businessId',
+    'createdAt',
+    'id',
+    'keyHash',
+    'keyPrefix',
+    'lastUsedAt',
+    'revokedAt',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = BusinessApiKeySchema.$columns
   @column()
   declare businessId: number
@@ -265,7 +380,16 @@ export class BusinessApiKeySchema extends BaseModel {
 }
 
 export class BusinessSignupOtpSchema extends BaseModel {
-  static $columns = ['attempts', 'consumedAt', 'createdAt', 'email', 'expiresAt', 'id', 'otpHash', 'updatedAt'] as const
+  static $columns = [
+    'attempts',
+    'consumedAt',
+    'createdAt',
+    'email',
+    'expiresAt',
+    'id',
+    'otpHash',
+    'updatedAt',
+  ] as const
   $columns = BusinessSignupOtpSchema.$columns
   @column()
   declare attempts: number
@@ -286,7 +410,36 @@ export class BusinessSignupOtpSchema extends BaseModel {
 }
 
 export class BusinessSchema extends BaseModel {
-  static $columns = ['approvedAt', 'approvedBy', 'code', 'createdAt', 'email', 'id', 'loginAttempts', 'loginLockedUntil', 'name', 'password', 'phone', 'pinAttempts', 'pinHash', 'pinLockedUntil', 'pinResetExpiresAt', 'pinResetTokenHash', 'planId', 'planNextMaintenanceBillingAt', 'planPaymentStatus', 'planSubscribedAt', 'status', 'suspendedAt', 'suspensionReason', 'terminatedAt', 'terminationReason', 'updatedAt', 'walletId', 'webhookUrl'] as const
+  static $columns = [
+    'approvedAt',
+    'approvedBy',
+    'code',
+    'createdAt',
+    'email',
+    'id',
+    'loginAttempts',
+    'loginLockedUntil',
+    'name',
+    'password',
+    'phone',
+    'pinAttempts',
+    'pinHash',
+    'pinLockedUntil',
+    'pinResetExpiresAt',
+    'pinResetTokenHash',
+    'planId',
+    'planNextMaintenanceBillingAt',
+    'planPaymentStatus',
+    'planSubscribedAt',
+    'status',
+    'suspendedAt',
+    'suspensionReason',
+    'terminatedAt',
+    'terminationReason',
+    'updatedAt',
+    'walletId',
+    'webhookUrl',
+  ] as const
   $columns = BusinessSchema.$columns
   @column.dateTime()
   declare approvedAt: DateTime | null
@@ -347,7 +500,15 @@ export class BusinessSchema extends BaseModel {
 }
 
 export class CardCustomerSchema extends BaseModel {
-  static $columns = ['businessId', 'createdAt', 'id', 'provider', 'providerCustomerId', 'updatedAt', 'userId'] as const
+  static $columns = [
+    'businessId',
+    'createdAt',
+    'id',
+    'provider',
+    'providerCustomerId',
+    'updatedAt',
+    'userId',
+  ] as const
   $columns = CardCustomerSchema.$columns
   @column()
   declare businessId: number | null
@@ -366,7 +527,24 @@ export class CardCustomerSchema extends BaseModel {
 }
 
 export class CardProductSchema extends BaseModel {
-  static $columns = ['code', 'createdAt', 'currencyCode', 'dailyTopupLimit', 'description', 'id', 'imageMimeType', 'imageRef', 'issuancePrice', 'maxActiveCards', 'maxBalance', 'monthlyTopupLimit', 'name', 'perTopupLimit', 'status', 'updatedAt'] as const
+  static $columns = [
+    'code',
+    'createdAt',
+    'currencyCode',
+    'dailyTopupLimit',
+    'description',
+    'id',
+    'imageMimeType',
+    'imageRef',
+    'issuancePrice',
+    'maxActiveCards',
+    'maxBalance',
+    'monthlyTopupLimit',
+    'name',
+    'perTopupLimit',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = CardProductSchema.$columns
   @column()
   declare code: string
@@ -403,7 +581,26 @@ export class CardProductSchema extends BaseModel {
 }
 
 export class CardSchema extends BaseModel {
-  static $columns = ['balanceCache', 'brand', 'businessId', 'cardProductId', 'cardType', 'createdAt', 'currencyCode', 'failureReason', 'firstSix', 'id', 'lastFour', 'masked', 'provider', 'providerCardId', 'status', 'updatedAt', 'userId', 'walletId'] as const
+  static $columns = [
+    'balanceCache',
+    'brand',
+    'businessId',
+    'cardProductId',
+    'cardType',
+    'createdAt',
+    'currencyCode',
+    'failureReason',
+    'firstSix',
+    'id',
+    'lastFour',
+    'masked',
+    'provider',
+    'providerCardId',
+    'status',
+    'updatedAt',
+    'userId',
+    'walletId',
+  ] as const
   $columns = CardSchema.$columns
   @column()
   declare balanceCache: bigint | number
@@ -444,7 +641,19 @@ export class CardSchema extends BaseModel {
 }
 
 export class CurrencySchema extends BaseModel {
-  static $columns = ['code', 'countryCode', 'createdAt', 'decimals', 'isActive', 'logoUrl', 'name', 'numericCode', 'sortOrder', 'symbol', 'updatedAt'] as const
+  static $columns = [
+    'code',
+    'countryCode',
+    'createdAt',
+    'decimals',
+    'isActive',
+    'logoUrl',
+    'name',
+    'numericCode',
+    'sortOrder',
+    'symbol',
+    'updatedAt',
+  ] as const
   $columns = CurrencySchema.$columns
   @column({ isPrimary: true })
   declare code: string
@@ -488,7 +697,21 @@ export class DisputeMessageSchema extends BaseModel {
 }
 
 export class DisputeSchema extends BaseModel {
-  static $columns = ['assignedTo', 'createdAt', 'id', 'ledgerTransactionId', 'openedAt', 'raisedById', 'raisedByType', 'reason', 'resolutionNotes', 'resolutionTransactionId', 'resolvedAt', 'status', 'updatedAt'] as const
+  static $columns = [
+    'assignedTo',
+    'createdAt',
+    'id',
+    'ledgerTransactionId',
+    'openedAt',
+    'raisedById',
+    'raisedByType',
+    'reason',
+    'resolutionNotes',
+    'resolutionTransactionId',
+    'resolvedAt',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = DisputeSchema.$columns
   @column()
   declare assignedTo: number | null
@@ -519,7 +742,16 @@ export class DisputeSchema extends BaseModel {
 }
 
 export class ExchangeRateSchema extends BaseModel {
-  static $columns = ['createdAt', 'currencyCode', 'manualRate', 'marginBps', 'marketRate', 'marketSource', 'marketUpdatedAt', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'currencyCode',
+    'manualRate',
+    'marginBps',
+    'marketRate',
+    'marketSource',
+    'marketUpdatedAt',
+    'updatedAt',
+  ] as const
   $columns = ExchangeRateSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -540,7 +772,14 @@ export class ExchangeRateSchema extends BaseModel {
 }
 
 export class FeeScheduleSchema extends BaseModel {
-  static $columns = ['createdAt', 'feePercent', 'id', 'operationType', 'updatedAt', 'updatedBy'] as const
+  static $columns = [
+    'createdAt',
+    'feePercent',
+    'id',
+    'operationType',
+    'updatedAt',
+    'updatedBy',
+  ] as const
   $columns = FeeScheduleSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -557,7 +796,25 @@ export class FeeScheduleSchema extends BaseModel {
 }
 
 export class FxQuoteSchema extends BaseModel {
-  static $columns = ['amountIn', 'amountOut', 'createdAt', 'expiresAt', 'fee', 'fromCurrency', 'fromWalletId', 'id', 'ledgerTransactionId', 'marginBps', 'midRate', 'ownerId', 'ownerType', 'rate', 'toCurrency', 'toWalletId', 'usedAt'] as const
+  static $columns = [
+    'amountIn',
+    'amountOut',
+    'createdAt',
+    'expiresAt',
+    'fee',
+    'fromCurrency',
+    'fromWalletId',
+    'id',
+    'ledgerTransactionId',
+    'marginBps',
+    'midRate',
+    'ownerId',
+    'ownerType',
+    'rate',
+    'toCurrency',
+    'toWalletId',
+    'usedAt',
+  ] as const
   $columns = FxQuoteSchema.$columns
   @column()
   declare amountIn: bigint | number
@@ -596,7 +853,19 @@ export class FxQuoteSchema extends BaseModel {
 }
 
 export class IdempotencyKeySchema extends BaseModel {
-  static $columns = ['actorId', 'actorType', 'createdAt', 'endpoint', 'expiresAt', 'id', 'key', 'requestHash', 'responseBody', 'responseStatus', 'status'] as const
+  static $columns = [
+    'actorId',
+    'actorType',
+    'createdAt',
+    'endpoint',
+    'expiresAt',
+    'id',
+    'key',
+    'requestHash',
+    'responseBody',
+    'responseStatus',
+    'status',
+  ] as const
   $columns = IdempotencyKeySchema.$columns
   @column()
   declare actorId: number
@@ -623,7 +892,18 @@ export class IdempotencyKeySchema extends BaseModel {
 }
 
 export class InternalAccessTokenSchema extends BaseModel {
-  static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
+  static $columns = [
+    'abilities',
+    'createdAt',
+    'expiresAt',
+    'hash',
+    'id',
+    'lastUsedAt',
+    'name',
+    'tokenableId',
+    'type',
+    'updatedAt',
+  ] as const
   $columns = InternalAccessTokenSchema.$columns
   @column()
   declare abilities: string
@@ -648,7 +928,21 @@ export class InternalAccessTokenSchema extends BaseModel {
 }
 
 export class InternalUserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'loginAttempts', 'loginLockedUntil', 'mfaEnabled', 'mfaLastUsedStep', 'mfaSecretEncrypted', 'mustChangePassword', 'password', 'status', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'email',
+    'fullName',
+    'id',
+    'loginAttempts',
+    'loginLockedUntil',
+    'mfaEnabled',
+    'mfaLastUsedStep',
+    'mfaSecretEncrypted',
+    'mustChangePassword',
+    'password',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = InternalUserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -679,7 +973,14 @@ export class InternalUserSchema extends BaseModel {
 }
 
 export class KycDocumentSchema extends BaseModel {
-  static $columns = ['createdAt', 'documentType', 'id', 'kycVerificationId', 'mimeType', 'rawPayloadRef'] as const
+  static $columns = [
+    'createdAt',
+    'documentType',
+    'id',
+    'kycVerificationId',
+    'mimeType',
+    'rawPayloadRef',
+  ] as const
   $columns = KycDocumentSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -696,7 +997,22 @@ export class KycDocumentSchema extends BaseModel {
 }
 
 export class KycVerificationSchema extends BaseModel {
-  static $columns = ['createdAt', 'decidedAt', 'decisionReason', 'expiresAt', 'id', 'provider', 'providerReference', 'reviewedBy', 'status', 'subjectId', 'subjectType', 'submittedAt', 'updatedAt', 'verificationType'] as const
+  static $columns = [
+    'createdAt',
+    'decidedAt',
+    'decisionReason',
+    'expiresAt',
+    'id',
+    'provider',
+    'providerReference',
+    'reviewedBy',
+    'status',
+    'subjectId',
+    'subjectType',
+    'submittedAt',
+    'updatedAt',
+    'verificationType',
+  ] as const
   $columns = KycVerificationSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -729,7 +1045,18 @@ export class KycVerificationSchema extends BaseModel {
 }
 
 export class LedgerAccountSchema extends BaseModel {
-  static $columns = ['accountType', 'code', 'createdAt', 'currencyCode', 'id', 'name', 'ownerId', 'ownerType', 'status', 'updatedAt'] as const
+  static $columns = [
+    'accountType',
+    'code',
+    'createdAt',
+    'currencyCode',
+    'id',
+    'name',
+    'ownerId',
+    'ownerType',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = LedgerAccountSchema.$columns
   @column()
   declare accountType: string
@@ -754,7 +1081,16 @@ export class LedgerAccountSchema extends BaseModel {
 }
 
 export class LedgerEntrySchema extends BaseModel {
-  static $columns = ['amount', 'balanceAfter', 'createdAt', 'currencyCode', 'direction', 'id', 'ledgerAccountId', 'ledgerTransactionId'] as const
+  static $columns = [
+    'amount',
+    'balanceAfter',
+    'createdAt',
+    'currencyCode',
+    'direction',
+    'id',
+    'ledgerAccountId',
+    'ledgerTransactionId',
+  ] as const
   $columns = LedgerEntrySchema.$columns
   @column()
   declare amount: bigint | number
@@ -775,7 +1111,32 @@ export class LedgerEntrySchema extends BaseModel {
 }
 
 export class LedgerTransactionSchema extends BaseModel {
-  static $columns = ['amount', 'completedAt', 'correlationId', 'counterpartyPhone', 'createdAt', 'currencyCode', 'description', 'failureReason', 'fee', 'id', 'idempotencyKey', 'initiatedById', 'initiatedByType', 'metadata', 'paymentChannel', 'paymentMethod', 'provider', 'providerReferenceId', 'relatedTransactionId', 'reversalOfTransactionId', 'reversedAt', 'status', 'type', 'uuid'] as const
+  static $columns = [
+    'amount',
+    'completedAt',
+    'correlationId',
+    'counterpartyPhone',
+    'createdAt',
+    'currencyCode',
+    'description',
+    'failureReason',
+    'fee',
+    'id',
+    'idempotencyKey',
+    'initiatedById',
+    'initiatedByType',
+    'metadata',
+    'paymentChannel',
+    'paymentMethod',
+    'provider',
+    'providerReferenceId',
+    'relatedTransactionId',
+    'reversalOfTransactionId',
+    'reversedAt',
+    'status',
+    'type',
+    'uuid',
+  ] as const
   $columns = LedgerTransactionSchema.$columns
   @column()
   declare amount: bigint | number | null
@@ -828,7 +1189,18 @@ export class LedgerTransactionSchema extends BaseModel {
 }
 
 export class NotificationSchema extends BaseModel {
-  static $columns = ['createdAt', 'data', 'id', 'message', 'readAt', 'recipientId', 'recipientType', 'title', 'type', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'data',
+    'id',
+    'message',
+    'readAt',
+    'recipientId',
+    'recipientType',
+    'title',
+    'type',
+    'updatedAt',
+  ] as const
   $columns = NotificationSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -853,7 +1225,17 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class OutboxEventSchema extends BaseModel {
-  static $columns = ['aggregateId', 'aggregateType', 'attempts', 'createdAt', 'eventType', 'id', 'payload', 'publishedAt', 'status'] as const
+  static $columns = [
+    'aggregateId',
+    'aggregateType',
+    'attempts',
+    'createdAt',
+    'eventType',
+    'id',
+    'payload',
+    'publishedAt',
+    'status',
+  ] as const
   $columns = OutboxEventSchema.$columns
   @column()
   declare aggregateId: string
@@ -876,7 +1258,19 @@ export class OutboxEventSchema extends BaseModel {
 }
 
 export class PlanSchema extends BaseModel {
-  static $columns = ['code', 'createdAt', 'currencyCode', 'description', 'features', 'id', 'maintenancePrice', 'name', 'price', 'status', 'updatedAt'] as const
+  static $columns = [
+    'code',
+    'createdAt',
+    'currencyCode',
+    'description',
+    'features',
+    'id',
+    'maintenancePrice',
+    'name',
+    'price',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = PlanSchema.$columns
   @column()
   declare code: string
@@ -903,7 +1297,17 @@ export class PlanSchema extends BaseModel {
 }
 
 export class RiskAssessmentSchema extends BaseModel {
-  static $columns = ['createdAt', 'decision', 'id', 'ledgerTransactionId', 'provider', 'providerReference', 'riskLevel', 'rulesTriggered', 'score'] as const
+  static $columns = [
+    'createdAt',
+    'decision',
+    'id',
+    'ledgerTransactionId',
+    'provider',
+    'providerReference',
+    'riskLevel',
+    'rulesTriggered',
+    'score',
+  ] as const
   $columns = RiskAssessmentSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -926,7 +1330,22 @@ export class RiskAssessmentSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['code', 'createdAt', 'email', 'fullName', 'id', 'loginAttempts', 'loginLockedUntil', 'password', 'pinAttempts', 'pinHash', 'pinLockedUntil', 'pinResetExpiresAt', 'pinResetTokenHash', 'updatedAt'] as const
+  static $columns = [
+    'code',
+    'createdAt',
+    'email',
+    'fullName',
+    'id',
+    'loginAttempts',
+    'loginLockedUntil',
+    'password',
+    'pinAttempts',
+    'pinHash',
+    'pinLockedUntil',
+    'pinResetExpiresAt',
+    'pinResetTokenHash',
+    'updatedAt',
+  ] as const
   $columns = UserSchema.$columns
   @column()
   declare code: string | null
@@ -959,7 +1378,22 @@ export class UserSchema extends BaseModel {
 }
 
 export class WalletSchema extends BaseModel {
-  static $columns = ['agentId', 'balanceCache', 'businessId', 'createdAt', 'currencyCode', 'dailyLimit', 'id', 'ledgerAccountId', 'lockVersion', 'monthlyLimit', 'perTransactionLimit', 'status', 'updatedAt', 'userId'] as const
+  static $columns = [
+    'agentId',
+    'balanceCache',
+    'businessId',
+    'createdAt',
+    'currencyCode',
+    'dailyLimit',
+    'id',
+    'ledgerAccountId',
+    'lockVersion',
+    'monthlyLimit',
+    'perTransactionLimit',
+    'status',
+    'updatedAt',
+    'userId',
+  ] as const
   $columns = WalletSchema.$columns
   @column()
   declare agentId: number | null
@@ -992,7 +1426,18 @@ export class WalletSchema extends BaseModel {
 }
 
 export class WebhookDeliverySchema extends BaseModel {
-  static $columns = ['createdAt', 'eventType', 'id', 'lastError', 'nextRetryAt', 'payload', 'retryCount', 'status', 'subscriptionId', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'eventType',
+    'id',
+    'lastError',
+    'nextRetryAt',
+    'payload',
+    'retryCount',
+    'status',
+    'subscriptionId',
+    'updatedAt',
+  ] as const
   $columns = WebhookDeliverySchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -1017,7 +1462,17 @@ export class WebhookDeliverySchema extends BaseModel {
 }
 
 export class WebhookSubscriptionSchema extends BaseModel {
-  static $columns = ['active', 'businessId', 'createdAt', 'events', 'id', 'secret', 'updatedAt', 'url', 'userId'] as const
+  static $columns = [
+    'active',
+    'businessId',
+    'createdAt',
+    'events',
+    'id',
+    'secret',
+    'updatedAt',
+    'url',
+    'userId',
+  ] as const
   $columns = WebhookSubscriptionSchema.$columns
   @column()
   declare active: boolean | null

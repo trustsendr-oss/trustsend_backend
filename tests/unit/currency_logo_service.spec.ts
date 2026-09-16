@@ -22,7 +22,9 @@ test.group('CurrencyLogoService', () => {
     assert.isNull(CurrencyLogoService.flagSvg(null))
   })
 
-  test('shows the code when the symbol is missing, too long or a bare dollar sign', ({ assert }) => {
+  test('shows the code when the symbol is missing, too long or a bare dollar sign', ({
+    assert,
+  }) => {
     assert.equal(CurrencyLogoService.badgeLabel('XCD', '$'), 'XCD')
     assert.equal(CurrencyLogoService.badgeLabel('XPF', null), 'XPF')
     assert.equal(CurrencyLogoService.badgeLabel('ABC', 'VeryLong'), 'ABC')

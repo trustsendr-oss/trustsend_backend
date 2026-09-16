@@ -49,7 +49,11 @@ export default class extends BaseSchema {
       table.integer('margin_bps').notNullable()
       table.timestamp('expires_at').notNullable()
       table.timestamp('used_at').nullable()
-      table.string('ledger_transaction_id', 12).nullable().references('id').inTable('ledger_transactions')
+      table
+        .string('ledger_transaction_id', 12)
+        .nullable()
+        .references('id')
+        .inTable('ledger_transactions')
       table.timestamp('created_at').notNullable()
 
       table.index(['owner_type', 'owner_id', 'created_at'])

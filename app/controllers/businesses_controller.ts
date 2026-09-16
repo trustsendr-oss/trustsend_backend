@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Business from '#models/business'
-import InternalUser from '#models/internal_user'
+import type InternalUser from '#models/internal_user'
 import { BusinessOnboardingService } from '#services/business/business_onboarding_service'
 import { BusinessLifecycleService } from '#services/business/business_lifecycle_service'
 import { BusinessApiKeyService } from '#services/business/business_api_key_service'
@@ -12,10 +12,13 @@ const assignPlanValidator = vine.create({ plan_id: vine.number().positive() })
 
 const createBusinessValidator = vine.create({
   name: vine.string().minLength(2).maxLength(255),
-  email: vine.string().email().unique(async (db, value) => {
-    const business = await db.from('businesses').where('email', value).first()
-    return !business
-  }),
+  email: vine
+    .string()
+    .email()
+    .unique(async (db, value) => {
+      const business = await db.from('businesses').where('email', value).first()
+      return !business
+    }),
   phone: vine.string().minLength(8).maxLength(20),
   code: vine
     .string()
@@ -105,7 +108,12 @@ export default class BusinessesController {
         wallet_id: business.walletId,
         webhook_url: business.webhookUrl,
         plan: business.plan
-          ? { id: business.plan.id, code: business.plan.code, name: business.plan.name, features: business.plan.features }
+          ? {
+              id: business.plan.id,
+              code: business.plan.code,
+              name: business.plan.name,
+              features: business.plan.features,
+            }
           : null,
         created_at: business.createdAt,
         updated_at: business.updatedAt,
@@ -122,10 +130,18 @@ export default class BusinessesController {
     const { plan_id: planId } = await request.validateUsing(assignPlanValidator)
 
     try {
-      const business = await PlanService.assignToBusiness(Number(params.id), planId, user.id, correlationId)
+      const business = await PlanService.assignToBusiness(
+        Number(params.id),
+        planId,
+        user.id,
+        correlationId
+      )
       await business.load('plan')
       return response.ok({
-        data: { id: business.id, plan: { id: business.plan.id, code: business.plan.code, name: business.plan.name } },
+        data: {
+          id: business.id,
+          plan: { id: business.plan.id, code: business.plan.code, name: business.plan.name },
+        },
       })
     } catch (error) {
       if (error instanceof PlanNotFoundException) {
@@ -163,8 +179,15 @@ export default class BusinessesController {
     const { reason } = await request.validateUsing(suspendValidator)
 
     try {
-      const updated = await BusinessLifecycleService.suspend(business.id, user.id, reason, correlationId)
-      return response.ok({ data: { id: updated.id, status: updated.status, suspended_by: user.id } })
+      const updated = await BusinessLifecycleService.suspend(
+        business.id,
+        user.id,
+        reason,
+        correlationId
+      )
+      return response.ok({
+        data: { id: updated.id, status: updated.status, suspended_by: user.id },
+      })
     } catch (error) {
       const err = error as any
       return response.badRequest({ message: err.message || 'Suspension failed' })
@@ -180,7 +203,9 @@ export default class BusinessesController {
 
     try {
       const updated = await BusinessLifecycleService.activate(business.id, user.id, correlationId)
-      return response.ok({ data: { id: updated.id, status: updated.status, activated_by: user.id } })
+      return response.ok({
+        data: { id: updated.id, status: updated.status, activated_by: user.id },
+      })
     } catch (error) {
       const err = error as any
       return response.badRequest({ message: err.message || 'Activation failed' })
@@ -198,8 +223,15 @@ export default class BusinessesController {
     const { reason } = await request.validateUsing(terminateValidator)
 
     try {
-      const updated = await BusinessLifecycleService.deactivate(business.id, user.id, reason, correlationId)
-      return response.ok({ data: { id: updated.id, status: updated.status, terminated_by: user.id } })
+      const updated = await BusinessLifecycleService.deactivate(
+        business.id,
+        user.id,
+        reason,
+        correlationId
+      )
+      return response.ok({
+        data: { id: updated.id, status: updated.status, terminated_by: user.id },
+      })
     } catch (error) {
       const err = error as any
       return response.badRequest({ message: err.message || 'Deactivation failed' })
@@ -218,7 +250,11 @@ export default class BusinessesController {
       return response.badRequest({ message: 'Business must be active to issue an API key' })
     }
 
-    const { apiKey, keyId } = await BusinessApiKeyService.generate(business.id, user.id, correlationId)
+    const { apiKey, keyId } = await BusinessApiKeyService.generate(
+      business.id,
+      user.id,
+      correlationId
+    )
 
     return response.created({
       data: {

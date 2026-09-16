@@ -12,10 +12,7 @@ export default class extends BaseSchema {
         .unsigned()
         .comment('FK to ledger_transactions (the transaction being assessed)')
       table.integer('score').notNullable().defaultTo(0).comment('Risk score (0-100)')
-      table
-        .enum('risk_level', ['low', 'medium', 'high', 'critical'])
-        .notNullable()
-        .defaultTo('low')
+      table.enum('risk_level', ['low', 'medium', 'high', 'critical']).notNullable().defaultTo('low')
       table.jsonb('rules_triggered').nullable().comment('JSON array of rules that triggered')
       table
         .string('provider')

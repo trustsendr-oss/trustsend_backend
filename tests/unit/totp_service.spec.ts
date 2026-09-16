@@ -25,7 +25,10 @@ test.group('TotpService', () => {
     const now = 1_700_000_000_000
     const previousCode = TotpService.generate(RFC_SECRET, now - 30_000)
 
-    assert.equal(TotpService.verify(RFC_SECRET, previousCode, { timestampMs: now }), TotpService.stepAt(now) - 1)
+    assert.equal(
+      TotpService.verify(RFC_SECRET, previousCode, { timestampMs: now }),
+      TotpService.stepAt(now) - 1
+    )
   })
 
   test('rejects codes outside the window', ({ assert }) => {

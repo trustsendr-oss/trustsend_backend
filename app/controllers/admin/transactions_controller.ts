@@ -232,9 +232,7 @@ export default class AdminTransactionsController {
       .orderBy('created_at', 'asc')
 
     const accountIds = [...new Set(entries.map((e) => e.ledgerAccountId))]
-    const accounts = accountIds.length
-      ? await LedgerAccount.query().whereIn('id', accountIds)
-      : []
+    const accounts = accountIds.length ? await LedgerAccount.query().whereIn('id', accountIds) : []
     const accountsById = new Map(accounts.map((a) => [a.id, a]))
 
     // No RiskAssessment lookup here: risk_assessments.ledger_transaction_id is still an integer

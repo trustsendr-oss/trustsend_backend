@@ -14,7 +14,10 @@ export default class extends BaseSchema {
       table.string('type').notNullable().comment('Event key, e.g. mobile_money_deposit.completed')
       table.string('title').notNullable()
       table.text('message').notNullable()
-      table.jsonb('data').nullable().comment('Structured payload — related ids/amounts for the app to deep-link on')
+      table
+        .jsonb('data')
+        .nullable()
+        .comment('Structured payload — related ids/amounts for the app to deep-link on')
       table.timestamp('read_at').nullable()
       table.timestamps()
 

@@ -15,7 +15,10 @@ export default class extends BaseSchema {
         .string('action', 255)
         .notNullable()
         .comment('Namespaced action: agent.status.suspended, admin.customer_profile.viewed, etc.')
-      table.string('resource_type', 100).notNullable().comment('Type of resource affected (agent, wallet, user)')
+      table
+        .string('resource_type', 100)
+        .notNullable()
+        .comment('Type of resource affected (agent, wallet, user)')
       table.integer('resource_id').notNullable().comment('ID of the resource')
       table.jsonb('before').nullable().comment('State before the action (if applicable)')
       table.jsonb('after').nullable().comment('State after the action (if applicable)')

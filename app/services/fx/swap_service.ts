@@ -164,7 +164,11 @@ export class SwapService {
 
       const fromWallet = wallets.find((w) => w.id === quote.fromWalletId)
       const toWallet = wallets.find((w) => w.id === quote.toWalletId)
-      if (!fromWallet || fromWallet.status !== 'active' || fromWallet.currencyCode !== quote.fromCurrency) {
+      if (
+        !fromWallet ||
+        fromWallet.status !== 'active' ||
+        fromWallet.currencyCode !== quote.fromCurrency
+      ) {
         throw new SwapWalletNotFoundException(quote.fromCurrency)
       }
       if (!toWallet || toWallet.status !== 'active' || toWallet.currencyCode !== quote.toCurrency) {
@@ -172,7 +176,11 @@ export class SwapService {
       }
 
       if (fromWallet.balanceCache < quote.amountIn) {
-        throw new InsufficientBalanceException(fromWallet.id, quote.amountIn, fromWallet.balanceCache)
+        throw new InsufficientBalanceException(
+          fromWallet.id,
+          quote.amountIn,
+          fromWallet.balanceCache
+        )
       }
       if (fromWallet.perTransactionLimit && quote.amountIn > fromWallet.perTransactionLimit) {
         throw new TransactionLimitExceededException(
@@ -220,14 +228,26 @@ export class SwapService {
       )
 
       const entries: Array<{ accountId: number; direction: 'debit' | 'credit'; amount: Money }> = [
-        { accountId: fromAccount.id, direction: 'debit', amount: new Money(quote.amountIn, quote.fromCurrency) },
-        { accountId: fromPosition.id, direction: 'credit', amount: new Money(quote.amountIn, quote.fromCurrency) },
+        {
+          accountId: fromAccount.id,
+          direction: 'debit',
+          amount: new Money(quote.amountIn, quote.fromCurrency),
+        },
+        {
+          accountId: fromPosition.id,
+          direction: 'credit',
+          amount: new Money(quote.amountIn, quote.fromCurrency),
+        },
         {
           accountId: toPosition.id,
           direction: 'debit',
           amount: new Money(quote.amountOut + quote.fee, quote.toCurrency),
         },
-        { accountId: toAccount.id, direction: 'credit', amount: new Money(quote.amountOut, quote.toCurrency) },
+        {
+          accountId: toAccount.id,
+          direction: 'credit',
+          amount: new Money(quote.amountOut, quote.toCurrency),
+        },
       ]
 
       if (quote.fee > 0n) {
@@ -238,34 +258,44 @@ export class SwapService {
           trx,
           'revenue'
         )
-        entries.push({ accountId: revenue.id, direction: 'credit', amount: new Money(quote.fee, quote.toCurrency) })
+        entries.push({
+          accountId: revenue.id,
+          direction: 'credit',
+          amount: new Money(quote.fee, quote.toCurrency),
+        })
       }
 
-      const transaction = await LedgerService.postTransaction('fx_swap', entries, owner.type, owner.id, {
-        idempotencyKey: `fx_swap:${owner.type}:${owner.id}:${input.idempotencyKey}`,
-        correlationId: input.correlationId,
-        description: `Currency swap ${quote.fromCurrency} to ${quote.toCurrency}`,
-        metadata: {
-          quote_id: quote.id,
-          // amount/currency_code: the debited side, read by clients that list transactions
-          amount: quote.amountIn.toString(),
-          currency_code: quote.fromCurrency,
-          from_wallet_id: fromWallet.id,
-          to_wallet_id: toWallet.id,
-          from_currency: quote.fromCurrency,
-          to_currency: quote.toCurrency,
-          amount_in: quote.amountIn.toString(),
-          amount_out: quote.amountOut.toString(),
-          fee: quote.fee.toString(),
-          fee_currency: quote.toCurrency,
-          rate: quote.rate,
-          mid_rate: quote.midRate,
-          margin_bps: quote.marginBps,
-        },
-        amount: new Money(quote.amountIn, quote.fromCurrency),
-        paymentMethod: 'wallet',
-        trx,
-      })
+      const transaction = await LedgerService.postTransaction(
+        'fx_swap',
+        entries,
+        owner.type,
+        owner.id,
+        {
+          idempotencyKey: `fx_swap:${owner.type}:${owner.id}:${input.idempotencyKey}`,
+          correlationId: input.correlationId,
+          description: `Currency swap ${quote.fromCurrency} to ${quote.toCurrency}`,
+          metadata: {
+            quote_id: quote.id,
+            // amount/currency_code: the debited side, read by clients that list transactions
+            amount: quote.amountIn.toString(),
+            currency_code: quote.fromCurrency,
+            from_wallet_id: fromWallet.id,
+            to_wallet_id: toWallet.id,
+            from_currency: quote.fromCurrency,
+            to_currency: quote.toCurrency,
+            amount_in: quote.amountIn.toString(),
+            amount_out: quote.amountOut.toString(),
+            fee: quote.fee.toString(),
+            fee_currency: quote.toCurrency,
+            rate: quote.rate,
+            mid_rate: quote.midRate,
+            margin_bps: quote.marginBps,
+          },
+          amount: new Money(quote.amountIn, quote.fromCurrency),
+          paymentMethod: 'wallet',
+          trx,
+        }
+      )
 
       quote.usedAt = DateTime.now()
       quote.ledgerTransactionId = transaction.id

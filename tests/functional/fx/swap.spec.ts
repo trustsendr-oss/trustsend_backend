@@ -12,7 +12,10 @@ import { createUserWithWallet, TEST_PIN } from '#tests/helpers/user_helper'
 const json = (res: { body(): unknown }) => res.body() as any
 
 async function userWithUsdAndCdf(balance = 100000n) {
-  const { user, wallet } = await createUserWithWallet({ email: `fx-${randomUUID()}@test.com`, balance })
+  const { user, wallet } = await createUserWithWallet({
+    email: `fx-${randomUUID()}@test.com`,
+    balance,
+  })
   const cdf = await UserOnboardingService.createDefaultWallet(user.id, 'CDF', 'test')
   return { user, usd: wallet, cdf }
 }
@@ -24,7 +27,10 @@ test.group('Currency swaps', (group) => {
   group.setup(async () => {
     const row = await ExchangeRate.find('CDF')
     previous = row ? { manualRate: row.manualRate, marginBps: row.marginBps } : null
-    await ExchangeRate.updateOrCreate({ currencyCode: 'CDF' }, { manualRate: '2000', marginBps: 100 })
+    await ExchangeRate.updateOrCreate(
+      { currencyCode: 'CDF' },
+      { manualRate: '2000', marginBps: 100 }
+    )
     return async () => {
       if (previous) {
         await ExchangeRate.updateOrCreate({ currencyCode: 'CDF' }, previous)
@@ -66,7 +72,9 @@ test.group('Currency swaps', (group) => {
       .from('ledger_entries')
       .where('ledger_transaction_id', json(swapRes).data.transaction_id)
       .select('currency_code')
-      .select(db.raw("SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END)::text AS net"))
+      .select(
+        db.raw("SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END)::text AS net")
+      )
       .groupBy('currency_code')
     assert.lengthOf(perCurrency, 2)
     for (const row of perCurrency) assert.equal(row.net, '0')
@@ -101,7 +109,11 @@ test.group('Currency swaps', (group) => {
     const res = await client
       .post('/api/v1/swaps')
       .loginAs(user)
-      .json({ quote_id: json(quoteRes).data.quote_id, idempotency_key: randomUUID(), pin: TEST_PIN })
+      .json({
+        quote_id: json(quoteRes).data.quote_id,
+        idempotency_key: randomUUID(),
+        pin: TEST_PIN,
+      })
     assert.equal(res.status(), 410)
     assert.equal(json(res).code, 'QUOTE_EXPIRED')
   })

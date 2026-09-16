@@ -1,6 +1,5 @@
 import vine from '@vinejs/vine'
 
-
 /**
  * Validator for P2P transfer requests
  */

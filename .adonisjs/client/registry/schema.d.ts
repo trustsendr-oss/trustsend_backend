@@ -223,6 +223,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/fx/exchange_rates_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'pricing.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/pricing'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/plan_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/plan_controller').default['index']>>>
+    }
+  }
   'swaps.swaps.quote': {
     methods: ["POST"]
     pattern: '/api/v1/swaps/quote'

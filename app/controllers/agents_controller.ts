@@ -1,7 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Agent from '#models/agent'
 import User from '#models/user'
-import InternalUser from '#models/internal_user'
+import type InternalUser from '#models/internal_user'
 import { AgentLifecycleService } from '#services/agents/agent_lifecycle_service'
 import { AgentOnboardingService } from '#services/agents/agent_onboarding_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
@@ -10,17 +10,38 @@ import vine from '@vinejs/vine'
 
 // Smallest-unit strings (no zero, no leading zeros) — same convention as card amounts.
 const limitFields = {
-  daily_limit: vine.string().regex(/^[1-9]\d*$/).optional(),
-  monthly_limit: vine.string().regex(/^[1-9]\d*$/).optional(),
-  per_transaction_limit: vine.string().regex(/^[1-9]\d*$/).optional(),
+  daily_limit: vine
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .optional(),
+  monthly_limit: vine
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .optional(),
+  per_transaction_limit: vine
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .optional(),
 }
 
 // On update, `null` explicitly clears a limit back to uncapped — distinct from omitting the key
 // (leave unchanged), which plain .optional() already allows.
 const nullableLimitFields = {
-  daily_limit: vine.string().regex(/^[1-9]\d*$/).nullable().optional(),
-  monthly_limit: vine.string().regex(/^[1-9]\d*$/).nullable().optional(),
-  per_transaction_limit: vine.string().regex(/^[1-9]\d*$/).nullable().optional(),
+  daily_limit: vine
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .nullable()
+    .optional(),
+  monthly_limit: vine
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .nullable()
+    .optional(),
+  per_transaction_limit: vine
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .nullable()
+    .optional(),
 }
 
 const profileFields = {
@@ -32,21 +53,32 @@ const profileFields = {
 }
 
 const createAgentValidator = vine.create({
-  user_id: vine.number().positive().unique(async (db, value) => {
-    const agent = await db.from('agents').where('user_id', value).first()
-    return !agent
-  }),
+  user_id: vine
+    .number()
+    .positive()
+    .unique(async (db, value) => {
+      const agent = await db.from('agents').where('user_id', value).first()
+      return !agent
+    }),
   full_name: vine.string().minLength(3).maxLength(255),
-  email: vine.string().email().unique(async (db, value) => {
-    const agent = await db.from('agents').where('email', value).first()
-    return !agent
-  }),
+  email: vine
+    .string()
+    .email()
+    .unique(async (db, value) => {
+      const agent = await db.from('agents').where('email', value).first()
+      return !agent
+    }),
   phone: vine.string().minLength(8).maxLength(20),
   region: vine.string().optional(),
-  code: vine.string().minLength(2).maxLength(20).unique(async (db, value) => {
-    const agent = await db.from('agents').where('code', value).first()
-    return !agent
-  }).optional(),
+  code: vine
+    .string()
+    .minLength(2)
+    .maxLength(20)
+    .unique(async (db, value) => {
+      const agent = await db.from('agents').where('code', value).first()
+      return !agent
+    })
+    .optional(),
   // A top-level agent (no parent) may only be 'master' or 'distributor'; 'agent'/'super_agent'
   // always need a parent — see tier_parent_hierarchy CHECK constraint on the agents table,
   // enforced with a friendly error in AgentOnboardingService.create().
@@ -116,7 +148,9 @@ export default class AgentsController {
         longitude: payload.longitude,
         dailyLimit: payload.daily_limit ? BigInt(payload.daily_limit) : undefined,
         monthlyLimit: payload.monthly_limit ? BigInt(payload.monthly_limit) : undefined,
-        perTransactionLimit: payload.per_transaction_limit ? BigInt(payload.per_transaction_limit) : undefined,
+        perTransactionLimit: payload.per_transaction_limit
+          ? BigInt(payload.per_transaction_limit)
+          : undefined,
         tier: payload.tier ?? 'agent',
         parentAgentId: payload.parent_agent_id,
         commissionRate: payload.commission_rate ?? 2.5,
@@ -182,7 +216,7 @@ export default class AgentsController {
    * Update agent details
    */
   async update({ auth, params, request, response }: HttpContext) {
-    const user = await auth.authenticateUsing(['internal']) as InternalUser
+    const user = (await auth.authenticateUsing(['internal'])) as InternalUser
 
     const agent = await Agent.findOrFail(params.id)
     const payload = await request.validateUsing(updateAgentValidator)
@@ -217,7 +251,10 @@ export default class AgentsController {
         ? { monthlyLimit: payload.monthly_limit === null ? null : BigInt(payload.monthly_limit) }
         : {}),
       ...(payload.per_transaction_limit !== undefined
-        ? { perTransactionLimit: payload.per_transaction_limit === null ? null : BigInt(payload.per_transaction_limit) }
+        ? {
+            perTransactionLimit:
+              payload.per_transaction_limit === null ? null : BigInt(payload.per_transaction_limit),
+          }
         : {}),
     })
     await agent.save()
@@ -270,7 +307,7 @@ export default class AgentsController {
    * Approve a newly created agent (pending_approval → active)
    */
   async approve({ auth, params, response }: HttpContext) {
-    const user = await auth.authenticateUsing(['internal']) as InternalUser
+    const user = (await auth.authenticateUsing(['internal'])) as InternalUser
     const agent = await Agent.findOrFail(params.id)
 
     try {
@@ -297,7 +334,7 @@ export default class AgentsController {
    * Activate agent account (from suspended to active)
    */
   async activate({ auth, params, response }: HttpContext) {
-    const user = await auth.authenticateUsing(['internal']) as InternalUser
+    const user = (await auth.authenticateUsing(['internal'])) as InternalUser
     const agent = await Agent.findOrFail(params.id)
 
     try {
@@ -324,7 +361,7 @@ export default class AgentsController {
    * Suspend agent account (requires reason in body)
    */
   async suspend({ auth, params, request, response }: HttpContext) {
-    const user = await auth.authenticateUsing(['internal']) as InternalUser
+    const user = (await auth.authenticateUsing(['internal'])) as InternalUser
     const agent = await Agent.findOrFail(params.id)
 
     const suspendValidator = vine.create({
@@ -356,7 +393,7 @@ export default class AgentsController {
    * Deactivate/terminate agent (requires reason in body)
    */
   async deactivate({ auth, params, request, response }: HttpContext) {
-    const user = await auth.authenticateUsing(['internal']) as InternalUser
+    const user = (await auth.authenticateUsing(['internal'])) as InternalUser
     const agent = await Agent.findOrFail(params.id)
 
     const terminateValidator = vine.create({
@@ -367,7 +404,12 @@ export default class AgentsController {
     try {
       const correlationId = (request as any).correlationId || 'unknown'
 
-      const updated = await AgentLifecycleService.deactivate(agent.id, user.id, reason, correlationId)
+      const updated = await AgentLifecycleService.deactivate(
+        agent.id,
+        user.id,
+        reason,
+        correlationId
+      )
 
       return response.ok({
         data: {

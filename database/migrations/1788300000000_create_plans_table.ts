@@ -34,7 +34,8 @@ export default class extends BaseSchema {
       await db.table(this.tableName).insert({
         code: 'default',
         name: 'Default',
-        description: 'Full access — assigned automatically until an admin sets a more restrictive plan.',
+        description:
+          'Full access — assigned automatically until an admin sets a more restrictive plan.',
         features: JSON.stringify([
           'mobile_money.deposits',
           'mobile_money.payouts',

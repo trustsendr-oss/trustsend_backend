@@ -17,10 +17,15 @@ import Plan from '#models/plan'
  * Its own token table (business_access_tokens) — never the shared auth_access_tokens table,
  * which has a hard FK to users(id).
  */
-export default class Business extends compose(BaseModel, withAuthFinder(() => hash.use())) {
+export default class Business extends compose(
+  BaseModel,
+  withAuthFinder(() => hash.use())
+) {
   static table = 'businesses'
 
-  static accessTokens = DbAccessTokensProvider.forModel(Business, { table: 'business_access_tokens' })
+  static accessTokens = DbAccessTokensProvider.forModel(Business, {
+    table: 'business_access_tokens',
+  })
   declare currentAccessToken?: AccessToken
 
   @column({ isPrimary: true })

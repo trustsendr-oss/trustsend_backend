@@ -1,6 +1,6 @@
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import { assertSafeOutboundUrl } from '#services/security/ssrf_guard'
 
 export type WebhookOwnerType = 'user' | 'business'
@@ -59,15 +59,18 @@ export class WebhookService {
 
     const secret = crypto.randomBytes(32).toString('hex')
 
-    await db.insertQuery().table('webhook_subscriptions').insert({
-      user_id: ownerType === 'user' ? ownerId : null,
-      business_id: ownerType === 'business' ? ownerId : null,
-      url,
-      events: JSON.stringify(events),
-      secret,
-      active: true,
-      created_at: new Date(),
-    })
+    await db
+      .insertQuery()
+      .table('webhook_subscriptions')
+      .insert({
+        user_id: ownerType === 'user' ? ownerId : null,
+        business_id: ownerType === 'business' ? ownerId : null,
+        url,
+        events: JSON.stringify(events),
+        secret,
+        active: true,
+        created_at: new Date(),
+      })
 
     return {
       id: 0,
@@ -118,15 +121,8 @@ export class WebhookService {
   /**
    * Verify webhook signature (HMAC-SHA256)
    */
-  static verifySignature(
-    payload: string,
-    signature: string,
-    secret: string
-  ): boolean {
-    const expected = crypto
-      .createHmac('sha256', secret)
-      .update(payload)
-      .digest('hex')
+  static verifySignature(payload: string, signature: string, secret: string): boolean {
+    const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex')
     return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
   }
 
@@ -138,15 +134,18 @@ export class WebhookService {
     eventType: string,
     payload: Record<string, any>
   ): Promise<WebhookDelivery> {
-    const delivery = await db.insertQuery().table('webhook_deliveries').insert({
-      subscription_id: subscriptionId,
-      event_type: eventType,
-      payload: JSON.stringify(payload),
-      status: 'pending',
-      retry_count: 0,
-      next_retry_at: new Date(),
-      created_at: new Date(),
-    })
+    const delivery = await db
+      .insertQuery()
+      .table('webhook_deliveries')
+      .insert({
+        subscription_id: subscriptionId,
+        event_type: eventType,
+        payload: JSON.stringify(payload),
+        status: 'pending',
+        retry_count: 0,
+        next_retry_at: new Date(),
+        created_at: new Date(),
+      })
 
     return {
       id: delivery[0],
@@ -186,14 +185,11 @@ export class WebhookService {
    * Mark delivery as successful
    */
   static async markSuccess(deliveryId: number): Promise<void> {
-    await db
-      .from('webhook_deliveries')
-      .where('id', deliveryId)
-      .update({
-        status: 'success',
-        last_error: null,
-        updated_at: new Date(),
-      })
+    await db.from('webhook_deliveries').where('id', deliveryId).update({
+      status: 'success',
+      last_error: null,
+      updated_at: new Date(),
+    })
   }
 
   /**

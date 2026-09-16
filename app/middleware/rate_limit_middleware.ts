@@ -46,7 +46,9 @@ export default class RateLimitMiddleware {
     const counts = RateLimitMiddleware.requestCounts.get(ip) || []
 
     // Remove old requests outside the window
-    const recentCounts = counts.filter((timestamp) => now - timestamp < RateLimitMiddleware.WINDOW_MS)
+    const recentCounts = counts.filter(
+      (timestamp) => now - timestamp < RateLimitMiddleware.WINDOW_MS
+    )
 
     if (recentCounts.length >= RateLimitMiddleware.MAX_REQUESTS) {
       return ctx.response.status(429).json({

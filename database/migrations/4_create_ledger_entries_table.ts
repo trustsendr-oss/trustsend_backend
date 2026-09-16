@@ -16,10 +16,23 @@ export default class extends BaseSchema {
         .notNullable()
         .unsigned()
         .comment('FK to ledger_accounts (which account this entry affects)')
-      table.enum('direction', ['debit', 'credit']).notNullable().comment('Debit or credit direction')
-      table.bigInteger('amount').notNullable().comment('Amount (always positive, direction indicates +/−)')
-      table.string('currency_code', 3).notNullable().defaultTo('XOF').comment('ISO 4217 currency code')
-      table.bigInteger('balance_after').notNullable().comment('Wallet balance after this entry (snapshot)')
+      table
+        .enum('direction', ['debit', 'credit'])
+        .notNullable()
+        .comment('Debit or credit direction')
+      table
+        .bigInteger('amount')
+        .notNullable()
+        .comment('Amount (always positive, direction indicates +/−)')
+      table
+        .string('currency_code', 3)
+        .notNullable()
+        .defaultTo('XOF')
+        .comment('ISO 4217 currency code')
+      table
+        .bigInteger('balance_after')
+        .notNullable()
+        .comment('Wallet balance after this entry (snapshot)')
 
       table.timestamp('created_at').notNullable()
 

@@ -1,5 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import InternalUser from '#models/internal_user'
+import type InternalUser from '#models/internal_user'
 import {
   InternalUserService,
   InternalUserNotFoundException,
@@ -8,10 +8,13 @@ import {
 import vine from '@vinejs/vine'
 
 const createInternalUserValidator = vine.create({
-  email: vine.string().email().unique(async (db, value) => {
-    const user = await db.from('internal_users').where('email', value).first()
-    return !user
-  }),
+  email: vine
+    .string()
+    .email()
+    .unique(async (db, value) => {
+      const user = await db.from('internal_users').where('email', value).first()
+      return !user
+    }),
   full_name: vine.string().minLength(2).maxLength(255),
   password: vine.string().minLength(12).maxLength(128).optional(),
 })
@@ -114,7 +117,12 @@ export default class InternalUsersController {
     const { reason } = await request.validateUsing(reasonValidator)
 
     try {
-      const user = await InternalUserService.suspend(Number(params.id), actor.id, reason, correlationId)
+      const user = await InternalUserService.suspend(
+        Number(params.id),
+        actor.id,
+        reason,
+        correlationId
+      )
       return response.ok({ data: { id: user.id, status: user.status } })
     } catch (error) {
       if (error instanceof InternalUserNotFoundException) {
@@ -133,7 +141,12 @@ export default class InternalUsersController {
     const { reason } = await request.validateUsing(reasonValidator)
 
     try {
-      const user = await InternalUserService.deactivate(Number(params.id), actor.id, reason, correlationId)
+      const user = await InternalUserService.deactivate(
+        Number(params.id),
+        actor.id,
+        reason,
+        correlationId
+      )
       return response.ok({ data: { id: user.id, status: user.status } })
     } catch (error) {
       if (error instanceof InternalUserNotFoundException) {
@@ -154,11 +167,16 @@ export default class InternalUsersController {
     const actor = (await auth.authenticateUsing(['internal'])) as InternalUser
 
     try {
-      const newPassword = await InternalUserService.resetPassword(Number(params.id), actor.id, correlationId)
+      const newPassword = await InternalUserService.resetPassword(
+        Number(params.id),
+        actor.id,
+        correlationId
+      )
       return response.ok({
         data: {
           new_password: newPassword,
-          message: 'Store this password now — it cannot be retrieved again. The user must change it on next login.',
+          message:
+            'Store this password now — it cannot be retrieved again. The user must change it on next login.',
         },
       })
     } catch (error) {

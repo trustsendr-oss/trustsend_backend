@@ -49,7 +49,12 @@ export default class WebhooksController {
     const payload = await request.validateUsing(createWebhookValidator)
 
     try {
-      const subscription = await WebhookService.subscribe('user', user.id, payload.url, payload.events)
+      const subscription = await WebhookService.subscribe(
+        'user',
+        user.id,
+        payload.url,
+        payload.events
+      )
 
       return response.created({
         data: {

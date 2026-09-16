@@ -7,10 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').notNullable()
       table.string('key').notNullable().comment('Idempotency key from client')
-      table
-        .enum('actor_type', ['user', 'agent'])
-        .notNullable()
-        .comment('Who issued this request')
+      table.enum('actor_type', ['user', 'agent']).notNullable().comment('Who issued this request')
       table.integer('actor_id').notNullable().comment('ID of the actor')
       table.string('endpoint', 500).notNullable().comment('Endpoint that handled the request')
       table.string('request_hash').notNullable().comment('SHA256 hash of request body')
@@ -22,7 +19,10 @@ export default class extends BaseSchema {
       table.jsonb('response_body').nullable().comment('Response body snapshot')
 
       table.timestamp('created_at').notNullable()
-      table.timestamp('expires_at').notNullable().comment('When this idempotency key expires (typically 24h)')
+      table
+        .timestamp('expires_at')
+        .notNullable()
+        .comment('When this idempotency key expires (typically 24h)')
 
       // Constraints and Indexes
       table.unique(['actor_type', 'actor_id', 'key', 'endpoint'])

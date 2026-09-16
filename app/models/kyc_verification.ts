@@ -7,7 +7,7 @@ export default class KycVerification extends BaseModel {
   static table = 'kyc_verifications'
 
   @column({ isPrimary: true })
-  declare id: string  // Alphanumérique: KYC-XXXXXXXX
+  declare id: string // Alphanumérique: KYC-XXXXXXXX
 
   @column()
   declare subjectType: 'user' | 'agent' | 'business'

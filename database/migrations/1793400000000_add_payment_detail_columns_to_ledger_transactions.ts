@@ -16,11 +16,27 @@ export default class extends BaseSchema {
    */
   async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.bigInteger('amount').nullable().comment('Display/filter convenience only — never a source of truth for balances, see ledger_entries')
+      table
+        .bigInteger('amount')
+        .nullable()
+        .comment(
+          'Display/filter convenience only — never a source of truth for balances, see ledger_entries'
+        )
       table.string('currency_code', 3).nullable()
-      table.string('payment_method', 30).nullable().comment('Normalized channel category, e.g. mobile_money, card, cash_agent, wallet')
-      table.string('payment_channel', 50).nullable().comment('Specific provider/operator within payment_method, e.g. MTN_MOMO_ZMB, pawapay, card brand')
-      table.string('counterparty_phone', 20).nullable().comment('Mobile money MSISDN, when applicable')
+      table
+        .string('payment_method', 30)
+        .nullable()
+        .comment('Normalized channel category, e.g. mobile_money, card, cash_agent, wallet')
+      table
+        .string('payment_channel', 50)
+        .nullable()
+        .comment(
+          'Specific provider/operator within payment_method, e.g. MTN_MOMO_ZMB, pawapay, card brand'
+        )
+      table
+        .string('counterparty_phone', 20)
+        .nullable()
+        .comment('Mobile money MSISDN, when applicable')
       table.bigInteger('fee').nullable().comment('Unified fee/commission, smallest currency unit')
       table.text('failure_reason').nullable()
       table

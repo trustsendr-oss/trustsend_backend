@@ -14,19 +14,17 @@ export default class extends BaseSchema {
         .unsigned()
         .comment('FK to ledger_accounts (the accounting entry for this wallet)')
       table.string('currency_code', 3).notNullable().defaultTo('USD').comment('ISO 4217 code')
-      table.bigInteger('balance_cache').notNullable().defaultTo(0).comment('Dénormalized balance (cache)')
+      table
+        .bigInteger('balance_cache')
+        .notNullable()
+        .defaultTo(0)
+        .comment('Dénormalized balance (cache)')
       table
         .bigInteger('per_transaction_limit')
         .nullable()
         .comment('Maximum per single transaction (optional override)')
-      table
-        .bigInteger('daily_limit')
-        .nullable()
-        .comment('Maximum per day (optional override)')
-      table
-        .bigInteger('monthly_limit')
-        .nullable()
-        .comment('Maximum per month (optional override)')
+      table.bigInteger('daily_limit').nullable().comment('Maximum per day (optional override)')
+      table.bigInteger('monthly_limit').nullable().comment('Maximum per month (optional override)')
       table.enum('status', ['active', 'frozen', 'closed']).notNullable().defaultTo('active')
       table.integer('lock_version').notNullable().defaultTo(0).comment('Optimistic lock version')
 

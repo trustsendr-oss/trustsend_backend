@@ -12,7 +12,10 @@ export const executeSwapValidator = vine.create({
   quote_id: vine.string().uuid(),
   idempotency_key: vine.string().uuid(),
   // Required for users and dashboard sessions, not for business API keys — checked in the controllers
-  pin: vine.string().regex(/^\d{4}$/).optional(),
+  pin: vine
+    .string()
+    .regex(/^\d{4}$/)
+    .optional(),
 })
 
 export const updateExchangeRateValidator = vine.create({

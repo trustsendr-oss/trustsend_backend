@@ -21,11 +21,17 @@ export default class IsInternalUserMiddleware {
     }
 
     if (user.status !== 'active') {
-      return ctx.response.forbidden({ code: 'ACCOUNT_INACTIVE', message: `Account is ${user.status}` })
+      return ctx.response.forbidden({
+        code: 'ACCOUNT_INACTIVE',
+        message: `Account is ${user.status}`,
+      })
     }
 
     if (!hasFullInternalSession(user)) {
-      return ctx.response.forbidden({ code: 'MFA_REQUIRED', message: 'Two-factor verification required' })
+      return ctx.response.forbidden({
+        code: 'MFA_REQUIRED',
+        message: 'Two-factor verification required',
+      })
     }
 
     if (user.mustChangePassword) {

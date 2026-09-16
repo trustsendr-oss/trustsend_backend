@@ -22,6 +22,7 @@ export type ScannedRoutes = {
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
     'exchange_rates.index': { paramsTuple?: []; params?: {} }
+    'pricing.index': { paramsTuple?: []; params?: {} }
     'swaps.swaps.quote': { paramsTuple?: []; params?: {} }
     'swaps.swaps.store': { paramsTuple?: []; params?: {} }
     'wallets.wallets.index': { paramsTuple?: []; params?: {} }
@@ -255,6 +256,7 @@ export type ScannedRoutes = {
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
     'exchange_rates.index': { paramsTuple?: []; params?: {} }
+    'pricing.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'wallets.wallets.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -362,6 +364,7 @@ export type ScannedRoutes = {
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
     'exchange_rates.index': { paramsTuple?: []; params?: {} }
+    'pricing.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.index': { paramsTuple?: []; params?: {} }
     'wallets.wallets.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'wallets.wallets.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

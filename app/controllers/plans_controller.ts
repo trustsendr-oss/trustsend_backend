@@ -1,5 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import InternalUser from '#models/internal_user'
+import type InternalUser from '#models/internal_user'
 import {
   PlanService,
   PlanNotFoundException,
@@ -101,7 +101,8 @@ export default class PlansController {
         {
           ...payload,
           price: payload.price !== undefined ? BigInt(payload.price) : undefined,
-          maintenancePrice: payload.maintenance_price !== undefined ? BigInt(payload.maintenance_price) : undefined,
+          maintenancePrice:
+            payload.maintenance_price !== undefined ? BigInt(payload.maintenance_price) : undefined,
           currencyCode: payload.currency_code,
         },
         user.id,
@@ -142,7 +143,8 @@ export default class PlansController {
         {
           ...payload,
           price: payload.price !== undefined ? BigInt(payload.price) : undefined,
-          maintenancePrice: payload.maintenance_price !== undefined ? BigInt(payload.maintenance_price) : undefined,
+          maintenancePrice:
+            payload.maintenance_price !== undefined ? BigInt(payload.maintenance_price) : undefined,
         },
         user.id,
         correlationId

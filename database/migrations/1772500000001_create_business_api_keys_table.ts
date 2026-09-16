@@ -11,7 +11,10 @@ export default class extends BaseSchema {
         .string('key_prefix', 16)
         .notNullable()
         .comment('First chars of the key, shown for identification — never the full secret')
-      table.string('key_hash').notNullable().comment('Hashed full key (scrypt) — never store it in clear')
+      table
+        .string('key_hash')
+        .notNullable()
+        .comment('Hashed full key (scrypt) — never store it in clear')
       table.enum('status', ['active', 'revoked']).notNullable().defaultTo('active')
       table.timestamp('last_used_at').nullable()
       table.timestamp('revoked_at').nullable()

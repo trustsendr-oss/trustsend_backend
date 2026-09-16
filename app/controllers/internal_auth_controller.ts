@@ -2,7 +2,11 @@ import { DateTime } from 'luxon'
 import type { HttpContext } from '@adonisjs/core/http'
 import InternalUser from '#models/internal_user'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
-import { AuthCookieService, INTERNAL_ACCESS_COOKIE, INTERNAL_CSRF_COOKIE } from '#services/security/auth_cookie_service'
+import {
+  AuthCookieService,
+  INTERNAL_ACCESS_COOKIE,
+  INTERNAL_CSRF_COOKIE,
+} from '#services/security/auth_cookie_service'
 import { CryptoService } from '#services/security/crypto_service'
 import { TotpService } from '#services/security/totp_service'
 import {
@@ -22,7 +26,10 @@ const internalChangePasswordValidator = vine.create({
 })
 
 const mfaCodeValidator = vine.create({
-  code: vine.string().trim().regex(/^\d{6}$/),
+  code: vine
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
 })
 
 const MAX_LOGIN_ATTEMPTS = 5
@@ -150,7 +157,10 @@ export default class InternalAuthController {
     const user = (await auth.authenticateUsing(['internal'])) as InternalUser
 
     if (!hasFullInternalSession(user)) {
-      return response.forbidden({ code: 'MFA_REQUIRED', message: 'Two-factor verification required' })
+      return response.forbidden({
+        code: 'MFA_REQUIRED',
+        message: 'Two-factor verification required',
+      })
     }
     if (user.mfaEnabled) {
       return response.badRequest({ message: 'Two-factor authentication is already enabled' })
@@ -173,7 +183,10 @@ export default class InternalAuthController {
     const user = (await auth.authenticateUsing(['internal'])) as InternalUser
 
     if (!hasFullInternalSession(user)) {
-      return response.forbidden({ code: 'MFA_REQUIRED', message: 'Two-factor verification required' })
+      return response.forbidden({
+        code: 'MFA_REQUIRED',
+        message: 'Two-factor verification required',
+      })
     }
     if (user.mfaEnabled) {
       return response.badRequest({ message: 'Two-factor authentication is already enabled' })
@@ -257,7 +270,10 @@ export default class InternalAuthController {
     const user = (await auth.authenticateUsing(['internal'])) as InternalUser
 
     if (!hasFullInternalSession(user)) {
-      return response.forbidden({ code: 'MFA_REQUIRED', message: 'Two-factor verification required' })
+      return response.forbidden({
+        code: 'MFA_REQUIRED',
+        message: 'Two-factor verification required',
+      })
     }
 
     const { current_password: currentPassword, new_password: newPassword } =
@@ -270,7 +286,9 @@ export default class InternalAuthController {
     }
 
     if (newPassword === currentPassword) {
-      return response.badRequest({ message: 'The new password must be different from the current one' })
+      return response.badRequest({
+        message: 'The new password must be different from the current one',
+      })
     }
 
     user.password = newPassword

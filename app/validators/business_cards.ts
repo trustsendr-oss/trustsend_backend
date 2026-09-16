@@ -14,13 +14,19 @@ export const createBusinessCardValidator = vine.create({
   brand: vine.enum(['VISA', 'MASTERCARD']),
   amount: vine.string().regex(/^[1-9]\d*$/), // smallest-unit, no zero, no leading zeros
   currency_code: vine.string().fixedLength(3).optional(), // defaults to USD — cards are USD-only
-  pin: vine.string().regex(/^\d{4}$/).optional(),
+  pin: vine
+    .string()
+    .regex(/^\d{4}$/)
+    .optional(),
   idempotency_key: vine.string().uuid(),
 })
 
 export const businessCardAmountValidator = vine.create({
   amount: vine.string().regex(/^[1-9]\d*$/),
-  pin: vine.string().regex(/^\d{4}$/).optional(),
+  pin: vine
+    .string()
+    .regex(/^\d{4}$/)
+    .optional(),
   idempotency_key: vine.string().uuid(),
 })
 

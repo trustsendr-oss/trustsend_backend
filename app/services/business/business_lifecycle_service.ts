@@ -13,7 +13,11 @@ export class BusinessLifecycleService {
    * (kyc_controller.ts, unchanged — it never branches on subject_type). This is a hard gate:
    * an admin cannot approve the business itself before its KYC has been approved.
    */
-  static async approve(businessId: number, approvedBy: number, correlationId: string): Promise<Business> {
+  static async approve(
+    businessId: number,
+    approvedBy: number,
+    correlationId: string
+  ): Promise<Business> {
     const business = await db.transaction(async (trx) => {
       const business = await Business.findOrFail(businessId, { client: trx })
 
@@ -110,7 +114,11 @@ export class BusinessLifecycleService {
   }
 
   /** suspended → active */
-  static async activate(businessId: number, reactivatedBy: number, correlationId: string): Promise<Business> {
+  static async activate(
+    businessId: number,
+    reactivatedBy: number,
+    correlationId: string
+  ): Promise<Business> {
     const business = await db.transaction(async (trx) => {
       const business = await Business.findOrFail(businessId, { client: trx })
 

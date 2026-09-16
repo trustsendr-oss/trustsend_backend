@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
-import Business from '#models/business'
+import type Business from '#models/business'
 import { BusinessApiKeyService } from '#services/business/business_api_key_service'
 import { SandboxMode } from '#services/sandbox/sandbox_mode'
 

@@ -14,7 +14,11 @@ export default class extends BaseSchema {
         .enum('status', ['pending_approval', 'active', 'suspended', 'terminated'])
         .notNullable()
         .defaultTo('pending_approval')
-      table.integer('wallet_id').nullable().unsigned().comment('FK to wallets (primary business wallet)')
+      table
+        .integer('wallet_id')
+        .nullable()
+        .unsigned()
+        .comment('FK to wallets (primary business wallet)')
       table.string('webhook_url').nullable()
       table.timestamp('approved_at').nullable()
       table.integer('approved_by').nullable().unsigned().comment('FK to internal_users')

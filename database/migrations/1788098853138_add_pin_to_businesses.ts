@@ -8,7 +8,9 @@ export default class extends BaseSchema {
       table
         .string('pin_hash', 255)
         .nullable()
-        .comment('Hashed PIN (4 digits) — required only for dashboard-session financial operations, never for API key calls')
+        .comment(
+          'Hashed PIN (4 digits) — required only for dashboard-session financial operations, never for API key calls'
+        )
       table.integer('pin_attempts').defaultTo(0).comment('Failed PIN attempts')
       table.timestamp('pin_locked_until').nullable().comment('PIN locked after too many attempts')
     })

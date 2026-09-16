@@ -2,7 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import KycVerification from '#models/kyc_verification'
 import KycDocument from '#models/kyc_document'
-import InternalUser from '#models/internal_user'
+import type InternalUser from '#models/internal_user'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { InAppNotificationService } from '#services/notifications/in_app_notification_service'
 import {
@@ -17,7 +17,14 @@ const initiateKycValidator = vine.create({
   provider: vine.string().optional(),
 })
 
-const VALID_KYC_STATUSES = ['not_started', 'pending', 'in_review', 'approved', 'rejected', 'expired']
+const VALID_KYC_STATUSES = [
+  'not_started',
+  'pending',
+  'in_review',
+  'approved',
+  'rejected',
+  'expired',
+]
 const VALID_SUBJECT_TYPES = ['user', 'agent', 'business']
 
 const KYC_DOCUMENT_EXTENSION_BY_MIME_TYPE: Record<string, string> = {
@@ -258,7 +265,7 @@ export default class KycController {
    * Approve KYC (admin only)
    */
   async approve({ auth, params, response }: HttpContext) {
-    const user = await auth.authenticateUsing(['internal']) as InternalUser
+    const user = (await auth.authenticateUsing(['internal'])) as InternalUser
 
     const kyc = await KycVerification.findOrFail(params.kyc_id)
 
@@ -316,7 +323,7 @@ export default class KycController {
    * Reject KYC (admin only)
    */
   async reject({ auth, params, request, response }: HttpContext) {
-    const user = await auth.authenticateUsing(['internal']) as InternalUser
+    const user = (await auth.authenticateUsing(['internal'])) as InternalUser
 
     const kyc = await KycVerification.findOrFail(params.kyc_id)
 

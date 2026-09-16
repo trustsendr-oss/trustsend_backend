@@ -78,14 +78,15 @@ export class CryptoService {
       const decipher = createDecipheriv(this.ALGORITHM, key, iv)
       decipher.setAuthTag(authTag)
 
-      const plaintext = Buffer.concat([
-        decipher.update(ciphertext),
-        decipher.final(),
-      ]).toString('utf8')
+      const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString(
+        'utf8'
+      )
 
       return plaintext
     } catch (error) {
-      throw new Error(`Failed to decrypt value: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to decrypt value: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 

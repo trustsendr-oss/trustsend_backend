@@ -7,11 +7,7 @@
 
 export type MobileMoneyRequestOutcome = 'ACCEPTED' | 'REJECTED' | 'DUPLICATE_IGNORED'
 export type MobileMoneyFinalStatus = 'COMPLETED' | 'FAILED'
-export type MobileMoneyPendingStatus =
-  | 'ACCEPTED'
-  | 'ENQUEUED'
-  | 'PROCESSING'
-  | 'IN_RECONCILIATION'
+export type MobileMoneyPendingStatus = 'ACCEPTED' | 'ENQUEUED' | 'PROCESSING' | 'IN_RECONCILIATION'
 
 export interface MobileMoneyFailureReason {
   code: string

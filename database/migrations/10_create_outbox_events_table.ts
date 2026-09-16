@@ -11,7 +11,10 @@ export default class extends BaseSchema {
         .notNullable()
         .comment('Entity type that generated the event')
       table.integer('aggregate_id').notNullable().comment('ID of the entity')
-      table.string('event_type', 100).notNullable().comment('Type of event (e.g., transfer_settled)')
+      table
+        .string('event_type', 100)
+        .notNullable()
+        .comment('Type of event (e.g., transfer_settled)')
       table.jsonb('payload').notNullable().comment('Event payload (JSON)')
       table
         .enum('status', ['pending', 'processing', 'published', 'failed'])

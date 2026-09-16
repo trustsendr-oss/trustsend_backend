@@ -9,7 +9,11 @@ export default class extends BaseSchema {
     `)
 
     this.schema.alterTable(this.tableName, (table) => {
-      table.integer('business_id').nullable().unsigned().comment('FK to businesses if owner is a business')
+      table
+        .integer('business_id')
+        .nullable()
+        .unsigned()
+        .comment('FK to businesses if owner is a business')
       table.foreign('business_id').references('businesses.id').onDelete('CASCADE')
       table.index(['business_id'])
       table.unique(['business_id', 'url'])

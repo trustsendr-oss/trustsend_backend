@@ -45,7 +45,7 @@ export default class P2pTransfersController {
 
     if (!senderWallet) {
       return response.notFound({
-        message: `Active wallet not found for currency ${currencyCode}`
+        message: `Active wallet not found for currency ${currencyCode}`,
       })
     }
 
@@ -64,13 +64,13 @@ export default class P2pTransfersController {
     // Validate both wallets use same currency
     if (senderWallet.currencyCode !== currencyCode) {
       return response.badRequest({
-        message: `Sender wallet uses ${senderWallet.currencyCode}, not ${currencyCode}`
+        message: `Sender wallet uses ${senderWallet.currencyCode}, not ${currencyCode}`,
       })
     }
 
     if (recipientWallet.currencyCode !== currencyCode) {
       return response.badRequest({
-        message: `Recipient wallet uses ${recipientWallet.currencyCode}, not ${currencyCode}`
+        message: `Recipient wallet uses ${recipientWallet.currencyCode}, not ${currencyCode}`,
       })
     }
 
@@ -156,7 +156,10 @@ export default class P2pTransfersController {
         return response.unprocessableEntity({ message: err.message })
       }
 
-      ctx.logger?.error({ error: err, correlationId: (ctx as any).correlationId }, 'P2P transfer failed')
+      ctx.logger?.error(
+        { error: err, correlationId: (ctx as any).correlationId },
+        'P2P transfer failed'
+      )
       return response.internalServerError({ message: 'Transfer processing failed' })
     }
   }
@@ -230,20 +233,13 @@ export default class P2pTransfersController {
     const limit = queryParams.limit || 20
 
     // Load user's wallet
-    const wallet = await Wallet.query()
-      .where('user_id', user.id)
-      .where('status', 'active')
-      .first()
+    const wallet = await Wallet.query().where('user_id', user.id).where('status', 'active').first()
 
     if (!wallet) {
       return response.notFound({ message: 'Wallet not found' })
     }
 
-    const { data, total } = await P2pTransferService.listForWallet(
-      wallet.id,
-      limit,
-      page
-    )
+    const { data, total } = await P2pTransferService.listForWallet(wallet.id, limit, page)
 
     return response.ok({
       data: data.map((transfer) => ({

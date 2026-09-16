@@ -118,7 +118,11 @@ export class TotpService {
       const step = currentStep + offset
       const expected = Buffer.from(this.generateForStep(secret, step))
       if (expected.length === candidate.length && timingSafeEqual(expected, candidate)) {
-        if (options.lastUsedStep !== undefined && options.lastUsedStep !== null && step <= options.lastUsedStep) {
+        if (
+          options.lastUsedStep !== undefined &&
+          options.lastUsedStep !== null &&
+          step <= options.lastUsedStep
+        ) {
           return null
         }
         return step

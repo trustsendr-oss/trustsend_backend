@@ -19,10 +19,13 @@ export const requestBusinessSignupOtpValidator = vine.create({
  */
 export const businessSignupValidator = vine.create({
   name: vine.string().minLength(2).maxLength(255),
-  email: vine.string().email().unique(async (db, value) => {
-    const business = await db.from('businesses').where('email', value).first()
-    return !business
-  }),
+  email: vine
+    .string()
+    .email()
+    .unique(async (db, value) => {
+      const business = await db.from('businesses').where('email', value).first()
+      return !business
+    }),
   otp: vine.string().regex(/^\d{6}$/),
   phone: vine.string().minLength(8).maxLength(20),
   password: vine.string().minLength(8),

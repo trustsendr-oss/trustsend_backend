@@ -35,7 +35,10 @@ export default class extends BaseSchema {
         ])
         .notNullable()
         .comment('What this specific file is, not what kind of check it supports')
-      table.string('raw_payload_ref').notNullable().comment('Opaque ref into KycDocumentStorageService (encrypted at rest)')
+      table
+        .string('raw_payload_ref')
+        .notNullable()
+        .comment('Opaque ref into KycDocumentStorageService (encrypted at rest)')
       table.timestamp('created_at').notNullable()
 
       table.unique(['kyc_verification_id', 'document_type'])

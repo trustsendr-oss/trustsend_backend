@@ -13,7 +13,11 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').notNullable()
       table.integer('user_id').nullable().unsigned().comment('FK to users if owner is a user')
-      table.integer('business_id').nullable().unsigned().comment('FK to businesses if owner is a business')
+      table
+        .integer('business_id')
+        .nullable()
+        .unsigned()
+        .comment('FK to businesses if owner is a business')
       table.string('provider', 30).notNullable().defaultTo('payscribe')
       table.string('provider_customer_id', 100).notNullable()
       table.timestamps()

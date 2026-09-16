@@ -1,5 +1,8 @@
 import { BaseCommand } from '@adonisjs/core/ace'
-import { BusinessSignupOtpService, InvalidOtpException } from '#services/business/business_signup_otp_service'
+import {
+  BusinessSignupOtpService,
+  type InvalidOtpException,
+} from '#services/business/business_signup_otp_service'
 
 export default class TestBusinessSignupOtp extends BaseCommand {
   static commandName = 'test:business-signup-otp'

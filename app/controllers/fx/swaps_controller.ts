@@ -18,7 +18,11 @@ export default class SwapsController {
     try {
       const quote = await SwapService.createQuote(
         { type: 'user', id: user.id },
-        { fromCurrency: payload.from_currency, toCurrency: payload.to_currency, amountIn: BigInt(payload.amount) }
+        {
+          fromCurrency: payload.from_currency,
+          toCurrency: payload.to_currency,
+          amountIn: BigInt(payload.amount),
+        }
       )
       return response.created({ data: SwapService.serializeQuote(quote) })
     } catch (error) {
@@ -34,10 +38,17 @@ export default class SwapsController {
 
     const payload = await request.validateUsing(executeSwapValidator)
     if (!payload.pin) {
-      return response.unprocessableEntity({ errors: [{ field: 'pin', message: 'PIN is required' }] })
+      return response.unprocessableEntity({
+        errors: [{ field: 'pin', message: 'PIN is required' }],
+      })
     }
 
-    const identity = { key: payload.idempotency_key, actorType: 'user' as const, actorId: user.id, endpoint: SWAP_ENDPOINT }
+    const identity = {
+      key: payload.idempotency_key,
+      actorType: 'user' as const,
+      actorId: user.id,
+      endpoint: SWAP_ENDPOINT,
+    }
     try {
       const outcome = await IdempotencyService.begin({
         ...identity,
@@ -55,7 +66,10 @@ export default class SwapsController {
       const pinVerification = await PinService.verifyPin(user as any, payload.pin)
       if (!pinVerification.valid) {
         await IdempotencyService.fail(identity)
-        return response.unauthorized({ message: pinVerification.message, code: pinVerification.code })
+        return response.unauthorized({
+          message: pinVerification.message,
+          code: pinVerification.code,
+        })
       }
 
       const { transaction, quote } = await SwapService.execute(

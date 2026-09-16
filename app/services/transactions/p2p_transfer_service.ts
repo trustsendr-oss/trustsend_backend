@@ -2,7 +2,7 @@ import db from '@adonisjs/lucid/services/db'
 import LedgerTransaction from '#models/ledger_transaction'
 import LedgerAccount from '#models/ledger_account'
 import OutboxEvent from '#models/outbox_event'
-import { Money } from '#services/money/money'
+import { type Money } from '#services/money/money'
 import { LedgerService } from '#services/ledger/ledger_service'
 import { LimitService } from '#services/ledger/limit_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
@@ -21,18 +21,14 @@ export class P2pTransferNotFoundException extends Error {
 
 export class InsufficientBalanceException extends Error {
   constructor(walletId: number, required: bigint, available: bigint) {
-    super(
-      `Wallet ${walletId} insufficient balance: required ${required}, available ${available}`
-    )
+    super(`Wallet ${walletId} insufficient balance: required ${required}, available ${available}`)
     this.name = 'InsufficientBalanceException'
   }
 }
 
 export class TransactionLimitExceededException extends Error {
   constructor(walletId: number, limitType: string, limit: bigint, requested: bigint) {
-    super(
-      `Wallet ${walletId} ${limitType} limit exceeded: limit ${limit}, requested ${requested}`
-    )
+    super(`Wallet ${walletId} ${limitType} limit exceeded: limit ${limit}, requested ${requested}`)
     this.name = 'TransactionLimitExceededException'
   }
 }
@@ -87,9 +83,7 @@ export class P2pTransferService {
   static async initiate(request: P2pTransferRequest): Promise<P2pTransferResponse> {
     return db.transaction(async (trx) => {
       // 1. Load wallets with pessimistic locking (deterministic order: ascending wallet_id)
-      const walletIds = [request.senderWalletId, request.recipientWalletId].sort(
-        (a, b) => a - b
-      )
+      const walletIds = [request.senderWalletId, request.recipientWalletId].sort((a, b) => a - b)
 
       const wallets = await db
         .query()
@@ -259,10 +253,7 @@ export class P2pTransferService {
    * Get P2P transfer by UUID
    */
   static async getByUuid(uuid: string): Promise<LedgerTransaction | null> {
-    return LedgerTransaction.query()
-      .where('uuid', uuid)
-      .where('type', 'p2p_transfer')
-      .first()
+    return LedgerTransaction.query().where('uuid', uuid).where('type', 'p2p_transfer').first()
   }
 
   /**
@@ -280,7 +271,8 @@ export class P2pTransferService {
       .join('ledger_accounts as la1', 'la1.id', 'le1.ledger_account_id')
       .where('lt.type', 'p2p_transfer')
       .where((q) => {
-        q.where('la1.owner_id', walletId).where('le1.direction', 'debit')
+        q.where('la1.owner_id', walletId)
+          .where('le1.direction', 'debit')
           .orWhere('la1.owner_id', walletId)
           .where('le1.direction', 'credit')
       })
@@ -296,7 +288,8 @@ export class P2pTransferService {
       .join('ledger_accounts as la1', 'la1.id', 'le1.ledger_account_id')
       .where('lt.type', 'p2p_transfer')
       .where((q) => {
-        q.where('la1.owner_id', walletId).where('le1.direction', 'debit')
+        q.where('la1.owner_id', walletId)
+          .where('le1.direction', 'debit')
           .orWhere('la1.owner_id', walletId)
           .where('le1.direction', 'credit')
       })

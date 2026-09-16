@@ -27,13 +27,6 @@ const LOGIN_LOCKOUT_MINUTES = 15
  * server-to-server calls. Mirrors access_tokens_controller.ts's lockout mechanism exactly.
  */
 export default class BusinessDashboardAuthController {
-  /**
-   * POST /api/v1/business/auth/signup/request-otp
-   * Step 1 of signup: just an email. Sends a 6-digit code (BusinessSignupOtpService) that step 2
-   * (signup() below) requires before a Business row is ever created. Unlike login/password-reset,
-   * confirming "this email is already registered" here is fine — the caller is actively trying
-   * to open a NEW account, so there's no meaningful enumeration risk in telling them it exists.
-   */
   async requestSignupOtp({ request, response }: HttpContext) {
     const { email } = await request.validateUsing(requestBusinessSignupOtpValidator)
 

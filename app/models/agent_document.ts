@@ -14,7 +14,12 @@ export default class AgentDocument extends BaseModel {
   declare agentId: number
 
   @column()
-  declare documentType: 'national_id' | 'business_registration' | 'tax_certificate' | 'bank_statement' | 'proof_of_address'
+  declare documentType:
+    | 'national_id'
+    | 'business_registration'
+    | 'tax_certificate'
+    | 'bank_statement'
+    | 'proof_of_address'
 
   @column()
   declare fileRef: string

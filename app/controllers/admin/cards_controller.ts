@@ -4,7 +4,7 @@ import vine from '@vinejs/vine'
 import Card from '#models/card'
 import User from '#models/user'
 import Business from '#models/business'
-import InternalUser from '#models/internal_user'
+import type InternalUser from '#models/internal_user'
 import { Money } from '#services/money/money'
 import { PayscribeProvider } from '#services/cards/payscribe_provider'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
@@ -40,8 +40,14 @@ const createValidator = vine.create({
   phone: vine.string().minLength(8).maxLength(20).optional(),
 })
 const transactionsValidator = vine.create({
-  start_date: vine.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  end_date: vine.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  start_date: vine
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  end_date: vine
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   page: vine.number().positive().optional(),
   page_size: vine.number().positive().max(100).optional(),
 })
@@ -96,7 +102,12 @@ export default class AdminCardsController {
         balance: c.balanceCache.toString(),
         created_at: c.createdAt,
       })),
-      meta: { total: paginated.total, page: paginated.currentPage, limit, last_page: paginated.lastPage },
+      meta: {
+        total: paginated.total,
+        page: paginated.currentPage,
+        limit,
+        last_page: paginated.lastPage,
+      },
     })
   }
 
@@ -111,19 +122,29 @@ export default class AdminCardsController {
     const payload = await request.validateUsing(createValidator)
 
     const owner =
-      payload.owner_type === 'user' ? await User.findOrFail(payload.owner_id) : await Business.findOrFail(payload.owner_id)
+      payload.owner_type === 'user'
+        ? await User.findOrFail(payload.owner_id)
+        : await Business.findOrFail(payload.owner_id)
 
     if (payload.owner_type === 'user' && !payload.phone) {
       return response.badRequest({ message: 'phone is required when owner_type is user' })
     }
 
     const fullName =
-      payload.owner_type === 'user' ? (owner as User).fullName || (owner as User).email : (owner as Business).name
+      payload.owner_type === 'user'
+        ? (owner as User).fullName || (owner as User).email
+        : (owner as Business).name
     const phone = payload.owner_type === 'user' ? payload.phone! : (owner as Business).phone
 
     try {
       const { card } = await cardService.createCard({
-        owner: { ownerType: payload.owner_type, ownerId: payload.owner_id, fullName, email: owner.email, phone },
+        owner: {
+          ownerType: payload.owner_type,
+          ownerId: payload.owner_id,
+          fullName,
+          email: owner.email,
+          phone,
+        },
         walletId: payload.wallet_id,
         brand: payload.brand,
         amount: new Money(BigInt(payload.amount), 'USD'),
@@ -136,7 +157,11 @@ export default class AdminCardsController {
         action: 'card.admin_created',
         resourceType: 'card',
         resourceId: card.id,
-        after: { owner_type: payload.owner_type, owner_id: payload.owner_id, amount: payload.amount },
+        after: {
+          owner_type: payload.owner_type,
+          owner_id: payload.owner_id,
+          amount: payload.amount,
+        },
         correlationId,
       })
 
@@ -155,8 +180,10 @@ export default class AdminCardsController {
         },
       })
     } catch (error) {
-      if (error instanceof CardWalletException) return response.badRequest({ message: error.message })
-      if (error instanceof InsufficientWalletBalanceException) return response.paymentRequired({ message: error.message })
+      if (error instanceof CardWalletException)
+        return response.badRequest({ message: error.message })
+      if (error instanceof InsufficientWalletBalanceException)
+        return response.paymentRequired({ message: error.message })
       const err = error as any
       if (err.name === 'CardProviderException') {
         return response.serviceUnavailable({ message: 'Card provider unavailable, try again' })
@@ -219,7 +246,9 @@ export default class AdminCardsController {
     })
   }
 
-  private async resolveOwner(cardId: number): Promise<{ card: Card; ownerType: CardOwnerType; ownerId: number }> {
+  private async resolveOwner(
+    cardId: number
+  ): Promise<{ card: Card; ownerType: CardOwnerType; ownerId: number }> {
     const card = await Card.findOrFail(cardId)
     const ownerType: CardOwnerType = card.userId ? 'user' : 'business'
     const ownerId = (card.userId ?? card.businessId)!
@@ -258,8 +287,10 @@ export default class AdminCardsController {
       await this.recordAdminAction('card.admin_frozen', card.id, actor.id, correlationId)
       return response.ok({ data: { id: card.id, status: card.status } })
     } catch (error) {
-      if (error instanceof CardNotFoundException) return response.notFound({ message: error.message })
-      if (error instanceof CardStatusException) return response.badRequest({ message: error.message })
+      if (error instanceof CardNotFoundException)
+        return response.notFound({ message: error.message })
+      if (error instanceof CardStatusException)
+        return response.badRequest({ message: error.message })
       throw error
     }
   }
@@ -273,8 +304,10 @@ export default class AdminCardsController {
       await this.recordAdminAction('card.admin_unfrozen', card.id, actor.id, correlationId)
       return response.ok({ data: { id: card.id, status: card.status } })
     } catch (error) {
-      if (error instanceof CardNotFoundException) return response.notFound({ message: error.message })
-      if (error instanceof CardStatusException) return response.badRequest({ message: error.message })
+      if (error instanceof CardNotFoundException)
+        return response.notFound({ message: error.message })
+      if (error instanceof CardStatusException)
+        return response.badRequest({ message: error.message })
       throw error
     }
   }
@@ -292,7 +325,8 @@ export default class AdminCardsController {
       })
       return response.ok({ data: transactions })
     } catch (error) {
-      if (error instanceof CardNotFoundException) return response.notFound({ message: error.message })
+      if (error instanceof CardNotFoundException)
+        return response.notFound({ message: error.message })
       throw error
     }
   }
@@ -325,11 +359,16 @@ export default class AdminCardsController {
         after: { amount },
         correlationId,
       })
-      return response.ok({ data: { id: updated.id, balance: updated.balanceCache.toString(), status: updated.status } })
+      return response.ok({
+        data: { id: updated.id, balance: updated.balanceCache.toString(), status: updated.status },
+      })
     } catch (error) {
-      if (error instanceof CardNotFoundException) return response.notFound({ message: error.message })
-      if (error instanceof CardStatusException) return response.badRequest({ message: error.message })
-      if (error instanceof InsufficientWalletBalanceException) return response.paymentRequired({ message: error.message })
+      if (error instanceof CardNotFoundException)
+        return response.notFound({ message: error.message })
+      if (error instanceof CardStatusException)
+        return response.badRequest({ message: error.message })
+      if (error instanceof InsufficientWalletBalanceException)
+        return response.paymentRequired({ message: error.message })
       throw error
     }
   }
@@ -352,8 +391,10 @@ export default class AdminCardsController {
       })
       return response.ok({ data: { id: card.id, status: card.status } })
     } catch (error) {
-      if (error instanceof CardNotFoundException) return response.notFound({ message: error.message })
-      if (error instanceof CardStatusException) return response.badRequest({ message: error.message })
+      if (error instanceof CardNotFoundException)
+        return response.notFound({ message: error.message })
+      if (error instanceof CardStatusException)
+        return response.badRequest({ message: error.message })
       throw error
     }
   }

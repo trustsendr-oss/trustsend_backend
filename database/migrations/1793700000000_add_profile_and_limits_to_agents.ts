@@ -13,15 +13,33 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.string('business_name').nullable().comment('Shop/outlet name, if different from full_name')
+      table
+        .string('business_name')
+        .nullable()
+        .comment('Shop/outlet name, if different from full_name')
       table.string('address').nullable().comment('Physical street address of the agent outlet')
       table.string('city', 100).nullable()
       table.decimal('latitude', 10, 7).nullable()
       table.decimal('longitude', 10, 7).nullable()
 
-      table.bigInteger('daily_limit').nullable().comment('Max cash volume this agent may process per day, smallest currency unit — null means uncapped')
-      table.bigInteger('monthly_limit').nullable().comment('Max cash volume this agent may process per month, smallest currency unit — null means uncapped')
-      table.bigInteger('per_transaction_limit').nullable().comment('Max cash volume for a single cash-in/cash-out, smallest currency unit — null means uncapped')
+      table
+        .bigInteger('daily_limit')
+        .nullable()
+        .comment(
+          'Max cash volume this agent may process per day, smallest currency unit — null means uncapped'
+        )
+      table
+        .bigInteger('monthly_limit')
+        .nullable()
+        .comment(
+          'Max cash volume this agent may process per month, smallest currency unit — null means uncapped'
+        )
+      table
+        .bigInteger('per_transaction_limit')
+        .nullable()
+        .comment(
+          'Max cash volume for a single cash-in/cash-out, smallest currency unit — null means uncapped'
+        )
 
       table.index(['city'])
     })

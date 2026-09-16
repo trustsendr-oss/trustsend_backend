@@ -127,16 +127,15 @@ export default class WalletsController {
       return response.unauthorized({ message: 'Unauthenticated' })
     }
 
-    const wallet = await Wallet.query()
-      .where('id', params.id)
-      .where('user_id', user.id)
-      .first()
+    const wallet = await Wallet.query().where('id', params.id).where('user_id', user.id).first()
 
     if (!wallet) {
       return response.notFound({ message: 'Wallet not found' })
     }
 
-    const currency = (await CurrencyService.serializeMany([wallet.currencyCode])).get(wallet.currencyCode)!
+    const currency = (await CurrencyService.serializeMany([wallet.currencyCode])).get(
+      wallet.currencyCode
+    )!
 
     return response.ok({
       data: {

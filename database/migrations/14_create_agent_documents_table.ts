@@ -17,10 +17,7 @@ export default class extends BaseSchema {
         ])
         .notNullable()
       table.string('file_ref').notNullable().comment('Reference to encrypted file storage')
-      table
-        .enum('status', ['pending', 'verified', 'rejected'])
-        .notNullable()
-        .defaultTo('pending')
+      table.enum('status', ['pending', 'verified', 'rejected']).notNullable().defaultTo('pending')
       table.integer('reviewed_by').nullable().unsigned().comment('FK to internal_users (reviewer)')
       table.timestamp('reviewed_at').nullable().comment('When reviewed')
       table.string('rejection_reason').nullable().comment('If rejected, why?')

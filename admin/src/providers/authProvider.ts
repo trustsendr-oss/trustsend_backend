@@ -1,5 +1,12 @@
 import type { AuthProvider } from 'react-admin'
-import { ApiError, apiFetch, clearSession, getStoredUser, setCsrfToken, setSession } from './httpClient'
+import {
+  ApiError,
+  apiFetch,
+  clearSession,
+  getStoredUser,
+  setCsrfToken,
+  setSession,
+} from './httpClient'
 
 interface SessionUser {
   id: number
@@ -51,10 +58,13 @@ export function isSessionReady(state: InternalSessionState): boolean {
  */
 export const internalAuth = {
   async signIn(email: string, password: string): Promise<SignInResult> {
-    const result = await apiFetch<FullSessionResponse | PendingSessionResponse>('/internal/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    })
+    const result = await apiFetch<FullSessionResponse | PendingSessionResponse>(
+      '/internal/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      }
+    )
 
     setCsrfToken(result.csrf_token)
 
@@ -89,7 +99,9 @@ export const internalAuth = {
   },
 
   setupMfa() {
-    return apiFetch<{ secret: string; otpauth_url: string }>('/internal/auth/mfa/setup', { method: 'POST' })
+    return apiFetch<{ secret: string; otpauth_url: string }>('/internal/auth/mfa/setup', {
+      method: 'POST',
+    })
   },
 
   enableMfa(code: string) {
@@ -127,7 +139,8 @@ export const authProvider: AuthProvider = {
 
   async checkError(error) {
     const status = error?.status
-    const code = error instanceof ApiError ? (error.body as { code?: string } | null)?.code : undefined
+    const code =
+      error instanceof ApiError ? (error.body as { code?: string } | null)?.code : undefined
 
     if (status === 401 || (status === 403 && code && INCOMPLETE_SESSION_CODES.has(code))) {
       clearSession()

@@ -6,7 +6,11 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').notNullable()
-      table.string('code').notNullable().unique().comment('Account code, ex: PLATFORM.COMMISSION_REVENUE')
+      table
+        .string('code')
+        .notNullable()
+        .unique()
+        .comment('Account code, ex: PLATFORM.COMMISSION_REVENUE')
       table.string('name').notNullable().comment('Account display name')
       table
         .enum('account_type', ['asset', 'liability', 'equity', 'revenue', 'expense'])
@@ -20,7 +24,11 @@ export default class extends BaseSchema {
         .integer('owner_id')
         .nullable()
         .comment('FK to wallets if owner_type = user_wallet or agent_wallet')
-      table.string('currency_code', 3).notNullable().defaultTo('XOF').comment('ISO 4217 currency code')
+      table
+        .string('currency_code', 3)
+        .notNullable()
+        .defaultTo('XOF')
+        .comment('ISO 4217 currency code')
       table.enum('status', ['active', 'closed']).notNullable().defaultTo('active')
 
       table.timestamps()

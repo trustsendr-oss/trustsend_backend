@@ -63,7 +63,9 @@ export class BusinessApiKeyService {
 
     // Prefix collisions are possible (it's a display/lookup aid, not the full secret) — check
     // every active candidate with this prefix rather than assuming the first match is right.
-    const candidates = await BusinessApiKey.query().where('key_prefix', keyPrefix).where('status', 'active')
+    const candidates = await BusinessApiKey.query()
+      .where('key_prefix', keyPrefix)
+      .where('status', 'active')
 
     for (const candidate of candidates) {
       const matches = await hash.verify(candidate.keyHash, presentedKey)

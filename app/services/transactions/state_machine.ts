@@ -48,12 +48,7 @@ export class TransactionStateMachine<State extends string> {
  */
 
 export type P2pTransactionState =
-  | 'pending'
-  | 'processing'
-  | 'completed'
-  | 'failed'
-  | 'flagged'
-  | 'reversed'
+  'pending' | 'processing' | 'completed' | 'failed' | 'flagged' | 'reversed'
 
 export const P2P_TRANSITIONS: TransitionMap<P2pTransactionState> = {
   pending: ['processing', 'flagged', 'failed'],
@@ -65,12 +60,7 @@ export const P2P_TRANSITIONS: TransitionMap<P2pTransactionState> = {
 }
 
 export type CashInTransactionState =
-  | 'initiated'
-  | 'pending_confirmation'
-  | 'completed'
-  | 'failed'
-  | 'expired'
-  | 'reversed'
+  'initiated' | 'pending_confirmation' | 'completed' | 'failed' | 'expired' | 'reversed'
 
 export const CASH_IN_TRANSITIONS: TransitionMap<CashInTransactionState> = {
   initiated: ['pending_confirmation', 'failed'],
@@ -82,13 +72,7 @@ export const CASH_IN_TRANSITIONS: TransitionMap<CashInTransactionState> = {
 }
 
 export type CashOutTransactionState =
-  | 'initiated'
-  | 'reserved'
-  | 'completed'
-  | 'failed'
-  | 'cancelled'
-  | 'expired'
-  | 'reversed'
+  'initiated' | 'reserved' | 'completed' | 'failed' | 'cancelled' | 'expired' | 'reversed'
 
 export const CASH_OUT_TRANSITIONS: TransitionMap<CashOutTransactionState> = {
   initiated: ['reserved', 'cancelled', 'failed'],
@@ -100,10 +84,7 @@ export const CASH_OUT_TRANSITIONS: TransitionMap<CashOutTransactionState> = {
   reversed: [],
 }
 
-export type FloatTransactionState =
-  | 'pending'
-  | 'completed'
-  | 'rejected'
+export type FloatTransactionState = 'pending' | 'completed' | 'rejected'
 
 export const FLOAT_TRANSITIONS: TransitionMap<FloatTransactionState> = {
   pending: ['completed', 'rejected'],
@@ -111,11 +92,7 @@ export const FLOAT_TRANSITIONS: TransitionMap<FloatTransactionState> = {
   rejected: [],
 }
 
-export type ReversalTransactionState =
-  | 'requested'
-  | 'approved'
-  | 'executed'
-  | 'denied'
+export type ReversalTransactionState = 'requested' | 'approved' | 'executed' | 'denied'
 
 export const REVERSAL_TRANSITIONS: TransitionMap<ReversalTransactionState> = {
   requested: ['approved', 'denied'],

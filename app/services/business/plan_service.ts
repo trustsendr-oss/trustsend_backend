@@ -62,7 +62,9 @@ function assertValidPlanFeatures(features: unknown): asserts features is PlanFea
       const list = (value as Record<string, unknown>)[dimension]
       if (list === undefined) continue
       if (!Array.isArray(list) || !list.every((v) => typeof v === 'string')) {
-        throw new InvalidPlanFeaturesException(`features["${key}"].${dimension} must be an array of strings`)
+        throw new InvalidPlanFeaturesException(
+          `features["${key}"].${dimension} must be an array of strings`
+        )
       }
     }
 
@@ -261,7 +263,8 @@ export class PlanService {
 
     business.planId = plan.id
     business.planSubscribedAt = DateTime.now()
-    business.planNextMaintenanceBillingAt = plan.maintenancePrice > 0n ? DateTime.now().plus({ months: 1 }) : null
+    business.planNextMaintenanceBillingAt =
+      plan.maintenancePrice > 0n ? DateTime.now().plus({ months: 1 }) : null
     business.planPaymentStatus = 'current'
     await business.save()
 
@@ -302,7 +305,11 @@ export class PlanService {
    * in-app notification, because notifyBusinessWebhook() no-ops unless initiatedByType==='business'
    * and there was nothing to attach a notification to at all.
    */
-  static async subscribe(businessId: number, planId: number, correlationId: string): Promise<Business> {
+  static async subscribe(
+    businessId: number,
+    planId: number,
+    correlationId: string
+  ): Promise<Business> {
     const { business, posted, plan } = await db.transaction(async (trx) => {
       const business = await Business.query({ client: trx })
         .where('id', businessId)
@@ -344,8 +351,16 @@ export class PlanService {
         )
 
         entries.push(
-          { accountId: wallet.ledgerAccountId, direction: 'debit', amount: new Money(plan.price, plan.currencyCode) },
-          { accountId: revenueAccount.id, direction: 'credit', amount: new Money(plan.price, plan.currencyCode) }
+          {
+            accountId: wallet.ledgerAccountId,
+            direction: 'debit',
+            amount: new Money(plan.price, plan.currencyCode),
+          },
+          {
+            accountId: revenueAccount.id,
+            direction: 'credit',
+            amount: new Money(plan.price, plan.currencyCode),
+          }
         )
       }
 
@@ -374,7 +389,8 @@ export class PlanService {
 
       business.planId = plan.id
       business.planSubscribedAt = DateTime.now()
-      business.planNextMaintenanceBillingAt = plan.maintenancePrice > 0n ? DateTime.now().plus({ months: 1 }) : null
+      business.planNextMaintenanceBillingAt =
+        plan.maintenancePrice > 0n ? DateTime.now().plus({ months: 1 }) : null
       business.planPaymentStatus = 'current'
       await business.useTransaction(trx).save()
 
@@ -464,8 +480,16 @@ export class PlanService {
           const posted = await LedgerService.postTransaction(
             'business_plan_maintenance_fee',
             [
-              { accountId: wallet.ledgerAccountId, direction: 'debit', amount: new Money(plan.maintenancePrice, plan.currencyCode) },
-              { accountId: revenueAccount.id, direction: 'credit', amount: new Money(plan.maintenancePrice, plan.currencyCode) },
+              {
+                accountId: wallet.ledgerAccountId,
+                direction: 'debit',
+                amount: new Money(plan.maintenancePrice, plan.currencyCode),
+              },
+              {
+                accountId: revenueAccount.id,
+                direction: 'credit',
+                amount: new Money(plan.maintenancePrice, plan.currencyCode),
+              },
             ],
             'business',
             business.id,
@@ -480,7 +504,9 @@ export class PlanService {
             }
           )
 
-          business.planNextMaintenanceBillingAt = business.planNextMaintenanceBillingAt!.plus({ months: 1 })
+          business.planNextMaintenanceBillingAt = business.planNextMaintenanceBillingAt!.plus({
+            months: 1,
+          })
           business.planPaymentStatus = 'current'
           await business.useTransaction(trx).save()
 
@@ -523,7 +549,11 @@ export class PlanService {
         failedTxn.initiatedById = business.id
         failedTxn.correlationId = correlationId
         failedTxn.description = `Monthly maintenance fee for plan ${plan.code} failed — insufficient wallet balance`
-        failedTxn.metadata = { plan_id: plan.id, plan_code: plan.code, reason: 'insufficient_balance' }
+        failedTxn.metadata = {
+          plan_id: plan.id,
+          plan_code: plan.code,
+          reason: 'insufficient_balance',
+        }
         await failedTxn.save()
 
         await notifyBusinessWebhook(failedTxn, 'business.plan_payment_failed')

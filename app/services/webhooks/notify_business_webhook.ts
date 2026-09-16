@@ -1,7 +1,7 @@
 import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import db from '@adonisjs/lucid/services/db'
 import { WebhookService } from '#services/webhooks/webhook_service'
-import LedgerTransaction from '#models/ledger_transaction'
+import type LedgerTransaction from '#models/ledger_transaction'
 
 /**
  * If a transaction was initiated by a business with an active webhook subscription for this
@@ -19,7 +19,11 @@ export async function notifyBusinessWebhook(
   }
 
   try {
-    const subscriptions = await WebhookService.findActiveSubscriptions('business', txn.initiatedById, eventType)
+    const subscriptions = await WebhookService.findActiveSubscriptions(
+      'business',
+      txn.initiatedById,
+      eventType
+    )
 
     for (const subscription of subscriptions) {
       const query = db.insertQuery().table('webhook_deliveries')

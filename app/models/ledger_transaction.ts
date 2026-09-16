@@ -5,7 +5,7 @@ export default class LedgerTransaction extends BaseModel {
   static table = 'ledger_transactions'
 
   @column({ isPrimary: true })
-  declare id: string  // Alphanumérique: TXN-XXXXXXXX
+  declare id: string // Alphanumérique: TXN-XXXXXXXX
 
   @column()
   declare uuid: string
@@ -14,7 +14,17 @@ export default class LedgerTransaction extends BaseModel {
   declare type: string
 
   @column()
-  declare status: 'initiated' | 'pending' | 'processing' | 'completed' | 'failed' | 'reversed' | 'reserved' | 'settled' | 'cancelled' | 'rejected'
+  declare status:
+    | 'initiated'
+    | 'pending'
+    | 'processing'
+    | 'completed'
+    | 'failed'
+    | 'reversed'
+    | 'reserved'
+    | 'settled'
+    | 'cancelled'
+    | 'rejected'
 
   @column()
   declare idempotencyKey: string | null
