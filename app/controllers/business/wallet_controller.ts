@@ -86,6 +86,7 @@ export default class BusinessWalletController {
    */
   async show({ business, params, response }: HttpContext) {
     const wallet = await Wallet.query()
+      .withScopes((s) => s.primary())
       .where('business_id', business.id)
       .where('currency_code', CurrencyService.normalize(String(params.currency)))
       .first()

@@ -85,6 +85,7 @@ export default class BusinessDepositsController {
 
     try {
       const wallet = await Wallet.query()
+        .withScopes((s) => s.primary())
         .where('business_id', business.id)
         .where('currency_code', currencyCode)
         .where('status', 'active')

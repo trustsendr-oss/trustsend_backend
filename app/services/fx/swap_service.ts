@@ -81,6 +81,7 @@ const WALLET_OWNER_TYPE = { user: 'user_wallet', business: 'business_wallet' } a
 export class SwapService {
   static async findWallet(owner: SwapOwner, currencyCode: string): Promise<Wallet | null> {
     return Wallet.query()
+      .withScopes((s) => s.primary())
       .where(OWNER_COLUMN[owner.type], owner.id)
       .where('currency_code', currencyCode)
       .where('status', 'active')

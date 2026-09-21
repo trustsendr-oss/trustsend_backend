@@ -63,6 +63,7 @@ export default class DirectoryController {
     }
 
     const wallet = await Wallet.query()
+      .withScopes((s) => s.primary())
       .where('user_id', recipient.id)
       .where('currency_code', currency)
       .where('status', 'active')

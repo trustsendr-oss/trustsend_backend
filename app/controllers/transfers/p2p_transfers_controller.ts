@@ -38,6 +38,7 @@ export default class P2pTransfersController {
 
     // Load sender's wallet
     const senderWallet = await Wallet.query()
+      .withScopes((s) => s.primary())
       .where('user_id', user.id)
       .where('currency_code', currencyCode)
       .where('status', 'active')
@@ -183,6 +184,7 @@ export default class P2pTransfersController {
 
     // Verify user has access (sender or recipient)
     const userWallet = await Wallet.query()
+      .withScopes((s) => s.primary())
       .where('user_id', user.id)
       .where('status', 'active')
       .first()
@@ -233,7 +235,11 @@ export default class P2pTransfersController {
     const limit = queryParams.limit || 20
 
     // Load user's wallet
-    const wallet = await Wallet.query().where('user_id', user.id).where('status', 'active').first()
+    const wallet = await Wallet.query()
+      .withScopes((s) => s.primary())
+      .where('user_id', user.id)
+      .where('status', 'active')
+      .first()
 
     if (!wallet) {
       return response.notFound({ message: 'Wallet not found' })

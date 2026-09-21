@@ -1396,6 +1396,7 @@ export class WalletSchema extends BaseModel {
     'lockVersion',
     'monthlyLimit',
     'perTransactionLimit',
+    'purpose',
     'status',
     'updatedAt',
     'userId',
@@ -1423,6 +1424,8 @@ export class WalletSchema extends BaseModel {
   declare monthlyLimit: bigint | number | null
   @column()
   declare perTransactionLimit: bigint | number | null
+  @column()
+  declare purpose: string
   @column()
   declare status: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })

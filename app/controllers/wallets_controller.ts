@@ -77,6 +77,7 @@ export default class WalletsController {
 
       // Check if wallet already exists for this currency
       const existingWallet = await Wallet.query()
+        .withScopes((s) => s.primary())
         .where('user_id', user.id)
         .where('currency_code', currencyCode)
         .first()

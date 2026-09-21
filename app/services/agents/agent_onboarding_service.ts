@@ -112,6 +112,9 @@ export class AgentOnboardingService {
       wallet.ledgerAccountId = account.id
       wallet.currencyCode = 'USD'
       wallet.balanceCache = 0n
+      // Explicit rather than relying on the column default: Lucid does not read the
+      // row back, so the returned instance would otherwise carry an undefined purpose.
+      wallet.purpose = 'primary'
       wallet.status = 'active'
 
       await wallet.useTransaction(trx).save()

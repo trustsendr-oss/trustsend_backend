@@ -27,6 +27,7 @@ export class UserOnboardingService {
 
       // Check if wallet already exists for this currency
       const existingWallet = await Wallet.query({ client: trx })
+        .withScopes((s) => s.primary())
         .where('user_id', userId)
         .where('currency_code', currencyCode)
         .first()
@@ -52,6 +53,9 @@ export class UserOnboardingService {
       wallet.ledgerAccountId = account.id
       wallet.currencyCode = currencyCode
       wallet.balanceCache = 0n
+      // Explicit rather than relying on the column default: Lucid does not read the
+      // row back, so the returned instance would otherwise carry an undefined purpose.
+      wallet.purpose = 'primary'
       wallet.status = 'active'
 
       await wallet.useTransaction(trx).save()

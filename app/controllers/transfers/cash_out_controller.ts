@@ -56,6 +56,7 @@ export default class CashOutController {
     }
 
     const userWallet = await Wallet.query()
+      .withScopes((s) => s.primary())
       .where('user_id', user.id)
       .where('currency_code', currencyCode)
       .where('status', 'active')

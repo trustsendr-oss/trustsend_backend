@@ -58,6 +58,7 @@ export class SandboxFundingService {
 
     return db.transaction(async (trx) => {
       const wallet = await Wallet.query({ client: trx })
+        .withScopes((s) => s.primary())
         .where('business_id', businessId)
         .where('currency_code', currencyCode)
         .where('status', 'active')

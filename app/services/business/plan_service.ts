@@ -334,6 +334,7 @@ export class PlanService {
 
       if (plan.price > 0n) {
         const wallet = await Wallet.query({ client: trx })
+          .withScopes((s) => s.primary())
           .where('business_id', businessId)
           .where('currency_code', plan.currencyCode)
           .forUpdate()
@@ -460,6 +461,7 @@ export class PlanService {
       try {
         const posted = await db.transaction(async (trx) => {
           const wallet = await Wallet.query({ client: trx })
+            .withScopes((s) => s.primary())
             .where('business_id', business.id)
             .where('currency_code', plan.currencyCode)
             .forUpdate()

@@ -186,6 +186,7 @@ export class FloatTransferService {
 
       // Lock both wallets in deterministic (ascending id) order — same reasoning as initiate().
       const personalWalletRow = await Wallet.query({ client: trx })
+        .withScopes((s) => s.primary())
         .where('user_id', agent.userId)
         .where('currency_code', request.amount.currencyCode)
         .first()
