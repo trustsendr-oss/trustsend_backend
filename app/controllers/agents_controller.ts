@@ -83,6 +83,10 @@ const createAgentValidator = vine.create({
   // always need a parent — see tier_parent_hierarchy CHECK constraint on the agents table,
   // enforced with a friendly error in AgentOnboardingService.create().
   tier: vine.enum(['agent', 'super_agent', 'distributor', 'master']).optional(),
+  // Owning institution. Omitted means TumaPlus's own network. Settable only at creation:
+  // moving a counter between institutions would transfer its float and its customers across the
+  // isolation boundary, which is not an edit.
+  business_id: vine.number().positive().optional(),
   parent_agent_id: vine.number().positive().optional(),
   commission_rate: vine.number().min(0).max(100).optional(),
   ...profileFields,
@@ -139,6 +143,7 @@ export default class AgentsController {
     try {
       const agent = await AgentOnboardingService.create({
         userId: payload.user_id,
+        businessId: payload.business_id,
         code: payload.code || IdGenerator.generateId('AG'),
         fullName: payload.full_name,
         email: payload.email,

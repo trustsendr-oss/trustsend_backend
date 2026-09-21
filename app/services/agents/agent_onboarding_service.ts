@@ -1,5 +1,6 @@
 import db from '@adonisjs/lucid/services/db'
 import Agent from '#models/agent'
+import Business from '#models/business'
 import Wallet from '#models/wallet'
 import LedgerAccount from '#models/ledger_account'
 import AgentStatusHistory from '#models/agent_status_history'
@@ -22,6 +23,8 @@ export class AgentOnboardingService {
    */
   static async create(request: {
     userId: number
+    /** Owning institution. Omitted for TumaPlus's own network, which is every agent today. */
+    businessId?: number
     code: string
     fullName: string
     email: string
@@ -50,6 +53,19 @@ export class AgentOnboardingService {
       throw new Error(`A ${request.tier} must have a parent agent`)
     }
 
+    // A counter belongs to an institution that can actually operate it. Terminated is refused
+    // outright; a pending_approval one is allowed, since an institution builds out its branch
+    // network while its own KYB is still being reviewed.
+    if (request.businessId) {
+      const business = await Business.find(request.businessId)
+      if (!business) {
+        throw new Error(`Business ${request.businessId} not found`)
+      }
+      if (business.status === 'terminated') {
+        throw new Error('A terminated institution cannot be given new counters')
+      }
+    }
+
     // Validate parent agent if specified
     if (request.parentAgentId) {
       const parentAgent = await Agent.find(request.parentAgentId)
@@ -67,6 +83,12 @@ export class AgentOnboardingService {
           `A ${parentAgent.tier} cannot sponsor a ${request.tier} — parent tier must be strictly higher than the child's`
         )
       }
+      // Hierarchy and ownership have to agree. A counter hanging off another institution's head
+      // office would let float flow across the isolation boundary the whole design rests on, and
+      // an institution's counter sponsored by a TumaPlus network agent is just as wrong.
+      if ((parentAgent.businessId ?? null) !== (request.businessId ?? null)) {
+        throw new Error('A parent agent must belong to the same institution as its child')
+      }
     }
     return db.transaction(async (trx) => {
       // Create the agent first (walletId set below, once the wallet exists) — wallets.* has a
@@ -74,6 +96,7 @@ export class AgentOnboardingService {
       // agent.id exists to populate agent_id on it.
       const agent = new Agent()
       agent.userId = request.userId
+      agent.businessId = request.businessId ?? null
       agent.code = request.code
       agent.fullName = request.fullName
       agent.email = request.email
