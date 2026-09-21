@@ -1255,6 +1255,54 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/businesses_controller').default['assignPlan']>>>
     }
   }
+  'admin.business_staff.admin_business_staff.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/business-staff'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['index']>>>
+    }
+  }
+  'admin.business_staff.admin_business_staff.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/business-staff'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['store']>>>
+    }
+  }
+  'admin.business_staff.admin_business_staff.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/business-staff/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['show']>>>
+    }
+  }
+  'admin.business_staff.admin_business_staff.update': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/admin/business-staff/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['update']>>>
+    }
+  }
   'card_products.card_products.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/card-products'

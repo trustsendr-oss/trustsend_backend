@@ -110,6 +110,9 @@ export default class AgentsController {
       data: agents.map((agent) => ({
         id: agent.id,
         full_name: agent.fullName,
+        // Owning institution. Not to be confused with business_name just below, which is the
+        // outlet's own trading name and has nothing to do with who owns the agent.
+        business_id: agent.businessId,
         business_name: agent.businessName,
         email: agent.email,
         tier: agent.tier,
@@ -189,6 +192,7 @@ export default class AgentsController {
         id: agent.id,
         code: agent.code,
         full_name: agent.fullName,
+        business_id: agent.businessId,
         business_name: agent.businessName,
         email: agent.email,
         phone: agent.phone,

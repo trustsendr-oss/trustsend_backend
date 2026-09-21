@@ -8,6 +8,7 @@ export const controllers = {
   admin: {
     Accounting: () => import('#controllers/admin/accounting_controller'),
     AuditLogs: () => import('#controllers/admin/audit_logs_controller'),
+    BusinessStaff: () => import('#controllers/admin/business_staff_controller'),
     Cards: () => import('#controllers/admin/cards_controller'),
     LedgerAccounts: () => import('#controllers/admin/ledger_accounts_controller'),
     Transactions: () => import('#controllers/admin/transactions_controller'),

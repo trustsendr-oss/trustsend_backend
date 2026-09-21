@@ -15,6 +15,7 @@ import { apiFetch, apiFetchEnvelope } from './httpClient'
 const RESOURCE_PATH: Record<string, string> = {
   agents: '/agents',
   businesses: '/businesses',
+  business_staff: '/admin/business-staff',
   users: '/users',
   plans: '/plans',
   card_products: '/card-products',

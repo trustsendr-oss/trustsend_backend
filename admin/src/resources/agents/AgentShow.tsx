@@ -10,6 +10,7 @@ import {
   TextField,
   DateField,
   Labeled,
+  ReferenceField,
   TopToolbar,
   EditButton,
   FunctionField,
@@ -101,6 +102,16 @@ function AgentShowContent() {
             </Labeled>
             <Labeled label="Business/outlet name">
               <TextField source="business_name" emptyText="—" />
+            </Labeled>
+            <Labeled label="Institution">
+              <ReferenceField
+                source="business_id"
+                reference="businesses"
+                link="show"
+                emptyText="TumaPlus network"
+              >
+                <TextField source="name" />
+              </ReferenceField>
             </Labeled>
             <Labeled label="Email">
               <TextField source="email" />

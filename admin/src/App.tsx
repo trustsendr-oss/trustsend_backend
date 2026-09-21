@@ -9,6 +9,12 @@ import { lightTheme, darkTheme } from './theme/theme'
 import { resourceIcons } from './layout/AppMenu'
 import { AgentList, AgentShow, AgentCreate, AgentEdit } from './resources/agents'
 import { BusinessList, BusinessShow, BusinessCreate } from './resources/businesses'
+import {
+  BusinessStaffList,
+  BusinessStaffShow,
+  BusinessStaffCreate,
+  BusinessStaffEdit,
+} from './resources/businessStaff'
 import { UserList, UserShow } from './resources/users'
 import {
   CardProductList,
@@ -97,6 +103,16 @@ export default function App() {
         list={TransactionList}
         show={TransactionShow}
         icon={resourceIcons.transactions}
+      />
+      <Resource
+        name="business_staff"
+        list={BusinessStaffList}
+        show={BusinessStaffShow}
+        create={BusinessStaffCreate}
+        edit={BusinessStaffEdit}
+        icon={resourceIcons.business_staff}
+        options={{ label: 'Institution staff' }}
+        recordRepresentation="user_name"
       />
       <Resource
         name="cards"

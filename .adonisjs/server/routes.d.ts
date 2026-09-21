@@ -108,6 +108,10 @@ export type ScannedRoutes = {
     'businesses.businesses.issue_api_key': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.revoke_api_key': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'keyId': ParamValue} }
     'businesses.businesses.assign_plan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
+    'admin.business_staff.admin_business_staff.store': { paramsTuple?: []; params?: {} }
+    'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.business_staff.admin_business_staff.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.store': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -293,6 +297,8 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
+    'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.index': { paramsTuple?: []; params?: {} }
@@ -401,6 +407,8 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
+    'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.index': { paramsTuple?: []; params?: {} }
@@ -515,6 +523,7 @@ export type ScannedRoutes = {
     'businesses.businesses.deactivate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.issue_api_key': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.assign_plan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.business_staff.admin_business_staff.store': { paramsTuple?: []; params?: {} }
     'card_products.card_products.store': { paramsTuple?: []; params?: {} }
     'card_products.card_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.store': { paramsTuple?: []; params?: {} }
@@ -582,6 +591,7 @@ export type ScannedRoutes = {
     'cards.cards.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cards.cards.unfreeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'agents.agents.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.business_staff.admin_business_staff.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.currencies.admin_update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

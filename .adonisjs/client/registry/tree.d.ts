@@ -224,37 +224,15 @@ export interface ApiDefinition {
       assignPlan: typeof routes['businesses.businesses.assign_plan']
     }
   }
-  plans: {
-    plans: {
-      index: typeof routes['plans.plans.index']
-      store: typeof routes['plans.plans.store']
-      show: typeof routes['plans.plans.show']
-      update: typeof routes['plans.plans.update']
-      archive: typeof routes['plans.plans.archive']
-    }
-  }
-  users: {
-    users: {
-      index: typeof routes['users.users.index']
-      show: typeof routes['users.users.show']
-      resetPin: typeof routes['users.users.reset_pin']
-      freezeWallet: typeof routes['users.users.freeze_wallet']
-      unfreezeWallet: typeof routes['users.users.unfreeze_wallet']
-    }
-  }
-  internalUsers: {
-    internalUsers: {
-      index: typeof routes['internal_users.internal_users.index']
-      store: typeof routes['internal_users.internal_users.store']
-      show: typeof routes['internal_users.internal_users.show']
-      activate: typeof routes['internal_users.internal_users.activate']
-      suspend: typeof routes['internal_users.internal_users.suspend']
-      deactivate: typeof routes['internal_users.internal_users.deactivate']
-      resetPassword: typeof routes['internal_users.internal_users.reset_password']
-      resetMfa: typeof routes['internal_users.internal_users.reset_mfa']
-    }
-  }
   admin: {
+    businessStaff: {
+      adminBusinessStaff: {
+        index: typeof routes['admin.business_staff.admin_business_staff.index']
+        store: typeof routes['admin.business_staff.admin_business_staff.store']
+        show: typeof routes['admin.business_staff.admin_business_staff.show']
+        update: typeof routes['admin.business_staff.admin_business_staff.update']
+      }
+    }
     adminTransactions: {
       index: typeof routes['admin.admin_transactions.index']
       show: typeof routes['admin.admin_transactions.show']
@@ -292,6 +270,36 @@ export interface ApiDefinition {
       balanceSheet: typeof routes['admin.admin_accounting.balance_sheet']
       revenue: typeof routes['admin.admin_accounting.revenue']
       reconcile: typeof routes['admin.admin_accounting.reconcile']
+    }
+  }
+  plans: {
+    plans: {
+      index: typeof routes['plans.plans.index']
+      store: typeof routes['plans.plans.store']
+      show: typeof routes['plans.plans.show']
+      update: typeof routes['plans.plans.update']
+      archive: typeof routes['plans.plans.archive']
+    }
+  }
+  users: {
+    users: {
+      index: typeof routes['users.users.index']
+      show: typeof routes['users.users.show']
+      resetPin: typeof routes['users.users.reset_pin']
+      freezeWallet: typeof routes['users.users.freeze_wallet']
+      unfreezeWallet: typeof routes['users.users.unfreeze_wallet']
+    }
+  }
+  internalUsers: {
+    internalUsers: {
+      index: typeof routes['internal_users.internal_users.index']
+      store: typeof routes['internal_users.internal_users.store']
+      show: typeof routes['internal_users.internal_users.show']
+      activate: typeof routes['internal_users.internal_users.activate']
+      suspend: typeof routes['internal_users.internal_users.suspend']
+      deactivate: typeof routes['internal_users.internal_users.deactivate']
+      resetPassword: typeof routes['internal_users.internal_users.reset_password']
+      resetMfa: typeof routes['internal_users.internal_users.reset_mfa']
     }
   }
   business: {

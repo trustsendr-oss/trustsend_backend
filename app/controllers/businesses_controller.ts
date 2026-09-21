@@ -30,6 +30,8 @@ const createBusinessValidator = vine.create({
     })
     .optional(),
   password: vine.string().minLength(8).optional(),
+  // Optional so every existing caller keeps creating merchants without knowing this exists.
+  kind: vine.enum(['merchant', 'imf', 'bank', 'insurer'] as const).optional(),
 })
 
 export default class BusinessesController {
@@ -44,6 +46,7 @@ export default class BusinessesController {
         id: b.id,
         code: b.code,
         name: b.name,
+        kind: b.kind,
         email: b.email,
         status: b.status,
         plan: b.plan ? { id: b.plan.id, code: b.plan.code, name: b.plan.name } : null,
@@ -65,6 +68,7 @@ export default class BusinessesController {
         email: payload.email,
         phone: payload.phone,
         password: payload.password,
+        kind: payload.kind,
         correlationId,
       })
 
@@ -73,6 +77,7 @@ export default class BusinessesController {
           id: business.id,
           code: business.code,
           name: business.name,
+          kind: business.kind,
           status: business.status,
           wallet_id: business.walletId,
           created_at: business.createdAt,
@@ -102,6 +107,7 @@ export default class BusinessesController {
         id: business.id,
         code: business.code,
         name: business.name,
+        kind: business.kind,
         email: business.email,
         phone: business.phone,
         status: business.status,

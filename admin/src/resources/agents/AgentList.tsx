@@ -5,6 +5,8 @@ import {
   DateField,
   SearchInput,
   SelectInput,
+  ReferenceInput,
+  ReferenceField,
   TopToolbar,
   CreateButton,
   ExportButton,
@@ -22,6 +24,8 @@ const filters = [
       { id: 'terminated', name: 'Terminated' },
     ]}
   />,
+  // Empty means every agent, TumaPlus's own network included; those carry no institution.
+  <ReferenceInput key="business_id" source="business_id" reference="businesses" label="Institution" />,
 ]
 
 function AgentListActions() {
@@ -45,6 +49,15 @@ export function AgentList() {
         <TextField source="id" />
         <TextField source="full_name" label="Name" />
         <TextField source="email" />
+        <ReferenceField
+          source="business_id"
+          reference="businesses"
+          label="Institution"
+          link="show"
+          emptyText="TumaPlus network"
+        >
+          <TextField source="name" />
+        </ReferenceField>
         <StatusField source="status" />
         <DateField source="created_at" showTime />
       </Datagrid>

@@ -67,6 +67,7 @@ const AdminAuditLogsController = () => import('#controllers/admin/audit_logs_con
 const AdminCardsController = () => import('#controllers/admin/cards_controller')
 const AdminLedgerAccountsController = () => import('#controllers/admin/ledger_accounts_controller')
 const AdminAccountingController = () => import('#controllers/admin/accounting_controller')
+const AdminBusinessStaffController = () => import('#controllers/admin/business_staff_controller')
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -433,6 +434,21 @@ router
       })
       .prefix('businesses')
       .as('businesses')
+      .use(middleware.auth({ guards: ['internal'] }))
+      .use(middleware.isInternalUser())
+
+    // Institution staff (admin routes — internal_user only). Adding staff grants someone the
+    // ability to act for an institution, so it stays with TumaPlus staff until an institution's
+    // own admin role is enforced on routes — see admin/business_staff_controller.ts.
+    router
+      .group(() => {
+        router.get('', [AdminBusinessStaffController, 'index'])
+        router.post('', [AdminBusinessStaffController, 'store'])
+        router.get(':id', [AdminBusinessStaffController, 'show'])
+        router.patch(':id', [AdminBusinessStaffController, 'update'])
+      })
+      .prefix('admin/business-staff')
+      .as('admin.business_staff')
       .use(middleware.auth({ guards: ['internal'] }))
       .use(middleware.isInternalUser())
 

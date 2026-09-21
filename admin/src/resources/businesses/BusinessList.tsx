@@ -26,8 +26,16 @@ import {
 } from 'react-admin'
 import { StatusField } from '../../components/StatusChip'
 
+const kindChoices = [
+  { id: 'merchant', name: 'Merchant' },
+  { id: 'imf', name: 'Microfinance institution' },
+  { id: 'bank', name: 'Bank' },
+  { id: 'insurer', name: 'Insurer' },
+]
+
 const filters = [
   <SearchInput key="q" source="q" alwaysOn placeholder="Search name or email" />,
+  <SelectInput key="kind" source="kind" choices={kindChoices} />,
   <SelectInput
     key="status"
     source="status"

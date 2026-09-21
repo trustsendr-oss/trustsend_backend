@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography'
 import DashboardIcon from '@mui/icons-material/SpaceDashboardOutlined'
 import AgentsIcon from '@mui/icons-material/BadgeOutlined'
 import BusinessesIcon from '@mui/icons-material/StorefrontOutlined'
+import BusinessStaffIcon from '@mui/icons-material/SupportAgentOutlined'
 import UsersIcon from '@mui/icons-material/GroupOutlined'
 import PlansIcon from '@mui/icons-material/SellOutlined'
 import KycIcon from '@mui/icons-material/VerifiedUserOutlined'
@@ -35,6 +36,7 @@ export function AppMenu() {
       <SectionLabel>Network</SectionLabel>
       <Menu.ResourceItem name="agents" />
       <Menu.ResourceItem name="businesses" />
+      <Menu.ResourceItem name="business_staff" />
       <Menu.ResourceItem name="users" />
 
       <SectionLabel>Compliance</SectionLabel>
@@ -61,6 +63,7 @@ export function AppMenu() {
 export const resourceIcons = {
   agents: AgentsIcon,
   businesses: BusinessesIcon,
+  business_staff: BusinessStaffIcon,
   users: UsersIcon,
   plans: PlansIcon,
   // Même icône que les cartes : ce catalogue décrit ce qu'une carte peut être.

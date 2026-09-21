@@ -630,6 +630,30 @@ const routes = {
     tokens: [{"old":"/api/v1/businesses/:id/plan","type":0,"val":"api","end":""},{"old":"/api/v1/businesses/:id/plan","type":0,"val":"v1","end":""},{"old":"/api/v1/businesses/:id/plan","type":0,"val":"businesses","end":""},{"old":"/api/v1/businesses/:id/plan","type":1,"val":"id","end":""},{"old":"/api/v1/businesses/:id/plan","type":0,"val":"plan","end":""}],
     types: placeholder as Registry['businesses.businesses.assign_plan']['types'],
   },
+  'admin.business_staff.admin_business_staff.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/business-staff',
+    tokens: [{"old":"/api/v1/admin/business-staff","type":0,"val":"api","end":""},{"old":"/api/v1/admin/business-staff","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/business-staff","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/business-staff","type":0,"val":"business-staff","end":""}],
+    types: placeholder as Registry['admin.business_staff.admin_business_staff.index']['types'],
+  },
+  'admin.business_staff.admin_business_staff.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/business-staff',
+    tokens: [{"old":"/api/v1/admin/business-staff","type":0,"val":"api","end":""},{"old":"/api/v1/admin/business-staff","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/business-staff","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/business-staff","type":0,"val":"business-staff","end":""}],
+    types: placeholder as Registry['admin.business_staff.admin_business_staff.store']['types'],
+  },
+  'admin.business_staff.admin_business_staff.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/business-staff/:id',
+    tokens: [{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"business-staff","end":""},{"old":"/api/v1/admin/business-staff/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.business_staff.admin_business_staff.show']['types'],
+  },
+  'admin.business_staff.admin_business_staff.update': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/admin/business-staff/:id',
+    tokens: [{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"business-staff","end":""},{"old":"/api/v1/admin/business-staff/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.business_staff.admin_business_staff.update']['types'],
+  },
   'card_products.card_products.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/card-products',
