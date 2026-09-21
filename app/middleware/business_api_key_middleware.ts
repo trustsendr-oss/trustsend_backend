@@ -43,9 +43,10 @@ export default class BusinessApiKeyMiddleware {
 declare module '@adonisjs/core/http' {
   export interface HttpContext {
     business: Business
-    /** Set by business_api_key_middleware.ts or business_dashboard_middleware.ts — controllers
-     *  shared between both access paths (deposits, payouts) use this to gate PIN enforcement,
-     *  which only applies to a human dashboard session, never to a server-to-server API key call. */
-    businessAuthMethod: 'api_key' | 'dashboard'
+    /** Set by business_api_key_middleware.ts, business_dashboard_middleware.ts or
+     *  business_staff_middleware.ts — controllers shared between these access paths (deposits,
+     *  payouts) use this to gate PIN enforcement, which applies to a human session, never to a
+     *  server-to-server API key call. */
+    businessAuthMethod: 'api_key' | 'dashboard' | 'staff'
   }
 }

@@ -10,6 +10,7 @@ import BusinessApiKey from '#models/business_api_key'
 import InternalUser from '#models/internal_user'
 import Plan from '#models/plan'
 import Agent from '#models/agent'
+import BusinessStaff from '#models/business_staff'
 
 /**
  * Business — a third-party institution account. A merchant by default; `kind` also covers the
@@ -142,4 +143,8 @@ export default class Business extends compose(
    */
   @hasMany(() => Agent, { foreignKey: 'businessId' })
   declare branches: HasMany<typeof Agent>
+
+  /** The people who work here — tellers, credit officers, branch managers. */
+  @hasMany(() => BusinessStaff, { foreignKey: 'businessId' })
+  declare staff: HasMany<typeof BusinessStaff>
 }

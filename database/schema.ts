@@ -412,6 +412,36 @@ export class BusinessSignupOtpSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class BusinessStaffSchema extends BaseModel {
+  static $columns = [
+    'agentId',
+    'businessId',
+    'createdAt',
+    'id',
+    'role',
+    'status',
+    'updatedAt',
+    'userId',
+  ] as const
+  $columns = BusinessStaffSchema.$columns
+  @column()
+  declare agentId: number | null
+  @column()
+  declare businessId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare role: string
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
 export class BusinessSchema extends BaseModel {
   static $columns = [
     'approvedAt',

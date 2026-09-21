@@ -55,6 +55,7 @@ export const middleware = router.named({
   isInternalUser: () => import('#middleware/is_internal_user'),
   businessApiKey: () => import('#middleware/business_api_key_middleware'),
   businessDashboard: () => import('#middleware/business_dashboard_middleware'),
+  businessStaff: () => import('#middleware/business_staff_middleware'),
   businessActive: () => import('#middleware/business_active_middleware'),
   businessPlan: () => import('#middleware/business_plan_middleware'),
   sandboxOnly: () => import('#middleware/sandbox_only_middleware'),
