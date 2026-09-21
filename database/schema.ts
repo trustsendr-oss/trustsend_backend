@@ -831,6 +831,84 @@ export class FeeScheduleSchema extends BaseModel {
   declare updatedBy: number | null
 }
 
+export class FinancialProductSchema extends BaseModel {
+  static $columns = [
+    'code',
+    'createdAt',
+    'currencyCode',
+    'description',
+    'feeFlat',
+    'feePercentBps',
+    'id',
+    'interestMethod',
+    'interestPeriod',
+    'interestRateBps',
+    'kind',
+    'mandatorySavingsBps',
+    'maxAmount',
+    'minAmount',
+    'name',
+    'providerId',
+    'reviewNotes',
+    'reviewedAt',
+    'reviewedBy',
+    'status',
+    'submittedAt',
+    'termMonthsMax',
+    'termMonthsMin',
+    'updatedAt',
+  ] as const
+  $columns = FinancialProductSchema.$columns
+  @column()
+  declare code: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare currencyCode: string
+  @column()
+  declare description: string | null
+  @column()
+  declare feeFlat: bigint | number | null
+  @column()
+  declare feePercentBps: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare interestMethod: string | null
+  @column()
+  declare interestPeriod: string
+  @column()
+  declare interestRateBps: number
+  @column()
+  declare kind: string
+  @column()
+  declare mandatorySavingsBps: number | null
+  @column()
+  declare maxAmount: bigint | number | null
+  @column()
+  declare minAmount: bigint | number | null
+  @column()
+  declare name: string
+  @column()
+  declare providerId: number
+  @column()
+  declare reviewNotes: string | null
+  @column.dateTime()
+  declare reviewedAt: DateTime | null
+  @column()
+  declare reviewedBy: number | null
+  @column()
+  declare status: string
+  @column.dateTime()
+  declare submittedAt: DateTime | null
+  @column()
+  declare termMonthsMax: number | null
+  @column()
+  declare termMonthsMin: number | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class FxQuoteSchema extends BaseModel {
   static $columns = [
     'amountIn',

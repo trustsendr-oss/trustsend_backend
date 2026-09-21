@@ -68,6 +68,10 @@ const AdminCardsController = () => import('#controllers/admin/cards_controller')
 const AdminLedgerAccountsController = () => import('#controllers/admin/ledger_accounts_controller')
 const AdminAccountingController = () => import('#controllers/admin/accounting_controller')
 const AdminBusinessStaffController = () => import('#controllers/admin/business_staff_controller')
+const AdminFinancialProductsController = () =>
+  import('#controllers/admin/financial_products_controller')
+const LendingProductsController = () => import('#controllers/lending/products_controller')
+const LendingCatalogueController = () => import('#controllers/lending/catalogue_controller')
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -418,6 +422,12 @@ router
       .post('webhooks/payscribe/cards', [CardWebhooksController, 'handle'])
       .as('webhooks.payscribe.cards')
 
+    // Published offers of partner institutions. Public like the plan catalogue: these are
+    // advertised terms, nothing here is personalised and nothing commits anyone.
+    router
+      .get('finance/products', [LendingCatalogueController, 'index'])
+      .as('finance.products.index')
+
     // Businesses (admin routes — internal_user only, mirrors /agents)
     router
       .group(() => {
@@ -449,6 +459,22 @@ router
       })
       .prefix('admin/business-staff')
       .as('admin.business_staff')
+      .use(middleware.auth({ guards: ['internal'] }))
+      .use(middleware.isInternalUser())
+
+    // Review of what partner institutions want to sell (admin routes — internal_user only).
+    // An approval here puts a rate in front of borrowers inside our own app, under our name —
+    // see admin/financial_products_controller.ts.
+    router
+      .group(() => {
+        router.get('', [AdminFinancialProductsController, 'index'])
+        router.get(':id', [AdminFinancialProductsController, 'show'])
+        router.post(':id/approve', [AdminFinancialProductsController, 'approve'])
+        router.post(':id/reject', [AdminFinancialProductsController, 'reject'])
+        router.post(':id/archive', [AdminFinancialProductsController, 'archive'])
+      })
+      .prefix('admin/financial-products')
+      .as('admin.financial_products')
       .use(middleware.auth({ guards: ['internal'] }))
       .use(middleware.isInternalUser())
 
@@ -562,6 +588,27 @@ router
     // No PIN: the API key itself is the sole credential (see business_api_key_middleware.ts).
     router
       .group(() => {
+        // An institution's own catalogue. Gated on the plan feature rather than on
+        // businesses.kind: what an institution may sell is the plan's job, never the label —
+        // see app/models/plan.ts and business_plan_middleware.ts.
+        router
+          .get('products', [LendingProductsController, 'index'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .post('products', [LendingProductsController, 'store'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .get('products/:id', [LendingProductsController, 'show'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .patch('products/:id', [LendingProductsController, 'update'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .post('products/:id/submit', [LendingProductsController, 'submit'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .post('products/:id/archive', [LendingProductsController, 'archive'])
+          .use(middleware.businessPlan('lending.credit'))
         router
           .post('mobile-money/deposits', [BusinessDepositsController, 'store'])
           .use(middleware.businessPlan('mobile_money.deposits'))
@@ -869,6 +916,26 @@ router
         router
           .get('cards/:id/transactions', [BusinessCardsController, 'transactions'])
           .use(middleware.businessPlan('cards.issuing'))
+        // Same controller as the API-key group above — most institutions have no system to call
+        // an API with and will manage their catalogue from the dashboard, so both paths serve it.
+        router
+          .get('products', [LendingProductsController, 'index'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .post('products', [LendingProductsController, 'store'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .get('products/:id', [LendingProductsController, 'show'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .patch('products/:id', [LendingProductsController, 'update'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .post('products/:id/submit', [LendingProductsController, 'submit'])
+          .use(middleware.businessPlan('lending.credit'))
+        router
+          .post('products/:id/archive', [LendingProductsController, 'archive'])
+          .use(middleware.businessPlan('lending.credit'))
       })
       .prefix('business/dashboard')
       .as('business.dashboard')

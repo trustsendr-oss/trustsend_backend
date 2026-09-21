@@ -1135,6 +1135,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/cards/webhooks_controller').default['handle']>>>
     }
   }
+  'finance.products.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/finance/products'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/financial_products').listPublishedProductsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'businesses.businesses.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/businesses'
@@ -1301,6 +1313,66 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['update']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['update']>>>
+    }
+  }
+  'admin.financial_products.admin_financial_products.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/financial-products'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['index']>>>
+    }
+  }
+  'admin.financial_products.admin_financial_products.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/financial-products/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['show']>>>
+    }
+  }
+  'admin.financial_products.admin_financial_products.approve': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/financial-products/:id/approve'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['approve']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['approve']>>>
+    }
+  }
+  'admin.financial_products.admin_financial_products.reject': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/financial-products/:id/reject'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/financial_products').rejectFinancialProductValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/financial_products').rejectFinancialProductValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['reject']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['reject']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.financial_products.admin_financial_products.archive': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/financial-products/:id/archive'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['archive']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['archive']>>>
     }
   }
   'card_products.card_products.index': {
@@ -1877,6 +1949,78 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/accounting_controller').default['reconcile']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/accounting_controller').default['reconcile']>>>
+    }
+  }
+  'business.lending_products.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/products'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['index']>>>
+    }
+  }
+  'business.lending_products.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/products'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/financial_products').createFinancialProductValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/financial_products').createFinancialProductValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'business.lending_products.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/products/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['show']>>>
+    }
+  }
+  'business.lending_products.update': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/business/products/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/financial_products').updateFinancialProductValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/financial_products').updateFinancialProductValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'business.lending_products.submit': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/products/:id/submit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['submit']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['submit']>>>
+    }
+  }
+  'business.lending_products.archive': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/products/:id/archive'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['archive']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['archive']>>>
     }
   }
   'business.business_deposits.store': {
@@ -2957,6 +3101,78 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/business_cards').listBusinessCardTransactionsValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/cards_controller').default['transactions']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/cards_controller').default['transactions']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'business.dashboard.lending_products.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/products'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['index']>>>
+    }
+  }
+  'business.dashboard.lending_products.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/products'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/financial_products').createFinancialProductValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/financial_products').createFinancialProductValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'business.dashboard.lending_products.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/products/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['show']>>>
+    }
+  }
+  'business.dashboard.lending_products.update': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/business/dashboard/products/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/financial_products').updateFinancialProductValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/financial_products').updateFinancialProductValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'business.dashboard.lending_products.submit': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/products/:id/submit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['submit']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['submit']>>>
+    }
+  }
+  'business.dashboard.lending_products.archive': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/products/:id/archive'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['archive']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['archive']>>>
     }
   }
 }

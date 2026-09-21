@@ -98,6 +98,7 @@ export type ScannedRoutes = {
     'webhooks.pawapay.mobile_money_webhooks.handle_deposit': { paramsTuple?: []; params?: {} }
     'webhooks.pawapay.mobile_money_webhooks.handle_payout': { paramsTuple?: []; params?: {} }
     'webhooks.payscribe.cards': { paramsTuple?: []; params?: {} }
+    'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.store': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -112,6 +113,11 @@ export type ScannedRoutes = {
     'admin.business_staff.admin_business_staff.store': { paramsTuple?: []; params?: {} }
     'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
+    'admin.financial_products.admin_financial_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.financial_products.admin_financial_products.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.financial_products.admin_financial_products.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.financial_products.admin_financial_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.store': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -160,6 +166,12 @@ export type ScannedRoutes = {
     'admin.admin_accounting.balance_sheet': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.revenue': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.reconcile': { paramsTuple?: []; params?: {} }
+    'business.lending_products.index': { paramsTuple?: []; params?: {} }
+    'business.lending_products.store': { paramsTuple?: []; params?: {} }
+    'business.lending_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.lending_products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.lending_products.submit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.lending_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_deposits.store': { paramsTuple?: []; params?: {} }
     'business.business_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_deposits.live_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -250,6 +262,12 @@ export type ScannedRoutes = {
     'business.dashboard.business_cards.unfreeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_cards.terminate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_cards.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.lending_products.index': { paramsTuple?: []; params?: {} }
+    'business.dashboard.lending_products.store': { paramsTuple?: []; params?: {} }
+    'business.dashboard.lending_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.lending_products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.lending_products.submit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.lending_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
@@ -295,10 +313,13 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.predict_provider': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
+    'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
     'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
+    'admin.financial_products.admin_financial_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.index': { paramsTuple?: []; params?: {} }
@@ -322,6 +343,8 @@ export type ScannedRoutes = {
     'admin.exchange_rates.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_accounting.balance_sheet': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.revenue': { paramsTuple?: []; params?: {} }
+    'business.lending_products.index': { paramsTuple?: []; params?: {} }
+    'business.lending_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_deposits.live_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -360,6 +383,8 @@ export type ScannedRoutes = {
     'business.dashboard.business_cards.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_cards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_cards.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.lending_products.index': { paramsTuple?: []; params?: {} }
+    'business.dashboard.lending_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   HEAD: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
@@ -405,10 +430,13 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.predict_provider': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
+    'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
     'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
+    'admin.financial_products.admin_financial_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.index': { paramsTuple?: []; params?: {} }
@@ -432,6 +460,8 @@ export type ScannedRoutes = {
     'admin.exchange_rates.admin_show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_accounting.balance_sheet': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.revenue': { paramsTuple?: []; params?: {} }
+    'business.lending_products.index': { paramsTuple?: []; params?: {} }
+    'business.lending_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_deposits.live_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -470,6 +500,8 @@ export type ScannedRoutes = {
     'business.dashboard.business_cards.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_cards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_cards.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.lending_products.index': { paramsTuple?: []; params?: {} }
+    'business.dashboard.lending_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   POST: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
@@ -524,6 +556,9 @@ export type ScannedRoutes = {
     'businesses.businesses.issue_api_key': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.assign_plan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.store': { paramsTuple?: []; params?: {} }
+    'admin.financial_products.admin_financial_products.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.financial_products.admin_financial_products.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.financial_products.admin_financial_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.store': { paramsTuple?: []; params?: {} }
     'card_products.card_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.store': { paramsTuple?: []; params?: {} }
@@ -544,6 +579,9 @@ export type ScannedRoutes = {
     'admin.admin_cards.terminate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.exchange_rates.admin_refresh': { paramsTuple?: []; params?: {} }
     'admin.admin_accounting.reconcile': { paramsTuple?: []; params?: {} }
+    'business.lending_products.store': { paramsTuple?: []; params?: {} }
+    'business.lending_products.submit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.lending_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_deposits.store': { paramsTuple?: []; params?: {} }
     'business.business_payouts.store': { paramsTuple?: []; params?: {} }
     'business.business_wallet.store': { paramsTuple?: []; params?: {} }
@@ -583,6 +621,9 @@ export type ScannedRoutes = {
     'business.dashboard.business_dashboard_api_keys.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_cards.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_cards.terminate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.lending_products.store': { paramsTuple?: []; params?: {} }
+    'business.dashboard.lending_products.submit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.lending_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   PATCH: {
     'notifications.notifications.mark_read': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -596,6 +637,7 @@ export type ScannedRoutes = {
     'plans.plans.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.currencies.admin_update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.exchange_rates.admin_update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.lending_products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_cards.topup': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_cards.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_cards.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -606,6 +648,7 @@ export type ScannedRoutes = {
     'business.dashboard.business_cards.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_cards.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_cards.unfreeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.lending_products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
     'webhooks.webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

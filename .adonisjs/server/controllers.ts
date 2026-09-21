@@ -10,6 +10,7 @@ export const controllers = {
     AuditLogs: () => import('#controllers/admin/audit_logs_controller'),
     BusinessStaff: () => import('#controllers/admin/business_staff_controller'),
     Cards: () => import('#controllers/admin/cards_controller'),
+    FinancialProducts: () => import('#controllers/admin/financial_products_controller'),
     LedgerAccounts: () => import('#controllers/admin/ledger_accounts_controller'),
     Transactions: () => import('#controllers/admin/transactions_controller'),
   },
@@ -55,6 +56,11 @@ export const controllers = {
   InternalAuth: () => import('#controllers/internal_auth_controller'),
   InternalUsers: () => import('#controllers/internal_users_controller'),
   Kyc: () => import('#controllers/kyc_controller'),
+  lending: {
+    Catalogue: () => import('#controllers/lending/catalogue_controller'),
+    Products: () => import('#controllers/lending/products_controller'),
+    SerializeProduct: () => import('#controllers/lending/serialize_product'),
+  },
   mobileMoney: {
     Deposits: () => import('#controllers/mobile_money/deposits_controller'),
     Payouts: () => import('#controllers/mobile_money/payouts_controller'),

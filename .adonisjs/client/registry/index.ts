@@ -570,6 +570,12 @@ const routes = {
     tokens: [{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"api","end":""},{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"v1","end":""},{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"webhooks","end":""},{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"payscribe","end":""},{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"cards","end":""}],
     types: placeholder as Registry['webhooks.payscribe.cards']['types'],
   },
+  'finance.products.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/finance/products',
+    tokens: [{"old":"/api/v1/finance/products","type":0,"val":"api","end":""},{"old":"/api/v1/finance/products","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/products","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/products","type":0,"val":"products","end":""}],
+    types: placeholder as Registry['finance.products.index']['types'],
+  },
   'businesses.businesses.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/businesses',
@@ -653,6 +659,36 @@ const routes = {
     pattern: '/api/v1/admin/business-staff/:id',
     tokens: [{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/business-staff/:id","type":0,"val":"business-staff","end":""},{"old":"/api/v1/admin/business-staff/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['admin.business_staff.admin_business_staff.update']['types'],
+  },
+  'admin.financial_products.admin_financial_products.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/financial-products',
+    tokens: [{"old":"/api/v1/admin/financial-products","type":0,"val":"api","end":""},{"old":"/api/v1/admin/financial-products","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/financial-products","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/financial-products","type":0,"val":"financial-products","end":""}],
+    types: placeholder as Registry['admin.financial_products.admin_financial_products.index']['types'],
+  },
+  'admin.financial_products.admin_financial_products.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/financial-products/:id',
+    tokens: [{"old":"/api/v1/admin/financial-products/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/financial-products/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/financial-products/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/financial-products/:id","type":0,"val":"financial-products","end":""},{"old":"/api/v1/admin/financial-products/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.financial_products.admin_financial_products.show']['types'],
+  },
+  'admin.financial_products.admin_financial_products.approve': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/financial-products/:id/approve',
+    tokens: [{"old":"/api/v1/admin/financial-products/:id/approve","type":0,"val":"api","end":""},{"old":"/api/v1/admin/financial-products/:id/approve","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/financial-products/:id/approve","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/financial-products/:id/approve","type":0,"val":"financial-products","end":""},{"old":"/api/v1/admin/financial-products/:id/approve","type":1,"val":"id","end":""},{"old":"/api/v1/admin/financial-products/:id/approve","type":0,"val":"approve","end":""}],
+    types: placeholder as Registry['admin.financial_products.admin_financial_products.approve']['types'],
+  },
+  'admin.financial_products.admin_financial_products.reject': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/financial-products/:id/reject',
+    tokens: [{"old":"/api/v1/admin/financial-products/:id/reject","type":0,"val":"api","end":""},{"old":"/api/v1/admin/financial-products/:id/reject","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/financial-products/:id/reject","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/financial-products/:id/reject","type":0,"val":"financial-products","end":""},{"old":"/api/v1/admin/financial-products/:id/reject","type":1,"val":"id","end":""},{"old":"/api/v1/admin/financial-products/:id/reject","type":0,"val":"reject","end":""}],
+    types: placeholder as Registry['admin.financial_products.admin_financial_products.reject']['types'],
+  },
+  'admin.financial_products.admin_financial_products.archive': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/financial-products/:id/archive',
+    tokens: [{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"api","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"financial-products","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":1,"val":"id","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"archive","end":""}],
+    types: placeholder as Registry['admin.financial_products.admin_financial_products.archive']['types'],
   },
   'card_products.card_products.index': {
     methods: ["GET","HEAD"],
@@ -941,6 +977,42 @@ const routes = {
     pattern: '/api/v1/admin/accounting/reconcile',
     tokens: [{"old":"/api/v1/admin/accounting/reconcile","type":0,"val":"api","end":""},{"old":"/api/v1/admin/accounting/reconcile","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/accounting/reconcile","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/accounting/reconcile","type":0,"val":"accounting","end":""},{"old":"/api/v1/admin/accounting/reconcile","type":0,"val":"reconcile","end":""}],
     types: placeholder as Registry['admin.admin_accounting.reconcile']['types'],
+  },
+  'business.lending_products.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/business/products',
+    tokens: [{"old":"/api/v1/business/products","type":0,"val":"api","end":""},{"old":"/api/v1/business/products","type":0,"val":"v1","end":""},{"old":"/api/v1/business/products","type":0,"val":"business","end":""},{"old":"/api/v1/business/products","type":0,"val":"products","end":""}],
+    types: placeholder as Registry['business.lending_products.index']['types'],
+  },
+  'business.lending_products.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/products',
+    tokens: [{"old":"/api/v1/business/products","type":0,"val":"api","end":""},{"old":"/api/v1/business/products","type":0,"val":"v1","end":""},{"old":"/api/v1/business/products","type":0,"val":"business","end":""},{"old":"/api/v1/business/products","type":0,"val":"products","end":""}],
+    types: placeholder as Registry['business.lending_products.store']['types'],
+  },
+  'business.lending_products.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/business/products/:id',
+    tokens: [{"old":"/api/v1/business/products/:id","type":0,"val":"api","end":""},{"old":"/api/v1/business/products/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/business/products/:id","type":0,"val":"business","end":""},{"old":"/api/v1/business/products/:id","type":0,"val":"products","end":""},{"old":"/api/v1/business/products/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['business.lending_products.show']['types'],
+  },
+  'business.lending_products.update': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/business/products/:id',
+    tokens: [{"old":"/api/v1/business/products/:id","type":0,"val":"api","end":""},{"old":"/api/v1/business/products/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/business/products/:id","type":0,"val":"business","end":""},{"old":"/api/v1/business/products/:id","type":0,"val":"products","end":""},{"old":"/api/v1/business/products/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['business.lending_products.update']['types'],
+  },
+  'business.lending_products.submit': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/products/:id/submit',
+    tokens: [{"old":"/api/v1/business/products/:id/submit","type":0,"val":"api","end":""},{"old":"/api/v1/business/products/:id/submit","type":0,"val":"v1","end":""},{"old":"/api/v1/business/products/:id/submit","type":0,"val":"business","end":""},{"old":"/api/v1/business/products/:id/submit","type":0,"val":"products","end":""},{"old":"/api/v1/business/products/:id/submit","type":1,"val":"id","end":""},{"old":"/api/v1/business/products/:id/submit","type":0,"val":"submit","end":""}],
+    types: placeholder as Registry['business.lending_products.submit']['types'],
+  },
+  'business.lending_products.archive': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/products/:id/archive',
+    tokens: [{"old":"/api/v1/business/products/:id/archive","type":0,"val":"api","end":""},{"old":"/api/v1/business/products/:id/archive","type":0,"val":"v1","end":""},{"old":"/api/v1/business/products/:id/archive","type":0,"val":"business","end":""},{"old":"/api/v1/business/products/:id/archive","type":0,"val":"products","end":""},{"old":"/api/v1/business/products/:id/archive","type":1,"val":"id","end":""},{"old":"/api/v1/business/products/:id/archive","type":0,"val":"archive","end":""}],
+    types: placeholder as Registry['business.lending_products.archive']['types'],
   },
   'business.business_deposits.store': {
     methods: ["POST"],
@@ -1481,6 +1553,42 @@ const routes = {
     pattern: '/api/v1/business/dashboard/cards/:id/transactions',
     tokens: [{"old":"/api/v1/business/dashboard/cards/:id/transactions","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/cards/:id/transactions","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/cards/:id/transactions","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/cards/:id/transactions","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/cards/:id/transactions","type":0,"val":"cards","end":""},{"old":"/api/v1/business/dashboard/cards/:id/transactions","type":1,"val":"id","end":""},{"old":"/api/v1/business/dashboard/cards/:id/transactions","type":0,"val":"transactions","end":""}],
     types: placeholder as Registry['business.dashboard.business_cards.transactions']['types'],
+  },
+  'business.dashboard.lending_products.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/business/dashboard/products',
+    tokens: [{"old":"/api/v1/business/dashboard/products","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/products","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/products","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/products","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/products","type":0,"val":"products","end":""}],
+    types: placeholder as Registry['business.dashboard.lending_products.index']['types'],
+  },
+  'business.dashboard.lending_products.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/dashboard/products',
+    tokens: [{"old":"/api/v1/business/dashboard/products","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/products","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/products","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/products","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/products","type":0,"val":"products","end":""}],
+    types: placeholder as Registry['business.dashboard.lending_products.store']['types'],
+  },
+  'business.dashboard.lending_products.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/business/dashboard/products/:id',
+    tokens: [{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"products","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['business.dashboard.lending_products.show']['types'],
+  },
+  'business.dashboard.lending_products.update': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/business/dashboard/products/:id',
+    tokens: [{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":0,"val":"products","end":""},{"old":"/api/v1/business/dashboard/products/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['business.dashboard.lending_products.update']['types'],
+  },
+  'business.dashboard.lending_products.submit': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/dashboard/products/:id/submit',
+    tokens: [{"old":"/api/v1/business/dashboard/products/:id/submit","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/products/:id/submit","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/products/:id/submit","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/products/:id/submit","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/products/:id/submit","type":0,"val":"products","end":""},{"old":"/api/v1/business/dashboard/products/:id/submit","type":1,"val":"id","end":""},{"old":"/api/v1/business/dashboard/products/:id/submit","type":0,"val":"submit","end":""}],
+    types: placeholder as Registry['business.dashboard.lending_products.submit']['types'],
+  },
+  'business.dashboard.lending_products.archive': {
+    methods: ["POST"],
+    pattern: '/api/v1/business/dashboard/products/:id/archive',
+    tokens: [{"old":"/api/v1/business/dashboard/products/:id/archive","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/products/:id/archive","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/products/:id/archive","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/products/:id/archive","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/products/:id/archive","type":0,"val":"products","end":""},{"old":"/api/v1/business/dashboard/products/:id/archive","type":1,"val":"id","end":""},{"old":"/api/v1/business/dashboard/products/:id/archive","type":0,"val":"archive","end":""}],
+    types: placeholder as Registry['business.dashboard.lending_products.archive']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

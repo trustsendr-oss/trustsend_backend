@@ -210,6 +210,11 @@ export interface ApiDefinition {
       listAllPaymentMethodsRaw: typeof routes['mobile_money.mobile_money_toolkit.list_all_payment_methods_raw']
     }
   }
+  finance: {
+    products: {
+      index: typeof routes['finance.products.index']
+    }
+  }
   businesses: {
     businesses: {
       index: typeof routes['businesses.businesses.index']
@@ -231,6 +236,15 @@ export interface ApiDefinition {
         store: typeof routes['admin.business_staff.admin_business_staff.store']
         show: typeof routes['admin.business_staff.admin_business_staff.show']
         update: typeof routes['admin.business_staff.admin_business_staff.update']
+      }
+    }
+    financialProducts: {
+      adminFinancialProducts: {
+        index: typeof routes['admin.financial_products.admin_financial_products.index']
+        show: typeof routes['admin.financial_products.admin_financial_products.show']
+        approve: typeof routes['admin.financial_products.admin_financial_products.approve']
+        reject: typeof routes['admin.financial_products.admin_financial_products.reject']
+        archive: typeof routes['admin.financial_products.admin_financial_products.archive']
       }
     }
     adminTransactions: {
@@ -303,6 +317,14 @@ export interface ApiDefinition {
     }
   }
   business: {
+    lendingProducts: {
+      index: typeof routes['business.lending_products.index']
+      store: typeof routes['business.lending_products.store']
+      show: typeof routes['business.lending_products.show']
+      update: typeof routes['business.lending_products.update']
+      submit: typeof routes['business.lending_products.submit']
+      archive: typeof routes['business.lending_products.archive']
+    }
     businessDeposits: {
       store: typeof routes['business.business_deposits.store']
       show: typeof routes['business.business_deposits.show']
@@ -448,6 +470,14 @@ export interface ApiDefinition {
         unfreeze: typeof routes['business.dashboard.business_cards.unfreeze']
         terminate: typeof routes['business.dashboard.business_cards.terminate']
         transactions: typeof routes['business.dashboard.business_cards.transactions']
+      }
+      lendingProducts: {
+        index: typeof routes['business.dashboard.lending_products.index']
+        store: typeof routes['business.dashboard.lending_products.store']
+        show: typeof routes['business.dashboard.lending_products.show']
+        update: typeof routes['business.dashboard.lending_products.update']
+        submit: typeof routes['business.dashboard.lending_products.submit']
+        archive: typeof routes['business.dashboard.lending_products.archive']
       }
     }
   }
