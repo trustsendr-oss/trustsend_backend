@@ -1345,6 +1345,7 @@ export class UserSchema extends BaseModel {
     'loginAttempts',
     'loginLockedUntil',
     'password',
+    'phone',
     'pinAttempts',
     'pinHash',
     'pinLockedUntil',
@@ -1369,6 +1370,8 @@ export class UserSchema extends BaseModel {
   declare loginLockedUntil: DateTime | null
   @column({ serializeAs: null })
   declare password: string | null
+  @column()
+  declare phone: string | null
   @column()
   declare pinAttempts: number | null
   @column()
