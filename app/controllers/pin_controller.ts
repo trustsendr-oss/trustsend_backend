@@ -121,7 +121,9 @@ export default class PinController {
     // and swallows its own failures — a delivery problem must not change the generic response
     // below, which is what keeps this endpoint from confirming whether the account exists.
     await NotificationService.sendEmail({
-      to: user.email,
+      // The validated input rather than user.email: the row was just looked up BY this address,
+      // so they are the same value, and this one is non-null by construction.
+      to: email,
       subject: 'Réinitialisation de votre code de paiement',
       template: 'pin_reset_requested',
       data: { token, expires_in_minutes: 30 },

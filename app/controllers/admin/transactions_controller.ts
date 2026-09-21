@@ -81,7 +81,7 @@ export default class AdminTransactionsController {
     ])
 
     const names = new Map<string, string>()
-    for (const u of users) names.set(`user:${u.id}`, u.fullName || u.email)
+    for (const u of users) names.set(`user:${u.id}`, u.fullName || u.email || `#${u.id}`)
     for (const a of agents) names.set(`agent:${a.id}`, a.fullName)
     for (const b of businesses) names.set(`business:${b.id}`, b.name)
     for (const iu of internalUsers) names.set(`internal_user:${iu.id}`, iu.fullName)

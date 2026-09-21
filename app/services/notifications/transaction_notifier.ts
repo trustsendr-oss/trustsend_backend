@@ -24,8 +24,9 @@ import { NotificationService } from '#services/notifications/notification_servic
 export type NotificationRecipient = {
   type: 'user' | 'agent' | 'business'
   id: number
-  email: string
-  /** Display name, for the greeting. Falls back to the address when unnamed. */
+  /** Null for a counter-enrolled holder, who has no address — sendToRecipient skips those. */
+  email: string | null
+  /** Display name, for the greeting. Falls back to the address, then to the account code. */
   name: string
 }
 
@@ -79,7 +80,12 @@ export class TransactionNotifier {
     if (wallet.userId) {
       const user = await User.find(wallet.userId)
       return user
-        ? { type: 'user', id: user.id, email: user.email, name: user.fullName || user.email }
+        ? {
+            type: 'user',
+            id: user.id,
+            email: user.email,
+            name: user.fullName || user.email || user.code || `#${user.id}`,
+          }
         : null
     }
 
@@ -115,7 +121,12 @@ export class TransactionNotifier {
     if (type === 'user') {
       const user = await User.find(id)
       return user
-        ? { type: 'user', id: user.id, email: user.email, name: user.fullName || user.email }
+        ? {
+            type: 'user',
+            id: user.id,
+            email: user.email,
+            name: user.fullName || user.email || user.code || `#${user.id}`,
+          }
         : null
     }
     if (type === 'agent') {

@@ -1358,7 +1358,7 @@ export class UserSchema extends BaseModel {
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()
-  declare email: string
+  declare email: string | null
   @column()
   declare fullName: string | null
   @column({ isPrimary: true })
@@ -1368,7 +1368,7 @@ export class UserSchema extends BaseModel {
   @column.dateTime()
   declare loginLockedUntil: DateTime | null
   @column({ serializeAs: null })
-  declare password: string
+  declare password: string | null
   @column()
   declare pinAttempts: number | null
   @column()

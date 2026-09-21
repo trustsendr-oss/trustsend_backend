@@ -130,10 +130,20 @@ export default class AdminCardsController {
       return response.badRequest({ message: 'phone is required when owner_type is user' })
     }
 
+    // Same requirement as the self-service route: the issuer registers the cardholder by address,
+    // and a counter-enrolled holder has none. Captured into a local like fullName/phone below —
+    // `owner` is a union, and TypeScript does not narrow a property read through one. Checked
+    // before fullName so the display-name fallback can lean on it.
+    const email = owner.email
+    if (!email) {
+      return response.badRequest({
+        message: 'This account has no email address, which the card issuer requires.',
+        code: 'E_EMAIL_REQUIRED',
+      })
+    }
+
     const fullName =
-      payload.owner_type === 'user'
-        ? (owner as User).fullName || (owner as User).email
-        : (owner as Business).name
+      payload.owner_type === 'user' ? (owner as User).fullName || email : (owner as Business).name
     const phone = payload.owner_type === 'user' ? payload.phone! : (owner as Business).phone
 
     try {
@@ -142,7 +152,7 @@ export default class AdminCardsController {
           ownerType: payload.owner_type,
           ownerId: payload.owner_id,
           fullName,
-          email: owner.email,
+          email,
           phone,
         },
         walletId: payload.wallet_id,

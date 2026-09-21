@@ -116,6 +116,17 @@ export default class CardsController {
         })
       }
 
+      // The card issuer requires a real address to register the cardholder, and a holder enrolled
+      // at a counter has none. Refused explicitly rather than forwarding an empty address the
+      // provider would reject with an opaque error.
+      if (!user.email) {
+        await IdempotencyService.fail(identity)
+        return response.badRequest({
+          message: 'An email address is required to issue a card. Add one to your account first.',
+          code: 'E_EMAIL_REQUIRED',
+        })
+      }
+
       const { card, details } = await cardService.createCard({
         owner: {
           ownerType: 'user',
