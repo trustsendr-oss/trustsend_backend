@@ -27,6 +27,7 @@ export class BusinessOnboardingService {
     phone: string
     correlationId: string
     password?: string
+    kind?: 'merchant' | 'imf' | 'bank' | 'insurer'
   }): Promise<{ business: Business; generatedPassword: string | null }> {
     const generatedPassword = request.password ? null : randomBytes(12).toString('base64url')
 
@@ -37,6 +38,10 @@ export class BusinessOnboardingService {
       business.email = request.email
       business.phone = request.phone
       business.password = request.password || generatedPassword
+      // Set explicitly rather than leaning on the column default: Lucid does not read the row
+      // back after insert, so a caller inspecting `business.kind` on the returned instance would
+      // otherwise get undefined instead of the value actually stored.
+      business.kind = request.kind ?? 'merchant'
       // The sandbox is self-service for integrators: no KYB review, no admin in the loop. Safe
       // only because start/env.ts guarantees a sandbox never talks to a production provider.
       // approvedBy stays null — no internal user made this decision.
@@ -99,7 +104,12 @@ export class BusinessOnboardingService {
         resourceType: 'business',
         resourceId: business.id,
         before: undefined,
-        after: { code: business.code, status: business.status, sandbox: SandboxMode.isEnabled() },
+        after: {
+          code: business.code,
+          kind: business.kind,
+          status: business.status,
+          sandbox: SandboxMode.isEnabled(),
+        },
         correlationId: request.correlationId,
         trx,
       })

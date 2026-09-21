@@ -9,9 +9,12 @@ import Wallet from '#models/wallet'
 import BusinessApiKey from '#models/business_api_key'
 import InternalUser from '#models/internal_user'
 import Plan from '#models/plan'
+import Agent from '#models/agent'
 
 /**
- * Business — a merchant account. Two independent access paths share this same row:
+ * Business — a third-party institution account. A merchant by default; `kind` also covers the
+ * partner institutions that sell through TumaPlus, such as an IMF. Two independent access paths
+ * share this same row:
  * server-to-server via BusinessApiKey (see business_api_key_middleware.ts), and a human
  * dashboard login via this model's own access tokens (businessDashboard guard, config/auth.ts).
  * Its own token table (business_access_tokens) — never the shared auth_access_tokens table,
@@ -36,6 +39,14 @@ export default class Business extends compose(
 
   @column()
   declare name: string
+
+  /**
+   * What this institution IS — never what it may sell, which stays with the plan's feature map
+   * (see Plan.hasFeature and business_plan_middleware.ts). An IMF is a business whose plan grants
+   * `lending.credit`/`savings.accounts`; this column only labels the row.
+   */
+  @column()
+  declare kind: 'merchant' | 'imf' | 'bank' | 'insurer'
 
   @column()
   declare email: string
@@ -124,4 +135,11 @@ export default class Business extends compose(
 
   @hasMany(() => BusinessApiKey, { foreignKey: 'businessId' })
   declare apiKeys: HasMany<typeof BusinessApiKey>
+
+  /**
+   * The agents this institution owns — its counters, for an IMF. Empty for a merchant, and never
+   * the TumaPlus network's own agents, which carry a null business_id.
+   */
+  @hasMany(() => Agent, { foreignKey: 'businessId' })
+  declare branches: HasMany<typeof Agent>
 }

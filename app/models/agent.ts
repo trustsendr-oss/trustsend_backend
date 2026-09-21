@@ -6,6 +6,7 @@ import AgentApplication from '#models/agent_application'
 import AgentDocument from '#models/agent_document'
 import AgentDevice from '#models/agent_device'
 import InternalUser from '#models/internal_user'
+import Business from '#models/business'
 
 export default class Agent extends BaseModel {
   static table = 'agents'
@@ -15,6 +16,14 @@ export default class Agent extends BaseModel {
 
   @column()
   declare userId: number | null
+
+  /**
+   * The institution this agent belongs to — an IMF's counter carries its business id, TumaPlus's
+   * own network agents carry null. Every tenant-scoped query must filter on this rather than on
+   * anything the caller sends.
+   */
+  @column()
+  declare businessId: number | null
 
   @column()
   declare code: string
@@ -99,6 +108,9 @@ export default class Agent extends BaseModel {
   // Relations
   @belongsTo(() => Wallet, { foreignKey: 'walletId' })
   declare wallet: BelongsTo<typeof Wallet>
+
+  @belongsTo(() => Business, { foreignKey: 'businessId' })
+  declare business: BelongsTo<typeof Business>
 
   @belongsTo(() => InternalUser, { foreignKey: 'approvedBy' })
   declare approver: BelongsTo<typeof InternalUser>

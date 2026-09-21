@@ -144,6 +144,7 @@ export class AgentSchema extends BaseModel {
     'address',
     'approvedAt',
     'approvedBy',
+    'businessId',
     'businessName',
     'city',
     'code',
@@ -177,6 +178,8 @@ export class AgentSchema extends BaseModel {
   declare approvedAt: DateTime | null
   @column()
   declare approvedBy: number | null
+  @column()
+  declare businessId: number | null
   @column()
   declare businessName: string | null
   @column()
@@ -417,6 +420,7 @@ export class BusinessSchema extends BaseModel {
     'createdAt',
     'email',
     'id',
+    'kind',
     'loginAttempts',
     'loginLockedUntil',
     'name',
@@ -453,6 +457,8 @@ export class BusinessSchema extends BaseModel {
   declare email: string
   @column({ isPrimary: true })
   declare id: number
+  @column()
+  declare kind: string
   @column()
   declare loginAttempts: number | null
   @column.dateTime()
