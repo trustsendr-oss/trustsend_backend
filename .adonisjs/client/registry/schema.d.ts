@@ -1255,6 +1255,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['confirmCashOut']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'counter.counter_customers.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/customers'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/customers_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/customers_controller').default['show']>>>
+    }
+  }
+  'counter.counter_customers.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/customers'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/customers_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/customers_controller').default['store']>>>
+    }
+  }
   'finance.products.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/finance/products'

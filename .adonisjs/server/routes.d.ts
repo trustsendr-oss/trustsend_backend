@@ -108,6 +108,8 @@ export type ScannedRoutes = {
     'counter.counter_cash.reject_cash_in': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
     'counter.counter_cash.cash_out': { paramsTuple?: []; params?: {} }
     'counter.counter_cash.confirm_cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'counter.counter_customers.show': { paramsTuple?: []; params?: {} }
+    'counter.counter_customers.store': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.store': { paramsTuple?: []; params?: {} }
@@ -325,6 +327,7 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
+    'counter.counter_customers.show': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -444,6 +447,7 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
+    'counter.counter_customers.show': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -570,6 +574,7 @@ export type ScannedRoutes = {
     'counter.counter_cash.reject_cash_in': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
     'counter.counter_cash.cash_out': { paramsTuple?: []; params?: {} }
     'counter.counter_cash.confirm_cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'counter.counter_customers.store': { paramsTuple?: []; params?: {} }
     'businesses.businesses.store': { paramsTuple?: []; params?: {} }
     'businesses.businesses.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.activate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

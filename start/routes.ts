@@ -74,6 +74,7 @@ const LendingProductsController = () => import('#controllers/lending/products_co
 const LendingCatalogueController = () => import('#controllers/lending/catalogue_controller')
 const CounterSessionsController = () => import('#controllers/counter/sessions_controller')
 const CounterCashController = () => import('#controllers/counter/cash_controller')
+const CounterCustomersController = () => import('#controllers/counter/customers_controller')
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -441,6 +442,12 @@ router
         router.post('cash-in/:transaction_id/reject', [CounterCashController, 'rejectCashIn'])
         router.post('cash-out', [CounterCashController, 'cashOut'])
         router.post('cash-out/:transaction_id/confirm', [CounterCashController, 'confirmCashOut'])
+        // Enrolment. Throttled like the directory lookups it resembles: exact-match on a 9-digit
+        // code is enumerable given enough requests, whoever is asking.
+        router
+          .get('customers', [CounterCustomersController, 'show'])
+          .use(middleware.throttle({ maxRequests: 60, windowMinutes: 15, name: 'counter-lookup' }))
+        router.post('customers', [CounterCustomersController, 'store'])
       })
       .prefix('counter')
       .as('counter')

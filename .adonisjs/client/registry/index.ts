@@ -630,6 +630,18 @@ const routes = {
     tokens: [{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"api","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"cash-out","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":1,"val":"transaction_id","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"confirm","end":""}],
     types: placeholder as Registry['counter.counter_cash.confirm_cash_out']['types'],
   },
+  'counter.counter_customers.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/counter/customers',
+    tokens: [{"old":"/api/v1/counter/customers","type":0,"val":"api","end":""},{"old":"/api/v1/counter/customers","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/customers","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/customers","type":0,"val":"customers","end":""}],
+    types: placeholder as Registry['counter.counter_customers.show']['types'],
+  },
+  'counter.counter_customers.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/customers',
+    tokens: [{"old":"/api/v1/counter/customers","type":0,"val":"api","end":""},{"old":"/api/v1/counter/customers","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/customers","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/customers","type":0,"val":"customers","end":""}],
+    types: placeholder as Registry['counter.counter_customers.store']['types'],
+  },
   'finance.products.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/finance/products',

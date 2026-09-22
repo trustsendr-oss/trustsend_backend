@@ -225,6 +225,10 @@ export interface ApiDefinition {
       cashOut: typeof routes['counter.counter_cash.cash_out']
       confirmCashOut: typeof routes['counter.counter_cash.confirm_cash_out']
     }
+    counterCustomers: {
+      show: typeof routes['counter.counter_customers.show']
+      store: typeof routes['counter.counter_customers.store']
+    }
   }
   finance: {
     products: {

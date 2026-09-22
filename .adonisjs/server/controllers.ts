@@ -47,6 +47,7 @@ export const controllers = {
   },
   counter: {
     Cash: () => import('#controllers/counter/cash_controller'),
+    Customers: () => import('#controllers/counter/customers_controller'),
     SerializeSession: () => import('#controllers/counter/serialize_session'),
     Sessions: () => import('#controllers/counter/sessions_controller'),
   },
