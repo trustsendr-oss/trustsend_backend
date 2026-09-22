@@ -1005,6 +1005,42 @@ export class IdempotencyKeySchema extends BaseModel {
   declare status: string
 }
 
+export class InterestAccrualSchema extends BaseModel {
+  static $columns = [
+    'accruedAt',
+    'amount',
+    'balanceUsed',
+    'createdAt',
+    'id',
+    'ledgerTransactionId',
+    'periodKey',
+    'rateBps',
+    'savingsAccountId',
+    'updatedAt',
+  ] as const
+  $columns = InterestAccrualSchema.$columns
+  @column.dateTime()
+  declare accruedAt: DateTime
+  @column()
+  declare amount: bigint | number
+  @column()
+  declare balanceUsed: bigint | number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare ledgerTransactionId: string | null
+  @column()
+  declare periodKey: string
+  @column()
+  declare rateBps: number
+  @column()
+  declare savingsAccountId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class InternalAccessTokenSchema extends BaseModel {
   static $columns = [
     'abilities',
