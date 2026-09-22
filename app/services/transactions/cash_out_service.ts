@@ -8,6 +8,7 @@ import { LedgerService } from '#services/ledger/ledger_service'
 import { LimitService } from '#services/ledger/limit_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { IdGenerator } from '#services/security/id_generator'
+import { TellerSessionService } from '#services/counter/teller_session_service'
 import { v4 as uuidv4 } from 'uuid'
 
 export class CashOutOwnershipException extends Error {
@@ -50,6 +51,13 @@ export class CashOutService {
 
       await LimitService.assertWithinLimits(userWallet, request.amount.amount, trx)
 
+      // An institution's counter must have a drawer open; TumaPlus network agents return null and
+      // are untouched. Stamped on this tracking row only, never on the double-entry transaction
+      // confirm() posts later: both carry the same type and the same gross, so booking both would
+      // make the shift expect twice the cash that crossed it.
+      const agent = await Agent.findOrFail(request.agentId, { client: trx })
+      const tellerSessionId = await TellerSessionService.requireSessionForAgent(agent, trx)
+
       // Create transaction with reserved status
       // Funds stay in user wallet but marked as reserved (pending payout)
       const txn = new LedgerTransaction()
@@ -65,6 +73,7 @@ export class CashOutService {
       txn.amount = request.amount.amount
       txn.currencyCode = request.amount.currencyCode
       txn.paymentMethod = 'cash_agent'
+      txn.tellerSessionId = tellerSessionId
       txn.metadata = {
         agent_id: request.agentId,
         user_wallet_id: request.userWalletId,

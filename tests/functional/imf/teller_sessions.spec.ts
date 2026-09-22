@@ -10,6 +10,9 @@ import { AgentOnboardingService } from '#services/agents/agent_onboarding_servic
 import { AgentLifecycleService } from '#services/agents/agent_lifecycle_service'
 import { BusinessOnboardingService } from '#services/business/business_onboarding_service'
 import { TellerSessionService } from '#services/counter/teller_session_service'
+import { CashInService } from '#services/transactions/cash_in_service'
+import { UserOnboardingService } from '#services/users/user_onboarding_service'
+import { Money } from '#services/money/money'
 
 /**
  * The shift control: open with a declared drawer, close against a physical count, signed off by
@@ -430,6 +433,71 @@ test.group('Teller sessions', (group) => {
       TellerSessionService.close(session, [{ currencyCode: 'USD', amount: 999n }], {
         correlationId: `s-${suffix}`,
       })
+    )
+  })
+
+  test('cash taken at a counter books itself to the open shift', async ({ assert }) => {
+    const suffix = `${Date.now()}`.slice(-8)
+    const { teller, counter } = await setUpCounter(suffix)
+
+    const session = await TellerSessionService.open(
+      teller,
+      [{ currencyCode: 'USD', amount: 0n }],
+      `s-${suffix}`
+    )
+
+    const customer = await User.create({
+      fullName: `Customer ${suffix}`,
+      email: `cust${suffix}@example.test`,
+      password: 'a-real-password',
+    })
+    userIds.push(customer.id)
+    const wallet = await UserOnboardingService.createDefaultWallet(
+      customer.id,
+      'USD',
+      `s-${suffix}`
+    )
+
+    // Give the counter something to lend against, then take a deposit over it.
+    await db.from('wallets').where('id', counter.walletId!).update({ balance_cache: 1_000_00n })
+
+    const txn = await CashInService.initiate({
+      agentId: counter.id,
+      userWalletId: wallet.id,
+      amount: new Money(75_00n, 'USD'),
+      correlationId: `s-${suffix}`,
+    })
+
+    assert.equal(txn.tellerSessionId, session.id, 'booked to the shift without being told')
+  })
+
+  test('a counter with no open drawer refuses to take cash', async ({ assert }) => {
+    const suffix = `${Date.now()}`.slice(-8)
+    const { counter } = await setUpCounter(suffix)
+
+    const customer = await User.create({
+      fullName: `Customer ${suffix}`,
+      email: `nocust${suffix}@example.test`,
+      password: 'a-real-password',
+    })
+    userIds.push(customer.id)
+    const wallet = await UserOnboardingService.createDefaultWallet(
+      customer.id,
+      'USD',
+      `s-${suffix}`
+    )
+    await db.from('wallets').where('id', counter.walletId!).update({ balance_cache: 1_000_00n })
+
+    // Cash crossing a counter with no session is cash nobody can be asked about later.
+    await assert.rejects(
+      () =>
+        CashInService.initiate({
+          agentId: counter.id,
+          userWalletId: wallet.id,
+          amount: new Money(10_00n, 'USD'),
+          correlationId: `s-${suffix}`,
+        }),
+      'This counter has no open cash session — open one before taking cash'
     )
   })
 

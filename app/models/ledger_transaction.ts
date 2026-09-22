@@ -81,6 +81,17 @@ export default class LedgerTransaction extends BaseModel {
   @column()
   declare relatedTransactionId: string | null
 
+  /**
+   * The counter shift this passed through, on the TRACKING row only.
+   *
+   * A counter movement produces two rows — this tracking row and the double-entry transaction
+   * LedgerService.postTransaction creates — and both carry type `cash_in`/`cash_out` and the same
+   * gross amount. Stamping only one of them is what keeps a shift's expected cash from counting
+   * every movement twice; see TellerSessionService.
+   */
+  @column()
+  declare tellerSessionId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

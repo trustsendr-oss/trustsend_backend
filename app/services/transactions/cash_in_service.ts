@@ -7,6 +7,7 @@ import { Money } from '#services/money/money'
 import { LedgerService } from '#services/ledger/ledger_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { IdGenerator } from '#services/security/id_generator'
+import { TellerSessionService } from '#services/counter/teller_session_service'
 import { v4 as uuidv4 } from 'uuid'
 
 export class CashInOwnershipException extends Error {
@@ -53,6 +54,12 @@ export class CashInService {
         throw new Error('User wallet not found')
       }
 
+      // An institution's counter must have a drawer open; TumaPlus network agents return null and
+      // are untouched. Resolved here, on the tracking row, and deliberately NOT passed to
+      // postTransaction later: both rows share a type and a gross, so booking both would make the
+      // shift expect twice the cash that crossed it.
+      const tellerSessionId = await TellerSessionService.requireSessionForAgent(agent, trx)
+
       // Create transaction with pending status
       // The agent confirms after receiving the physical cash
       const txn = new LedgerTransaction()
@@ -69,6 +76,7 @@ export class CashInService {
       txn.currencyCode = request.amount.currencyCode
       txn.paymentMethod = 'cash_agent'
       txn.paymentChannel = agent.code
+      txn.tellerSessionId = tellerSessionId
       txn.metadata = {
         agent_id: request.agentId,
         agent_wallet_id: agent.walletId,

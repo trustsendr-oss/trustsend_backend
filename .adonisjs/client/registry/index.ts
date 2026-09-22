@@ -570,6 +570,36 @@ const routes = {
     tokens: [{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"api","end":""},{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"v1","end":""},{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"webhooks","end":""},{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"payscribe","end":""},{"old":"/api/v1/webhooks/payscribe/cards","type":0,"val":"cards","end":""}],
     types: placeholder as Registry['webhooks.payscribe.cards']['types'],
   },
+  'counter.counter_sessions.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/counter/sessions',
+    tokens: [{"old":"/api/v1/counter/sessions","type":0,"val":"api","end":""},{"old":"/api/v1/counter/sessions","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/sessions","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/sessions","type":0,"val":"sessions","end":""}],
+    types: placeholder as Registry['counter.counter_sessions.index']['types'],
+  },
+  'counter.counter_sessions.current': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/counter/sessions/current',
+    tokens: [{"old":"/api/v1/counter/sessions/current","type":0,"val":"api","end":""},{"old":"/api/v1/counter/sessions/current","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/sessions/current","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/sessions/current","type":0,"val":"sessions","end":""},{"old":"/api/v1/counter/sessions/current","type":0,"val":"current","end":""}],
+    types: placeholder as Registry['counter.counter_sessions.current']['types'],
+  },
+  'counter.counter_sessions.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/sessions',
+    tokens: [{"old":"/api/v1/counter/sessions","type":0,"val":"api","end":""},{"old":"/api/v1/counter/sessions","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/sessions","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/sessions","type":0,"val":"sessions","end":""}],
+    types: placeholder as Registry['counter.counter_sessions.store']['types'],
+  },
+  'counter.counter_sessions.close': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/sessions/:id/close',
+    tokens: [{"old":"/api/v1/counter/sessions/:id/close","type":0,"val":"api","end":""},{"old":"/api/v1/counter/sessions/:id/close","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/sessions/:id/close","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/sessions/:id/close","type":0,"val":"sessions","end":""},{"old":"/api/v1/counter/sessions/:id/close","type":1,"val":"id","end":""},{"old":"/api/v1/counter/sessions/:id/close","type":0,"val":"close","end":""}],
+    types: placeholder as Registry['counter.counter_sessions.close']['types'],
+  },
+  'counter.counter_sessions.reconcile': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/sessions/:id/reconcile',
+    tokens: [{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"api","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"sessions","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":1,"val":"id","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"reconcile","end":""}],
+    types: placeholder as Registry['counter.counter_sessions.reconcile']['types'],
+  },
   'finance.products.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/finance/products',

@@ -98,6 +98,11 @@ export type ScannedRoutes = {
     'webhooks.pawapay.mobile_money_webhooks.handle_deposit': { paramsTuple?: []; params?: {} }
     'webhooks.pawapay.mobile_money_webhooks.handle_payout': { paramsTuple?: []; params?: {} }
     'webhooks.payscribe.cards': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.store': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.close': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'counter.counter_sessions.reconcile': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.store': { paramsTuple?: []; params?: {} }
@@ -313,6 +318,8 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.predict_provider': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -430,6 +437,8 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.predict_provider': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -548,6 +557,9 @@ export type ScannedRoutes = {
     'webhooks.pawapay.mobile_money_webhooks.handle_deposit': { paramsTuple?: []; params?: {} }
     'webhooks.pawapay.mobile_money_webhooks.handle_payout': { paramsTuple?: []; params?: {} }
     'webhooks.payscribe.cards': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.store': { paramsTuple?: []; params?: {} }
+    'counter.counter_sessions.close': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'counter.counter_sessions.reconcile': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.store': { paramsTuple?: []; params?: {} }
     'businesses.businesses.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.activate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

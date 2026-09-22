@@ -210,6 +210,15 @@ export interface ApiDefinition {
       listAllPaymentMethodsRaw: typeof routes['mobile_money.mobile_money_toolkit.list_all_payment_methods_raw']
     }
   }
+  counter: {
+    counterSessions: {
+      index: typeof routes['counter.counter_sessions.index']
+      current: typeof routes['counter.counter_sessions.current']
+      store: typeof routes['counter.counter_sessions.store']
+      close: typeof routes['counter.counter_sessions.close']
+      reconcile: typeof routes['counter.counter_sessions.reconcile']
+    }
+  }
   finance: {
     products: {
       index: typeof routes['finance.products.index']

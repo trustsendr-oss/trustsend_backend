@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon'
 import db from '@adonisjs/lucid/services/db'
+import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
+import type Agent from '#models/agent'
 import type BusinessStaff from '#models/business_staff'
 import TellerSession from '#models/teller_session'
 import TellerSessionBalance from '#models/teller_session_balance'
@@ -25,6 +27,13 @@ export class SelfReconciliationException extends Error {
   constructor() {
     super('A teller cannot sign off their own session')
     this.name = 'SelfReconciliationException'
+  }
+}
+
+export class NoOpenSessionException extends Error {
+  constructor() {
+    super('This counter has no open cash session — open one before taking cash')
+    this.name = 'NoOpenSessionException'
   }
 }
 
@@ -254,6 +263,35 @@ export class TellerSessionService {
 
     await session.load('balances')
     return session
+  }
+
+  /**
+   * The shift a cash movement at this agent must be booked to.
+   *
+   * An institution's counter has to have a drawer open: cash crossing a counter with no session
+   * is cash nobody can be asked about later, which is the whole failure this table exists to
+   * prevent. TumaPlus's own network agents have no sessions at all and are unaffected — they
+   * return null and their transactions stay unbooked, exactly as every transaction is today.
+   *
+   * Callers stamp this on the TRACKING row only. The double-entry transaction that
+   * LedgerService.postTransaction creates alongside it carries the same type and the same gross,
+   * so booking both would make every shift expect twice the cash that actually crossed it.
+   */
+  static async requireSessionForAgent(
+    agent: Agent,
+    trx?: TransactionClientContract
+  ): Promise<number | null> {
+    if (!agent.businessId) {
+      return null
+    }
+
+    const query = trx ? TellerSession.query({ client: trx }) : TellerSession.query()
+    const session = await query.where('agent_id', agent.id).where('status', 'open').first()
+
+    if (!session) {
+      throw new NoOpenSessionException()
+    }
+    return session.id
   }
 
   /** The shift currently taking cash at a counter, if any. */

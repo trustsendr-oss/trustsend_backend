@@ -45,6 +45,10 @@ export const controllers = {
   cards: {
     Webhooks: () => import('#controllers/cards/webhooks_controller'),
   },
+  counter: {
+    SerializeSession: () => import('#controllers/counter/serialize_session'),
+    Sessions: () => import('#controllers/counter/sessions_controller'),
+  },
   Currencies: () => import('#controllers/currencies_controller'),
   Directory: () => import('#controllers/directory_controller'),
   Disputes: () => import('#controllers/disputes_controller'),

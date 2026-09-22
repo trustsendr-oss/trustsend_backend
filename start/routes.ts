@@ -72,6 +72,7 @@ const AdminFinancialProductsController = () =>
   import('#controllers/admin/financial_products_controller')
 const LendingProductsController = () => import('#controllers/lending/products_controller')
 const LendingCatalogueController = () => import('#controllers/lending/catalogue_controller')
+const CounterSessionsController = () => import('#controllers/counter/sessions_controller')
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -421,6 +422,22 @@ router
     router
       .post('webhooks/payscribe/cards', [CardWebhooksController, 'handle'])
       .as('webhooks.payscribe.cards')
+
+    // Counter operations, for the staff of a partner institution. Authenticated as an ordinary
+    // user, then resolved to an institution through their posting — the third door onto
+    // ctx.business, see business_staff_middleware.ts.
+    router
+      .group(() => {
+        router.get('sessions', [CounterSessionsController, 'index'])
+        router.get('sessions/current', [CounterSessionsController, 'current'])
+        router.post('sessions', [CounterSessionsController, 'store'])
+        router.post('sessions/:id/close', [CounterSessionsController, 'close'])
+        router.post('sessions/:id/reconcile', [CounterSessionsController, 'reconcile'])
+      })
+      .prefix('counter')
+      .as('counter')
+      .use(middleware.auth())
+      .use(middleware.businessStaff())
 
     // Published offers of partner institutions. Public like the plan catalogue: these are
     // advertised terms, nothing here is personalised and nothing commits anyone.

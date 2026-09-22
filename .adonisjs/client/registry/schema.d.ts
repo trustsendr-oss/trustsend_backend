@@ -1135,6 +1135,66 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/cards/webhooks_controller').default['handle']>>>
     }
   }
+  'counter.counter_sessions.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/sessions'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['index']>>>
+    }
+  }
+  'counter.counter_sessions.current': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/sessions/current'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['current']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['current']>>>
+    }
+  }
+  'counter.counter_sessions.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/sessions'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/teller_sessions').openTellerSessionValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/teller_sessions').openTellerSessionValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_sessions.close': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/sessions/:id/close'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/teller_sessions').closeTellerSessionValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/teller_sessions').closeTellerSessionValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['close']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['close']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_sessions.reconcile': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/sessions/:id/reconcile'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/teller_sessions').reconcileTellerSessionValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/teller_sessions').reconcileTellerSessionValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['reconcile']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['reconcile']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'finance.products.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/finance/products'
