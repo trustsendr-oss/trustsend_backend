@@ -642,6 +642,30 @@ const routes = {
     tokens: [{"old":"/api/v1/counter/customers","type":0,"val":"api","end":""},{"old":"/api/v1/counter/customers","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/customers","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/customers","type":0,"val":"customers","end":""}],
     types: placeholder as Registry['counter.counter_customers.store']['types'],
   },
+  'counter.counter_savings.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/counter/savings',
+    tokens: [{"old":"/api/v1/counter/savings","type":0,"val":"api","end":""},{"old":"/api/v1/counter/savings","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/savings","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/savings","type":0,"val":"savings","end":""}],
+    types: placeholder as Registry['counter.counter_savings.index']['types'],
+  },
+  'counter.counter_savings.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/savings',
+    tokens: [{"old":"/api/v1/counter/savings","type":0,"val":"api","end":""},{"old":"/api/v1/counter/savings","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/savings","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/savings","type":0,"val":"savings","end":""}],
+    types: placeholder as Registry['counter.counter_savings.store']['types'],
+  },
+  'counter.counter_savings.deposit': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/savings/:id/deposit',
+    tokens: [{"old":"/api/v1/counter/savings/:id/deposit","type":0,"val":"api","end":""},{"old":"/api/v1/counter/savings/:id/deposit","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/savings/:id/deposit","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/savings/:id/deposit","type":0,"val":"savings","end":""},{"old":"/api/v1/counter/savings/:id/deposit","type":1,"val":"id","end":""},{"old":"/api/v1/counter/savings/:id/deposit","type":0,"val":"deposit","end":""}],
+    types: placeholder as Registry['counter.counter_savings.deposit']['types'],
+  },
+  'counter.counter_savings.withdraw': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/savings/:id/withdraw',
+    tokens: [{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"api","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"savings","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":1,"val":"id","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"withdraw","end":""}],
+    types: placeholder as Registry['counter.counter_savings.withdraw']['types'],
+  },
   'finance.products.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/finance/products',

@@ -1279,6 +1279,54 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/customers_controller').default['store']>>>
     }
   }
+  'counter.counter_savings.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/savings'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/counter_savings').counterSavingsLookupValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/savings_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/savings_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_savings.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/savings'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/counter_savings').counterOpenSavingsValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/counter_savings').counterOpenSavingsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/savings_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/savings_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_savings.deposit': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/savings/:id/deposit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/savings_controller').default['deposit']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/savings_controller').default['deposit']>>>
+    }
+  }
+  'counter.counter_savings.withdraw': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/savings/:id/withdraw'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/savings_controller').default['withdraw']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/savings_controller').default['withdraw']>>>
+    }
+  }
   'finance.products.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/finance/products'

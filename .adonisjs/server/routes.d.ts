@@ -110,6 +110,10 @@ export type ScannedRoutes = {
     'counter.counter_cash.confirm_cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
     'counter.counter_customers.show': { paramsTuple?: []; params?: {} }
     'counter.counter_customers.store': { paramsTuple?: []; params?: {} }
+    'counter.counter_savings.index': { paramsTuple?: []; params?: {} }
+    'counter.counter_savings.store': { paramsTuple?: []; params?: {} }
+    'counter.counter_savings.deposit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'counter.counter_savings.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.index': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.store': { paramsTuple?: []; params?: {} }
@@ -334,6 +338,7 @@ export type ScannedRoutes = {
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
     'counter.counter_customers.show': { paramsTuple?: []; params?: {} }
+    'counter.counter_savings.index': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.index': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -456,6 +461,7 @@ export type ScannedRoutes = {
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
     'counter.counter_customers.show': { paramsTuple?: []; params?: {} }
+    'counter.counter_savings.index': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.index': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -585,6 +591,9 @@ export type ScannedRoutes = {
     'counter.counter_cash.cash_out': { paramsTuple?: []; params?: {} }
     'counter.counter_cash.confirm_cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
     'counter.counter_customers.store': { paramsTuple?: []; params?: {} }
+    'counter.counter_savings.store': { paramsTuple?: []; params?: {} }
+    'counter.counter_savings.deposit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'counter.counter_savings.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.savings.savings_accounts.store': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.deposit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.savings.savings_accounts.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

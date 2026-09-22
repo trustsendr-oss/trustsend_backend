@@ -76,6 +76,7 @@ const SavingsAccountsController = () => import('#controllers/savings/accounts_co
 const CounterSessionsController = () => import('#controllers/counter/sessions_controller')
 const CounterCashController = () => import('#controllers/counter/cash_controller')
 const CounterCustomersController = () => import('#controllers/counter/customers_controller')
+const CounterSavingsController = () => import('#controllers/counter/savings_controller')
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -449,6 +450,13 @@ router
           .get('customers', [CounterCustomersController, 'show'])
           .use(middleware.throttle({ maxRequests: 60, windowMinutes: 15, name: 'counter-lookup' }))
         router.post('customers', [CounterCustomersController, 'store'])
+        // Savings across the window. No notes move, so nothing here books to a shift and no
+        // open drawer is required — booking them would move a shift's expected cash while the
+        // drawer stood still.
+        router.get('savings', [CounterSavingsController, 'index'])
+        router.post('savings', [CounterSavingsController, 'store'])
+        router.post('savings/:id/deposit', [CounterSavingsController, 'deposit'])
+        router.post('savings/:id/withdraw', [CounterSavingsController, 'withdraw'])
       })
       .prefix('counter')
       .as('counter')

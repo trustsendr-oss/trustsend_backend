@@ -229,6 +229,12 @@ export interface ApiDefinition {
       show: typeof routes['counter.counter_customers.show']
       store: typeof routes['counter.counter_customers.store']
     }
+    counterSavings: {
+      index: typeof routes['counter.counter_savings.index']
+      store: typeof routes['counter.counter_savings.store']
+      deposit: typeof routes['counter.counter_savings.deposit']
+      withdraw: typeof routes['counter.counter_savings.withdraw']
+    }
   }
   finance: {
     products: {
