@@ -11,22 +11,51 @@ import {
   minValue,
   email,
 } from 'react-admin'
+import { useWatch } from 'react-hook-form'
 
 // Smallest-currency-unit strings server-side (USD cents) — entered here in dollars.
 const toCents = (v: unknown) => (v === null || v === undefined || v === '' ? undefined : String(Math.round(Number(v) * 100)))
+
+/**
+ * A TumaPlus network agent IS a person and signs in as one, so it needs a linked account — every
+ * flow that lets one act resolves the agent from the signed-in user. An institution's counter is a
+ * place, staffed by whoever business_staff posts to it, and needs none. The requirement therefore
+ * follows the institution field rather than being fixed, mirroring the rule
+ * AgentOnboardingService.create enforces server-side.
+ */
+function LinkedAccountInput() {
+  const businessId = useWatch({ name: 'business_id' })
+
+  return (
+    <ReferenceInput source="user_id" reference="users">
+      <AutocompleteInput
+        label="Linked user account"
+        optionText={(u) => (u ? `${u.full_name} — ${u.email}` : '')}
+        validate={businessId ? undefined : required()}
+        filterToQuery={(q) => ({ q })}
+        helperText={
+          businessId
+            ? 'Leave blank — a counter is a place, and its staff are posted to it separately.'
+            : 'Required: a network agent signs in with this account.'
+        }
+      />
+    </ReferenceInput>
+  )
+}
 
 export function AgentCreate() {
   return (
     <Create redirect="show">
       <SimpleForm>
-        <ReferenceInput source="user_id" reference="users">
+        <ReferenceInput source="business_id" reference="businesses">
           <AutocompleteInput
-            label="Linked user account"
-            optionText={(u) => (u ? `${u.full_name} — ${u.email}` : '')}
-            validate={required()}
+            label="Institution"
+            optionText="name"
             filterToQuery={(q) => ({ q })}
+            helperText="Leave blank for a TumaPlus network agent. Set it to open a partner's counter."
           />
         </ReferenceInput>
+        <LinkedAccountInput />
         <TextInput source="full_name" validate={[required(), minLength(3)]} />
         <TextInput source="business_name" label="Business/outlet name" helperText="Optional — shown instead of full_name when set" />
         <SelectInput

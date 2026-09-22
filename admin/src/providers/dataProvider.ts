@@ -16,6 +16,7 @@ const RESOURCE_PATH: Record<string, string> = {
   agents: '/agents',
   businesses: '/businesses',
   business_staff: '/admin/business-staff',
+  financial_products: '/admin/financial-products',
   users: '/users',
   plans: '/plans',
   card_products: '/card-products',
@@ -253,6 +254,18 @@ export const dataProvider: DataProvider = {
  * buttons via useDataProvider() rather than through update()/create().
  */
 export const adminActions = {
+  // Publishing a partner's rate puts it in front of borrowers inside our own app, under our name,
+  // which is why approval is an explicit act here rather than a status anyone can edit.
+  financialProductApprove: (id: number | string) =>
+    apiFetch(`/admin/financial-products/${id}/approve`, { method: 'POST' }),
+  financialProductReject: (id: number | string, notes: string) =>
+    apiFetch(`/admin/financial-products/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ notes }),
+    }),
+  financialProductArchive: (id: number | string) =>
+    apiFetch(`/admin/financial-products/${id}/archive`, { method: 'POST' }),
+
   refreshExchangeRates: () =>
     apiFetch<{ updated: number }>('/admin/exchange-rates/refresh', { method: 'POST' }),
 

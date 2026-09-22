@@ -15,6 +15,7 @@ import {
   BusinessStaffCreate,
   BusinessStaffEdit,
 } from './resources/businessStaff'
+import { FinancialProductList, FinancialProductShow } from './resources/financialProducts'
 import { UserList, UserShow } from './resources/users'
 import {
   CardProductList,
@@ -113,6 +114,14 @@ export default function App() {
         icon={resourceIcons.business_staff}
         options={{ label: 'Institution staff' }}
         recordRepresentation="user_name"
+      />
+      <Resource
+        name="financial_products"
+        list={FinancialProductList}
+        show={FinancialProductShow}
+        icon={resourceIcons.financial_products}
+        options={{ label: 'Financial products' }}
+        recordRepresentation="name"
       />
       <Resource
         name="cards"

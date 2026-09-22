@@ -5,6 +5,7 @@ import DashboardIcon from '@mui/icons-material/SpaceDashboardOutlined'
 import AgentsIcon from '@mui/icons-material/BadgeOutlined'
 import BusinessesIcon from '@mui/icons-material/StorefrontOutlined'
 import BusinessStaffIcon from '@mui/icons-material/SupportAgentOutlined'
+import FinancialProductsIcon from '@mui/icons-material/SavingsOutlined'
 import UsersIcon from '@mui/icons-material/GroupOutlined'
 import PlansIcon from '@mui/icons-material/SellOutlined'
 import KycIcon from '@mui/icons-material/VerifiedUserOutlined'
@@ -53,6 +54,7 @@ export function AppMenu() {
 
       <SectionLabel>Platform</SectionLabel>
       <Menu.ResourceItem name="card_products" />
+      <Menu.ResourceItem name="financial_products" />
       <Menu.ResourceItem name="plans" />
       <Menu.ResourceItem name="currencies" />
       <Menu.ResourceItem name="internal_users" />
@@ -64,6 +66,7 @@ export const resourceIcons = {
   agents: AgentsIcon,
   businesses: BusinessesIcon,
   business_staff: BusinessStaffIcon,
+  financial_products: FinancialProductsIcon,
   users: UsersIcon,
   plans: PlansIcon,
   // Même icône que les cartes : ce catalogue décrit ce qu'une carte peut être.
