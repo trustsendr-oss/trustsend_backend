@@ -6,6 +6,8 @@ import AgentsIcon from '@mui/icons-material/BadgeOutlined'
 import BusinessesIcon from '@mui/icons-material/StorefrontOutlined'
 import BusinessStaffIcon from '@mui/icons-material/SupportAgentOutlined'
 import FinancialProductsIcon from '@mui/icons-material/SavingsOutlined'
+import LoansIcon from '@mui/icons-material/HandshakeOutlined'
+import SavingsAccountsIcon from '@mui/icons-material/AccountBalanceWalletOutlined'
 import UsersIcon from '@mui/icons-material/GroupOutlined'
 import PlansIcon from '@mui/icons-material/SellOutlined'
 import KycIcon from '@mui/icons-material/VerifiedUserOutlined'
@@ -48,6 +50,8 @@ export function AppMenu() {
       <SectionLabel>Finance</SectionLabel>
       <Menu.ResourceItem name="transactions" />
       <Menu.ResourceItem name="cards" />
+      <Menu.ResourceItem name="loans" />
+      <Menu.ResourceItem name="savings_accounts" />
       <Menu.ResourceItem name="ledger_accounts" />
       <Menu.ResourceItem name="exchange_rates" />
       <Menu.Item to="/accounting" primaryText="Accounting" leftIcon={<AccountingIcon />} />
@@ -67,6 +71,8 @@ export const resourceIcons = {
   businesses: BusinessesIcon,
   business_staff: BusinessStaffIcon,
   financial_products: FinancialProductsIcon,
+  loans: LoansIcon,
+  savings_accounts: SavingsAccountsIcon,
   users: UsersIcon,
   plans: PlansIcon,
   // Même icône que les cartes : ce catalogue décrit ce qu'une carte peut être.

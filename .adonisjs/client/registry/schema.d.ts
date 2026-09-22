@@ -1747,6 +1747,54 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/financial_products_controller').default['archive']>>>
     }
   }
+  'admin.lending.admin_lending.loans': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/loans'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['loans']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['loans']>>>
+    }
+  }
+  'admin.lending.admin_lending.loan': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/loans/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['loan']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['loan']>>>
+    }
+  }
+  'admin.lending.admin_lending.savings': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/savings'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['savings']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['savings']>>>
+    }
+  }
+  'admin.lending.admin_lending.position': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/institutions/:id/position'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['position']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['position']>>>
+    }
+  }
   'card_products.card_products.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/card-products'

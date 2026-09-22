@@ -876,6 +876,30 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"api","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"financial-products","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":1,"val":"id","end":""},{"old":"/api/v1/admin/financial-products/:id/archive","type":0,"val":"archive","end":""}],
     types: placeholder as Registry['admin.financial_products.admin_financial_products.archive']['types'],
   },
+  'admin.lending.admin_lending.loans': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/loans',
+    tokens: [{"old":"/api/v1/admin/loans","type":0,"val":"api","end":""},{"old":"/api/v1/admin/loans","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/loans","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/loans","type":0,"val":"loans","end":""}],
+    types: placeholder as Registry['admin.lending.admin_lending.loans']['types'],
+  },
+  'admin.lending.admin_lending.loan': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/loans/:id',
+    tokens: [{"old":"/api/v1/admin/loans/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/loans/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/loans/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/loans/:id","type":0,"val":"loans","end":""},{"old":"/api/v1/admin/loans/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.lending.admin_lending.loan']['types'],
+  },
+  'admin.lending.admin_lending.savings': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/savings',
+    tokens: [{"old":"/api/v1/admin/savings","type":0,"val":"api","end":""},{"old":"/api/v1/admin/savings","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/savings","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/savings","type":0,"val":"savings","end":""}],
+    types: placeholder as Registry['admin.lending.admin_lending.savings']['types'],
+  },
+  'admin.lending.admin_lending.position': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/institutions/:id/position',
+    tokens: [{"old":"/api/v1/admin/institutions/:id/position","type":0,"val":"api","end":""},{"old":"/api/v1/admin/institutions/:id/position","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/institutions/:id/position","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/institutions/:id/position","type":0,"val":"institutions","end":""},{"old":"/api/v1/admin/institutions/:id/position","type":1,"val":"id","end":""},{"old":"/api/v1/admin/institutions/:id/position","type":0,"val":"position","end":""}],
+    types: placeholder as Registry['admin.lending.admin_lending.position']['types'],
+  },
   'card_products.card_products.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/card-products',

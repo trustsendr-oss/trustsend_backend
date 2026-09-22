@@ -12,6 +12,7 @@ export const controllers = {
     Cards: () => import('#controllers/admin/cards_controller'),
     FinancialProducts: () => import('#controllers/admin/financial_products_controller'),
     LedgerAccounts: () => import('#controllers/admin/ledger_accounts_controller'),
+    Lending: () => import('#controllers/admin/lending_controller'),
     Transactions: () => import('#controllers/admin/transactions_controller'),
   },
   AgentFloat: () => import('#controllers/agent_float_controller'),

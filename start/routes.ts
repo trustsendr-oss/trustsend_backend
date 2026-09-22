@@ -70,6 +70,7 @@ const AdminAccountingController = () => import('#controllers/admin/accounting_co
 const AdminBusinessStaffController = () => import('#controllers/admin/business_staff_controller')
 const AdminFinancialProductsController = () =>
   import('#controllers/admin/financial_products_controller')
+const AdminLendingController = () => import('#controllers/admin/lending_controller')
 const LendingProductsController = () => import('#controllers/lending/products_controller')
 const LendingCatalogueController = () => import('#controllers/lending/catalogue_controller')
 const SavingsAccountsController = () => import('#controllers/savings/accounts_controller')
@@ -544,6 +545,21 @@ router
       })
       .prefix('admin/financial-products')
       .as('admin.financial_products')
+      .use(middleware.auth({ guards: ['internal'] }))
+      .use(middleware.isInternalUser())
+
+    // TumaPlus oversight of what institutions lend and hold (admin routes — internal_user only).
+    // Read-only by design: whether a borrower gets credit is the institution's decision, taken by
+    // its own credit officer. See admin/lending_controller.ts.
+    router
+      .group(() => {
+        router.get('loans', [AdminLendingController, 'loans'])
+        router.get('loans/:id', [AdminLendingController, 'loan'])
+        router.get('savings', [AdminLendingController, 'savings'])
+        router.get('institutions/:id/position', [AdminLendingController, 'position'])
+      })
+      .prefix('admin')
+      .as('admin.lending')
       .use(middleware.auth({ guards: ['internal'] }))
       .use(middleware.isInternalUser())
 

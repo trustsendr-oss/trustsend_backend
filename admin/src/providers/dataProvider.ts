@@ -17,6 +17,8 @@ const RESOURCE_PATH: Record<string, string> = {
   businesses: '/businesses',
   business_staff: '/admin/business-staff',
   financial_products: '/admin/financial-products',
+  loans: '/admin/loans',
+  savings_accounts: '/admin/savings',
   users: '/users',
   plans: '/plans',
   card_products: '/card-products',

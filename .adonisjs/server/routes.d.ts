@@ -149,6 +149,10 @@ export type ScannedRoutes = {
     'admin.financial_products.admin_financial_products.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.lending.admin_lending.loans': { paramsTuple?: []; params?: {} }
+    'admin.lending.admin_lending.loan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.lending.admin_lending.savings': { paramsTuple?: []; params?: {} }
+    'admin.lending.admin_lending.position': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.store': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -361,6 +365,10 @@ export type ScannedRoutes = {
     'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
     'admin.financial_products.admin_financial_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.lending.admin_lending.loans': { paramsTuple?: []; params?: {} }
+    'admin.lending.admin_lending.loan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.lending.admin_lending.savings': { paramsTuple?: []; params?: {} }
+    'admin.lending.admin_lending.position': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.index': { paramsTuple?: []; params?: {} }
@@ -488,6 +496,10 @@ export type ScannedRoutes = {
     'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
     'admin.financial_products.admin_financial_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.lending.admin_lending.loans': { paramsTuple?: []; params?: {} }
+    'admin.lending.admin_lending.loan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.lending.admin_lending.savings': { paramsTuple?: []; params?: {} }
+    'admin.lending.admin_lending.position': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.index': { paramsTuple?: []; params?: {} }

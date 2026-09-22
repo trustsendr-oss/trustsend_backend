@@ -16,6 +16,8 @@ import {
   BusinessStaffEdit,
 } from './resources/businessStaff'
 import { FinancialProductList, FinancialProductShow } from './resources/financialProducts'
+import { LoanList, LoanShow } from './resources/loans'
+import { SavingsAccountList } from './resources/savingsAccounts'
 import { UserList, UserShow } from './resources/users'
 import {
   CardProductList,
@@ -122,6 +124,19 @@ export default function App() {
         icon={resourceIcons.financial_products}
         options={{ label: 'Financial products' }}
         recordRepresentation="name"
+      />
+      <Resource
+        name="loans"
+        list={LoanList}
+        show={LoanShow}
+        icon={resourceIcons.loans}
+        recordRepresentation="borrower_name"
+      />
+      <Resource
+        name="savings_accounts"
+        list={SavingsAccountList}
+        icon={resourceIcons.savings_accounts}
+        options={{ label: 'Savings accounts' }}
       />
       <Resource
         name="cards"

@@ -296,6 +296,14 @@ export interface ApiDefinition {
         archive: typeof routes['admin.financial_products.admin_financial_products.archive']
       }
     }
+    lending: {
+      adminLending: {
+        loans: typeof routes['admin.lending.admin_lending.loans']
+        loan: typeof routes['admin.lending.admin_lending.loan']
+        savings: typeof routes['admin.lending.admin_lending.savings']
+        position: typeof routes['admin.lending.admin_lending.position']
+      }
+    }
     adminTransactions: {
       index: typeof routes['admin.admin_transactions.index']
       show: typeof routes['admin.admin_transactions.show']
