@@ -37,6 +37,7 @@ import { StatusChip } from '../../components/StatusChip'
 import { ConfirmActionButton, ReasonActionButton } from '../../components/ActionButtons'
 import { adminActions } from '../../providers/dataProvider'
 import { ApiError } from '../../providers/httpClient'
+import { businessKindLabel } from './businessKinds'
 
 function AssignPlanButton({ businessId, currentPlanId }: { businessId: number | string; currentPlanId?: number }) {
   const [open, setOpen] = useState(false)
@@ -295,6 +296,11 @@ function BusinessShowContent() {
             </Labeled>
             <Labeled label="Code">
               <RaTextField source="code" />
+            </Labeled>
+            <Labeled label="Kind">
+              {/* What the institution IS. What it may sell is the plan just below — the two are
+                  separate on purpose, so an IMF with no lending feature sells no credit. */}
+              <Typography variant="body2">{businessKindLabel(record.kind)}</Typography>
             </Labeled>
             <Labeled label="Email">
               <RaTextField source="email" />

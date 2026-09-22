@@ -25,17 +25,11 @@ import {
   useGetList,
 } from 'react-admin'
 import { StatusField } from '../../components/StatusChip'
-
-const kindChoices = [
-  { id: 'merchant', name: 'Merchant' },
-  { id: 'imf', name: 'Microfinance institution' },
-  { id: 'bank', name: 'Bank' },
-  { id: 'insurer', name: 'Insurer' },
-]
+import { BUSINESS_KINDS, businessKindLabel } from './businessKinds'
 
 const filters = [
   <SearchInput key="q" source="q" alwaysOn placeholder="Search name or email" />,
-  <SelectInput key="kind" source="kind" choices={kindChoices} />,
+  <SelectInput key="kind" source="kind" choices={[...BUSINESS_KINDS]} />,
   <SelectInput
     key="status"
     source="status"
@@ -216,6 +210,9 @@ export function BusinessList() {
         <TextField source="id" sortBy="id" />
         <TextField source="code" sortBy="code" />
         <TextField source="name" sortBy="name" />
+        {/* Through the shared labels, so "imf" never reaches the screen raw — a back-office
+            that shows a column key is one that quietly teaches its own slugs. */}
+        <FunctionField label="Kind" sortBy="kind" render={(r) => businessKindLabel(r.kind)} />
         <TextField source="email" sortBy="email" />
         <FunctionField label="Plan" render={(r) => r.plan?.name || '—'} sortBy="plan.name" />
         <StatusField source="status" sortBy="status" />

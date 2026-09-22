@@ -1,12 +1,6 @@
 import { Create, SimpleForm, TextInput, SelectInput, required, minLength, email } from 'react-admin'
 import { useGeneratedSecretNotice } from '../../components/useGeneratedSecretNotice'
-
-const kindChoices = [
-  { id: 'merchant', name: 'Merchant' },
-  { id: 'imf', name: 'Microfinance institution' },
-  { id: 'bank', name: 'Bank' },
-  { id: 'insurer', name: 'Insurer' },
-]
+import { BUSINESS_KINDS } from './businessKinds'
 
 export function BusinessCreate() {
   const notifySecret = useGeneratedSecretNotice()
@@ -16,7 +10,7 @@ export function BusinessCreate() {
         <TextInput source="name" validate={[required(), minLength(2)]} />
         <SelectInput
           source="kind"
-          choices={kindChoices}
+          choices={[...BUSINESS_KINDS]}
           defaultValue="merchant"
           helperText="What the institution is. What it may sell is set by its plan."
         />
