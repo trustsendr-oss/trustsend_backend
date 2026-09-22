@@ -22,7 +22,12 @@ export class AgentOnboardingService {
    * Verifies parent agent exists and is active if specified
    */
   static async create(request: {
-    userId: number
+    /**
+     * The personal account operating this agent. Required for TumaPlus's own network, where the
+     * agent IS a person and signs in as one; omitted for an institution's counter, which is a
+     * place rather than a person and is operated by whoever `business_staff` posts to it.
+     */
+    userId?: number
     /** Owning institution. Omitted for TumaPlus's own network, which is every agent today. */
     businessId?: number
     code: string
@@ -51,6 +56,15 @@ export class AgentOnboardingService {
     }
     if ((request.tier === 'agent' || request.tier === 'super_agent') && !request.parentAgentId) {
       throw new Error(`A ${request.tier} must have a parent agent`)
+    }
+
+    // A TumaPlus network agent is a person: every flow that lets one act — confirming a cash-in,
+    // pushing float — resolves the agent from the signed-in user (AgentIdentityService). Without a
+    // linked account such an agent could be created but never operated. An institution's counter
+    // is the opposite: a place, staffed by whoever business_staff posts to it, so it needs no
+    // account of its own and should not have a throwaway one invented for it.
+    if (!request.userId && !request.businessId) {
+      throw new Error('A TumaPlus network agent must be linked to a user account')
     }
 
     // A counter belongs to an institution that can actually operate it. Terminated is refused
@@ -95,7 +109,7 @@ export class AgentOnboardingService {
       // "exactly one owner" CHECK constraint, so the wallet row itself can't be inserted before
       // agent.id exists to populate agent_id on it.
       const agent = new Agent()
-      agent.userId = request.userId
+      agent.userId = request.userId ?? null
       agent.businessId = request.businessId ?? null
       agent.code = request.code
       agent.fullName = request.fullName

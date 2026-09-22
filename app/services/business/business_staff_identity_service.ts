@@ -1,3 +1,4 @@
+import type Agent from '#models/agent'
 import BusinessStaff from '#models/business_staff'
 
 export class BusinessStaffNotFoundException extends Error {
@@ -11,6 +12,20 @@ export class BusinessStaffNotActiveException extends Error {
   constructor(status: string) {
     super(`Staff membership is not active (status: ${status})`)
     this.name = 'BusinessStaffNotActiveException'
+  }
+}
+
+export class StaffNotPostedException extends Error {
+  constructor() {
+    super('This staff member is not posted to a counter')
+    this.name = 'StaffNotPostedException'
+  }
+}
+
+export class CounterNotActiveException extends Error {
+  constructor(status: string) {
+    super(`The counter is not active (status: ${status})`)
+    this.name = 'CounterNotActiveException'
   }
 }
 
@@ -34,6 +49,42 @@ export class BusinessStaffIdentityService {
       return null
     }
     return staff
+  }
+
+  /**
+   * The counter a staff member is actually standing at.
+   *
+   * This replaces `agents.user_id` for an institution: a counter is a place, not a person, so it
+   * has no account of its own and cannot be resolved from a signed-in user the way a TumaPlus
+   * network agent is (AgentIdentityService). The posting is the link, and it is the only one —
+   * which is also what keeps a teller from acting at a counter they were never posted to.
+   *
+   * Every precondition a cash operation needs is checked here rather than at each call site: the
+   * membership is active, a posting exists, the counter is active, and — since `business_staff`
+   * and `agents` both carry a business id — that the two agree.
+   *
+   * @throws StaffNotPostedException if the member holds no counter posting
+   * @throws CounterNotActiveException if the counter is not active
+   */
+  static async requireCounterForStaff(staff: BusinessStaff): Promise<Agent> {
+    if (!staff.agentId) {
+      throw new StaffNotPostedException()
+    }
+
+    await staff.load('agent')
+    const counter = staff.agent
+
+    if (!counter || counter.businessId !== staff.businessId) {
+      // Defensive: the admin API already refuses a cross-institution posting. Reaching this would
+      // mean the row was written some other way, and acting on it would cross the isolation
+      // boundary the whole design rests on.
+      throw new StaffNotPostedException()
+    }
+    if (counter.status !== 'active') {
+      throw new CounterNotActiveException(counter.status)
+    }
+
+    return counter
   }
 
   /**

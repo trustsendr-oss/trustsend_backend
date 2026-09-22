@@ -53,13 +53,17 @@ const profileFields = {
 }
 
 const createAgentValidator = vine.create({
+  // Optional: an institution's counter is a place, not a person, and is operated by whoever
+  // business_staff posts to it. A TumaPlus network agent still needs one — enforced in
+  // AgentOnboardingService.create, where the business_id is also known.
   user_id: vine
     .number()
     .positive()
     .unique(async (db, value) => {
       const agent = await db.from('agents').where('user_id', value).first()
       return !agent
-    }),
+    })
+    .optional(),
   full_name: vine.string().minLength(3).maxLength(255),
   email: vine
     .string()
@@ -135,8 +139,7 @@ export default class AgentsController {
   async store({ request, response }: HttpContext) {
     const payload = await request.validateUsing(createAgentValidator)
 
-    const linkedUser = await User.find(payload.user_id)
-    if (!linkedUser) {
+    if (payload.user_id !== undefined && !(await User.find(payload.user_id))) {
       return response.notFound({ message: `User ${payload.user_id} not found` })
     }
 

@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto'
 import { BaseCommand, args, flags } from '@adonisjs/core/ace'
 import type { CommandOptions } from '@adonisjs/core/types/ace'
 
@@ -60,7 +59,6 @@ export default class CreateImf extends BaseCommand {
     const { default: InternalUser } = await import('#models/internal_user')
     const { default: KycVerification } = await import('#models/kyc_verification')
     const { default: Plan } = await import('#models/plan')
-    const { default: User } = await import('#models/user')
     const { BusinessOnboardingService } =
       await import('#services/business/business_onboarding_service')
     const { BusinessLifecycleService } =
@@ -133,6 +131,7 @@ export default class CreateImf extends BaseCommand {
       await kyc.save()
     }
 
+    // Only the institution's own dashboard login: no other account is created any more.
     const credentials: Array<{ who: string; login: string; password: string }> = []
 
     // 1 — the institution itself, labelled as one from the start.
@@ -163,7 +162,15 @@ export default class CreateImf extends BaseCommand {
     await PlanService.assignToBusiness(business.id, plan.id, approver.id, correlationId)
     this.logger.success(`Plan ${plan.code} assigned`)
 
-    /** Each agent is operated by a person who signs in, so each one needs an account. */
+    /**
+     * A counter is a place, not a person. It gets no account of its own — whoever stands at it is
+     * a business_staff row posted to it, resolved by BusinessStaffIdentityService. Minting a
+     * throwaway login per outlet, as an earlier version of this command did, only duplicated the
+     * people that posting already models.
+     *
+     * The address is the outlet's contact, never a credential: agents.email is NOT NULL and
+     * unique, and derived per outlet so two counters of the same institution do not collide.
+     */
     const openOutlet = async (
       label: string,
       tier: 'distributor' | 'agent',
@@ -171,18 +178,8 @@ export default class CreateImf extends BaseCommand {
     ) => {
       const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, '-')
       const outletEmail = `${slug}.${code.toLowerCase()}@${email.split('@')[1]}`
-      const password = randomBytes(12).toString('base64url')
-
-      const operator = await User.create({
-        fullName: label,
-        email: outletEmail,
-        phone: null,
-        password,
-      })
-      credentials.push({ who: label, login: outletEmail, password })
 
       const agent = await AgentOnboardingService.create({
-        userId: operator.id,
         businessId: business.id,
         code: IdGenerator.generateNumericCode(),
         fullName: label,
@@ -236,8 +233,12 @@ export default class CreateImf extends BaseCommand {
       this.logger.log(`    password  ${entry.password}`)
     }
     this.logger.log('')
+    this.logger.log('')
     this.logger.info(
-      'Next: assign staff to the counters (admin > Institution staff), then the institution drafts its products from its dashboard.'
+      'Counters have no login of their own — post staff to them (admin > Institution staff) before they can take cash.'
+    )
+    this.logger.info(
+      'Then the institution drafts its products from its dashboard, and you publish them from admin > Financial products.'
     )
   }
 }
