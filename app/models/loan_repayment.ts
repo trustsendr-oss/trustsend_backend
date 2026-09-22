@@ -6,7 +6,8 @@ import Loan from '#models/loan'
 /**
  * One payment against a loan, and how it was split.
  *
- * The split is recorded rather than re-derived: interest-first is the rule today, and a schedule
+ * The split is recorded rather than re-derived: penalties-then-interest-then-principal is the
+ * rule today, and a schedule
  * re-read years later must show what actually happened, not what today's rule would have done.
  */
 export default class LoanRepayment extends BaseModel {
@@ -20,6 +21,10 @@ export default class LoanRepayment extends BaseModel {
 
   @column()
   declare amount: bigint
+
+  /** Cleared first: an unpaid penalty keeps growing, so it is settled before anything else. */
+  @column()
+  declare appliedToPenalties: bigint
 
   @column()
   declare appliedToInterest: bigint

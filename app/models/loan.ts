@@ -59,6 +59,20 @@ export default class Loan extends BaseModel {
   @column()
   declare feesCharged: bigint
 
+  /** Kept apart from interest so a borrower can see why they owe what they owe. */
+  @column()
+  declare penaltiesOutstanding: bigint
+
+  /** Copied at disbursement, like every other term. */
+  @column()
+  declare penaltyRateBps: number | null
+
+  @column()
+  declare penaltyBasis: 'overdue_amount' | 'outstanding_principal' | null
+
+  @column()
+  declare penaltyGraceDays: number
+
   @column()
   declare interestRateBps: number
 
@@ -117,9 +131,9 @@ export default class Loan extends BaseModel {
   @hasMany(() => LoanRepayment, { foreignKey: 'loanId' })
   declare repayments: HasMany<typeof LoanRepayment>
 
-  /** Everything still owed, interest included. */
+  /** Everything still owed: principal, interest and anything charged for being late. */
   get totalOutstanding(): bigint {
-    return this.principalOutstanding + this.interestOutstanding
+    return this.principalOutstanding + this.interestOutstanding + this.penaltiesOutstanding
   }
 
   get isOutstanding(): boolean {

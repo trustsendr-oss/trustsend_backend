@@ -78,6 +78,21 @@ export default class FinancialProduct extends BaseModel {
   @column()
   declare mandatorySavingsBps: number | null
 
+  /**
+   * Basis points charged per period on a late loan; null means this product has no penalty. The
+   * basis beside it is not optional decoration: the same rate on an overdue instalment and on the
+   * whole outstanding principal differ by an order of magnitude.
+   */
+  @column()
+  declare penaltyRateBps: number | null
+
+  @column()
+  declare penaltyBasis: 'overdue_amount' | 'outstanding_principal' | null
+
+  /** Days late before anything is charged. Zero means a penalty from the first day. */
+  @column()
+  declare penaltyGraceDays: number
+
   @column()
   declare status: FinancialProductStatus
 

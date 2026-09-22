@@ -114,6 +114,10 @@ export class LoanService {
     loan.interestRateBps = product.interestRateBps
     loan.interestPeriod = product.interestPeriod
     loan.interestMethod = product.interestMethod
+    loan.penaltyRateBps = product.penaltyRateBps
+    loan.penaltyBasis = product.penaltyBasis
+    loan.penaltyGraceDays = product.penaltyGraceDays
+    loan.penaltiesOutstanding = 0n
     loan.termMonths = product.termMonthsMax ?? product.termMonthsMin ?? 12
     loan.status = 'requested'
     loan.requestedAt = DateTime.now()
@@ -372,17 +376,27 @@ export class LoanService {
         }
       )
 
-      const { toInterest, toPrincipal } = await this.applyToSchedule(loan, amount, trx)
+      // Penalties are cleared before anything else: they keep growing while unpaid, so leaving
+      // them behind to reduce principal would have the borrower paying down a balance while the
+      // charge on it compounds. Clearing them first is what stops that.
+      const toPenalties = min(loan.penaltiesOutstanding, amount)
+      const { toInterest, toPrincipal } = await this.applyToSchedule(
+        loan,
+        amount - toPenalties,
+        trx
+      )
 
       const repayment = new LoanRepayment()
       repayment.loanId = loan.id
       repayment.amount = amount
+      repayment.appliedToPenalties = toPenalties
       repayment.appliedToInterest = toInterest
       repayment.appliedToPrincipal = toPrincipal
       repayment.ledgerTransactionId = posted.id
       repayment.paidAt = DateTime.now()
       await repayment.useTransaction(trx).save()
 
+      loan.penaltiesOutstanding -= toPenalties
       loan.interestOutstanding -= toInterest
       loan.principalOutstanding -= toPrincipal
       loan.status = loan.totalOutstanding === 0n ? 'repaid' : 'repaying'
@@ -398,6 +412,7 @@ export class LoanService {
         before: undefined,
         after: {
           amount: amount.toString(),
+          to_penalties: toPenalties.toString(),
           to_interest: toInterest.toString(),
           to_principal: toPrincipal.toString(),
           status: loan.status,

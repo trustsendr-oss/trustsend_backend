@@ -848,6 +848,9 @@ export class FinancialProductSchema extends BaseModel {
     'maxAmount',
     'minAmount',
     'name',
+    'penaltyBasis',
+    'penaltyGraceDays',
+    'penaltyRateBps',
     'providerId',
     'reviewNotes',
     'reviewedAt',
@@ -889,6 +892,12 @@ export class FinancialProductSchema extends BaseModel {
   declare minAmount: bigint | number | null
   @column()
   declare name: string
+  @column()
+  declare penaltyBasis: string | null
+  @column()
+  declare penaltyGraceDays: number
+  @column()
+  declare penaltyRateBps: number | null
   @column()
   declare providerId: number
   @column()
@@ -1341,10 +1350,47 @@ export class LedgerTransactionSchema extends BaseModel {
   declare uuid: string
 }
 
+export class LoanPenaltySchema extends BaseModel {
+  static $columns = [
+    'amount',
+    'basisAmount',
+    'chargedAt',
+    'createdAt',
+    'daysOverdue',
+    'id',
+    'loanId',
+    'periodKey',
+    'rateBps',
+    'updatedAt',
+  ] as const
+  $columns = LoanPenaltySchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column()
+  declare basisAmount: bigint | number
+  @column.dateTime()
+  declare chargedAt: DateTime
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare daysOverdue: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare loanId: number
+  @column()
+  declare periodKey: string
+  @column()
+  declare rateBps: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class LoanRepaymentSchema extends BaseModel {
   static $columns = [
     'amount',
     'appliedToInterest',
+    'appliedToPenalties',
     'appliedToPrincipal',
     'createdAt',
     'id',
@@ -1358,6 +1404,8 @@ export class LoanRepaymentSchema extends BaseModel {
   declare amount: bigint | number
   @column()
   declare appliedToInterest: bigint | number
+  @column()
+  declare appliedToPenalties: bigint | number
   @column()
   declare appliedToPrincipal: bigint | number
   @column.dateTime({ autoCreate: true })
@@ -1426,6 +1474,10 @@ export class LoanSchema extends BaseModel {
     'interestOutstanding',
     'interestPeriod',
     'interestRateBps',
+    'penaltiesOutstanding',
+    'penaltyBasis',
+    'penaltyGraceDays',
+    'penaltyRateBps',
     'principal',
     'principalOutstanding',
     'productId',
@@ -1465,6 +1517,14 @@ export class LoanSchema extends BaseModel {
   declare interestPeriod: string
   @column()
   declare interestRateBps: number
+  @column()
+  declare penaltiesOutstanding: bigint | number
+  @column()
+  declare penaltyBasis: string | null
+  @column()
+  declare penaltyGraceDays: number
+  @column()
+  declare penaltyRateBps: number | null
   @column()
   declare principal: bigint | number
   @column()
