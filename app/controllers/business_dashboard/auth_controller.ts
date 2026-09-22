@@ -60,6 +60,8 @@ export default class BusinessDashboardAuthController {
    * needs a session to submit its KYC in the first place — but business_active_middleware.ts
    * blocks every money-moving/credential-issuing route until an admin approves both its KYC and
    * the business itself.
+   *
+   * Always creates a MERCHANT. Institutions never arrive this way.
    */
   async signup({ request, correlationId, response }: HttpContext) {
     const payload = await request.validateUsing(businessSignupValidator)
@@ -80,6 +82,13 @@ export default class BusinessDashboardAuthController {
       email: payload.email,
       phone: payload.phone,
       password: payload.password,
+      // Self-service signup only ever produces a merchant. A partner institution — an IMF, a bank
+      // — is onboarded by TumaPlus staff, who also record its KYB on its behalf, because taking an
+      // institution on is a commercial and regulatory decision rather than a form anyone may fill
+      // in. Stated here rather than left to the column default so adding `kind` to
+      // businessSignupValidator cannot quietly open that door: see commands/create_imf.ts for the
+      // path institutions actually come through.
+      kind: 'merchant',
       correlationId,
     })
 
