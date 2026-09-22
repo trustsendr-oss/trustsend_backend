@@ -218,6 +218,13 @@ export interface ApiDefinition {
       close: typeof routes['counter.counter_sessions.close']
       reconcile: typeof routes['counter.counter_sessions.reconcile']
     }
+    counterCash: {
+      cashIn: typeof routes['counter.counter_cash.cash_in']
+      confirmCashIn: typeof routes['counter.counter_cash.confirm_cash_in']
+      rejectCashIn: typeof routes['counter.counter_cash.reject_cash_in']
+      cashOut: typeof routes['counter.counter_cash.cash_out']
+      confirmCashOut: typeof routes['counter.counter_cash.confirm_cash_out']
+    }
   }
   finance: {
     products: {

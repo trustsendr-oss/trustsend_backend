@@ -1195,6 +1195,66 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/sessions_controller').default['reconcile']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'counter.counter_cash.cash_in': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/cash-in'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/counter_cash').counterCashInValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/counter_cash').counterCashInValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['cashIn']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['cashIn']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_cash.confirm_cash_in': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/cash-in/:transaction_id/confirm'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/counter_cash').counterConfirmValidator)>>
+      paramsTuple: [ParamValue]
+      params: { transaction_id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/counter_cash').counterConfirmValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['confirmCashIn']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['confirmCashIn']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_cash.reject_cash_in': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/cash-in/:transaction_id/reject'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { transaction_id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['rejectCashIn']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['rejectCashIn']>>>
+    }
+  }
+  'counter.counter_cash.cash_out': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/cash-out'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/counter_cash').counterCashOutValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/counter_cash').counterCashOutValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['cashOut']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['cashOut']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_cash.confirm_cash_out': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/cash-out/:transaction_id/confirm'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/counter_cash').counterConfirmValidator)>>
+      paramsTuple: [ParamValue]
+      params: { transaction_id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/counter_cash').counterConfirmValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['confirmCashOut']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['confirmCashOut']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'finance.products.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/finance/products'

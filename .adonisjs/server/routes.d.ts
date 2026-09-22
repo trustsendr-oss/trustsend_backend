@@ -103,6 +103,11 @@ export type ScannedRoutes = {
     'counter.counter_sessions.store': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.close': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_sessions.reconcile': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'counter.counter_cash.cash_in': { paramsTuple?: []; params?: {} }
+    'counter.counter_cash.confirm_cash_in': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'counter.counter_cash.reject_cash_in': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'counter.counter_cash.cash_out': { paramsTuple?: []; params?: {} }
+    'counter.counter_cash.confirm_cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.store': { paramsTuple?: []; params?: {} }
@@ -560,6 +565,11 @@ export type ScannedRoutes = {
     'counter.counter_sessions.store': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.close': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_sessions.reconcile': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'counter.counter_cash.cash_in': { paramsTuple?: []; params?: {} }
+    'counter.counter_cash.confirm_cash_in': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'counter.counter_cash.reject_cash_in': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'counter.counter_cash.cash_out': { paramsTuple?: []; params?: {} }
+    'counter.counter_cash.confirm_cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
     'businesses.businesses.store': { paramsTuple?: []; params?: {} }
     'businesses.businesses.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.activate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

@@ -73,6 +73,7 @@ const AdminFinancialProductsController = () =>
 const LendingProductsController = () => import('#controllers/lending/products_controller')
 const LendingCatalogueController = () => import('#controllers/lending/catalogue_controller')
 const CounterSessionsController = () => import('#controllers/counter/sessions_controller')
+const CounterCashController = () => import('#controllers/counter/cash_controller')
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -433,6 +434,13 @@ router
         router.post('sessions', [CounterSessionsController, 'store'])
         router.post('sessions/:id/close', [CounterSessionsController, 'close'])
         router.post('sessions/:id/reconcile', [CounterSessionsController, 'reconcile'])
+        // Cash over the window. The counter comes from the teller's posting, and the customer
+        // from the 9-digit code they share — never from a wallet id the caller could guess.
+        router.post('cash-in', [CounterCashController, 'cashIn'])
+        router.post('cash-in/:transaction_id/confirm', [CounterCashController, 'confirmCashIn'])
+        router.post('cash-in/:transaction_id/reject', [CounterCashController, 'rejectCashIn'])
+        router.post('cash-out', [CounterCashController, 'cashOut'])
+        router.post('cash-out/:transaction_id/confirm', [CounterCashController, 'confirmCashOut'])
       })
       .prefix('counter')
       .as('counter')

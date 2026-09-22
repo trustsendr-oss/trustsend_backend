@@ -600,6 +600,36 @@ const routes = {
     tokens: [{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"api","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"sessions","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":1,"val":"id","end":""},{"old":"/api/v1/counter/sessions/:id/reconcile","type":0,"val":"reconcile","end":""}],
     types: placeholder as Registry['counter.counter_sessions.reconcile']['types'],
   },
+  'counter.counter_cash.cash_in': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/cash-in',
+    tokens: [{"old":"/api/v1/counter/cash-in","type":0,"val":"api","end":""},{"old":"/api/v1/counter/cash-in","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/cash-in","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/cash-in","type":0,"val":"cash-in","end":""}],
+    types: placeholder as Registry['counter.counter_cash.cash_in']['types'],
+  },
+  'counter.counter_cash.confirm_cash_in': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/cash-in/:transaction_id/confirm',
+    tokens: [{"old":"/api/v1/counter/cash-in/:transaction_id/confirm","type":0,"val":"api","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/confirm","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/confirm","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/confirm","type":0,"val":"cash-in","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/confirm","type":1,"val":"transaction_id","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/confirm","type":0,"val":"confirm","end":""}],
+    types: placeholder as Registry['counter.counter_cash.confirm_cash_in']['types'],
+  },
+  'counter.counter_cash.reject_cash_in': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/cash-in/:transaction_id/reject',
+    tokens: [{"old":"/api/v1/counter/cash-in/:transaction_id/reject","type":0,"val":"api","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/reject","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/reject","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/reject","type":0,"val":"cash-in","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/reject","type":1,"val":"transaction_id","end":""},{"old":"/api/v1/counter/cash-in/:transaction_id/reject","type":0,"val":"reject","end":""}],
+    types: placeholder as Registry['counter.counter_cash.reject_cash_in']['types'],
+  },
+  'counter.counter_cash.cash_out': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/cash-out',
+    tokens: [{"old":"/api/v1/counter/cash-out","type":0,"val":"api","end":""},{"old":"/api/v1/counter/cash-out","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/cash-out","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/cash-out","type":0,"val":"cash-out","end":""}],
+    types: placeholder as Registry['counter.counter_cash.cash_out']['types'],
+  },
+  'counter.counter_cash.confirm_cash_out': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/cash-out/:transaction_id/confirm',
+    tokens: [{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"api","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"cash-out","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":1,"val":"transaction_id","end":""},{"old":"/api/v1/counter/cash-out/:transaction_id/confirm","type":0,"val":"confirm","end":""}],
+    types: placeholder as Registry['counter.counter_cash.confirm_cash_out']['types'],
+  },
   'finance.products.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/finance/products',
