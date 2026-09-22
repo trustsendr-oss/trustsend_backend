@@ -78,6 +78,9 @@ export const controllers = {
   Pin: () => import('#controllers/pin_controller'),
   Plans: () => import('#controllers/plans_controller'),
   Profile: () => import('#controllers/profile_controller'),
+  savings: {
+    Accounts: () => import('#controllers/savings/accounts_controller'),
+  },
   Transactions: () => import('#controllers/transactions_controller'),
   transfers: {
     CashIn: () => import('#controllers/transfers/cash_in_controller'),

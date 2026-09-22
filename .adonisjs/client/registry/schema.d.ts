@@ -1291,6 +1291,78 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'finance.savings.savings_accounts.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/finance/savings'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['index']>>>
+    }
+  }
+  'finance.savings.savings_accounts.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/finance/savings'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/savings').openSavingsValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/savings').openSavingsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'finance.savings.savings_accounts.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/finance/savings/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['show']>>>
+    }
+  }
+  'finance.savings.savings_accounts.deposit': {
+    methods: ["POST"]
+    pattern: '/api/v1/finance/savings/:id/deposit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['deposit']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['deposit']>>>
+    }
+  }
+  'finance.savings.savings_accounts.withdraw': {
+    methods: ["POST"]
+    pattern: '/api/v1/finance/savings/:id/withdraw'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['withdraw']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['withdraw']>>>
+    }
+  }
+  'finance.savings.savings_accounts.close': {
+    methods: ["POST"]
+    pattern: '/api/v1/finance/savings/:id/close'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/savings').closeSavingsValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/savings').closeSavingsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['close']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['close']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'businesses.businesses.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/businesses'

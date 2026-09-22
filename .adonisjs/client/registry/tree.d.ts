@@ -234,6 +234,16 @@ export interface ApiDefinition {
     products: {
       index: typeof routes['finance.products.index']
     }
+    savings: {
+      savingsAccounts: {
+        index: typeof routes['finance.savings.savings_accounts.index']
+        store: typeof routes['finance.savings.savings_accounts.store']
+        show: typeof routes['finance.savings.savings_accounts.show']
+        deposit: typeof routes['finance.savings.savings_accounts.deposit']
+        withdraw: typeof routes['finance.savings.savings_accounts.withdraw']
+        close: typeof routes['finance.savings.savings_accounts.close']
+      }
+    }
   }
   businesses: {
     businesses: {

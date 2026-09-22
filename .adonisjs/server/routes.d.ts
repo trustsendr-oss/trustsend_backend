@@ -111,6 +111,12 @@ export type ScannedRoutes = {
     'counter.counter_customers.show': { paramsTuple?: []; params?: {} }
     'counter.counter_customers.store': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
+    'finance.savings.savings_accounts.index': { paramsTuple?: []; params?: {} }
+    'finance.savings.savings_accounts.store': { paramsTuple?: []; params?: {} }
+    'finance.savings.savings_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'finance.savings.savings_accounts.deposit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'finance.savings.savings_accounts.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'finance.savings.savings_accounts.close': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.store': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -329,6 +335,8 @@ export type ScannedRoutes = {
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
     'counter.counter_customers.show': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
+    'finance.savings.savings_accounts.index': { paramsTuple?: []; params?: {} }
+    'finance.savings.savings_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
@@ -449,6 +457,8 @@ export type ScannedRoutes = {
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
     'counter.counter_customers.show': { paramsTuple?: []; params?: {} }
     'finance.products.index': { paramsTuple?: []; params?: {} }
+    'finance.savings.savings_accounts.index': { paramsTuple?: []; params?: {} }
+    'finance.savings.savings_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.index': { paramsTuple?: []; params?: {} }
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
@@ -575,6 +585,10 @@ export type ScannedRoutes = {
     'counter.counter_cash.cash_out': { paramsTuple?: []; params?: {} }
     'counter.counter_cash.confirm_cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
     'counter.counter_customers.store': { paramsTuple?: []; params?: {} }
+    'finance.savings.savings_accounts.store': { paramsTuple?: []; params?: {} }
+    'finance.savings.savings_accounts.deposit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'finance.savings.savings_accounts.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'finance.savings.savings_accounts.close': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.store': { paramsTuple?: []; params?: {} }
     'businesses.businesses.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.activate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

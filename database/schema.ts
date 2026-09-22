@@ -1446,6 +1446,54 @@ export class RiskAssessmentSchema extends BaseModel {
   declare score: number
 }
 
+export class SavingsAccountSchema extends BaseModel {
+  static $columns = [
+    'closedAt',
+    'createdAt',
+    'currencyCode',
+    'id',
+    'interestPeriod',
+    'interestRateBps',
+    'maturesAt',
+    'openedAt',
+    'productId',
+    'providerId',
+    'status',
+    'updatedAt',
+    'userId',
+    'walletId',
+  ] as const
+  $columns = SavingsAccountSchema.$columns
+  @column.dateTime()
+  declare closedAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare currencyCode: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare interestPeriod: string
+  @column()
+  declare interestRateBps: number
+  @column.dateTime()
+  declare maturesAt: DateTime | null
+  @column.dateTime()
+  declare openedAt: DateTime
+  @column()
+  declare productId: number
+  @column()
+  declare providerId: number
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+  @column()
+  declare walletId: number
+}
+
 export class TellerSessionBalanceSchema extends BaseModel {
   static $columns = [
     'countedCash',

@@ -72,6 +72,7 @@ const AdminFinancialProductsController = () =>
   import('#controllers/admin/financial_products_controller')
 const LendingProductsController = () => import('#controllers/lending/products_controller')
 const LendingCatalogueController = () => import('#controllers/lending/catalogue_controller')
+const SavingsAccountsController = () => import('#controllers/savings/accounts_controller')
 const CounterSessionsController = () => import('#controllers/counter/sessions_controller')
 const CounterCashController = () => import('#controllers/counter/cash_controller')
 const CounterCustomersController = () => import('#controllers/counter/customers_controller')
@@ -459,6 +460,21 @@ router
     router
       .get('finance/products', [LendingCatalogueController, 'index'])
       .as('finance.products.index')
+
+    // Someone's own savings with a partner institution. Behind middleware.auth(): these move money
+    // between two wallets the SAME person owns, so the account holder is the only caller there is.
+    router
+      .group(() => {
+        router.get('savings', [SavingsAccountsController, 'index'])
+        router.post('savings', [SavingsAccountsController, 'store'])
+        router.get('savings/:id', [SavingsAccountsController, 'show'])
+        router.post('savings/:id/deposit', [SavingsAccountsController, 'deposit'])
+        router.post('savings/:id/withdraw', [SavingsAccountsController, 'withdraw'])
+        router.post('savings/:id/close', [SavingsAccountsController, 'close'])
+      })
+      .prefix('finance')
+      .as('finance.savings')
+      .use(middleware.auth())
 
     // Businesses (admin routes — internal_user only, mirrors /agents)
     router

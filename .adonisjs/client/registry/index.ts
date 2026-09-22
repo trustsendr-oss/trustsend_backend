@@ -648,6 +648,42 @@ const routes = {
     tokens: [{"old":"/api/v1/finance/products","type":0,"val":"api","end":""},{"old":"/api/v1/finance/products","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/products","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/products","type":0,"val":"products","end":""}],
     types: placeholder as Registry['finance.products.index']['types'],
   },
+  'finance.savings.savings_accounts.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/finance/savings',
+    tokens: [{"old":"/api/v1/finance/savings","type":0,"val":"api","end":""},{"old":"/api/v1/finance/savings","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/savings","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/savings","type":0,"val":"savings","end":""}],
+    types: placeholder as Registry['finance.savings.savings_accounts.index']['types'],
+  },
+  'finance.savings.savings_accounts.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/finance/savings',
+    tokens: [{"old":"/api/v1/finance/savings","type":0,"val":"api","end":""},{"old":"/api/v1/finance/savings","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/savings","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/savings","type":0,"val":"savings","end":""}],
+    types: placeholder as Registry['finance.savings.savings_accounts.store']['types'],
+  },
+  'finance.savings.savings_accounts.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/finance/savings/:id',
+    tokens: [{"old":"/api/v1/finance/savings/:id","type":0,"val":"api","end":""},{"old":"/api/v1/finance/savings/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/savings/:id","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/savings/:id","type":0,"val":"savings","end":""},{"old":"/api/v1/finance/savings/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['finance.savings.savings_accounts.show']['types'],
+  },
+  'finance.savings.savings_accounts.deposit': {
+    methods: ["POST"],
+    pattern: '/api/v1/finance/savings/:id/deposit',
+    tokens: [{"old":"/api/v1/finance/savings/:id/deposit","type":0,"val":"api","end":""},{"old":"/api/v1/finance/savings/:id/deposit","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/savings/:id/deposit","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/savings/:id/deposit","type":0,"val":"savings","end":""},{"old":"/api/v1/finance/savings/:id/deposit","type":1,"val":"id","end":""},{"old":"/api/v1/finance/savings/:id/deposit","type":0,"val":"deposit","end":""}],
+    types: placeholder as Registry['finance.savings.savings_accounts.deposit']['types'],
+  },
+  'finance.savings.savings_accounts.withdraw': {
+    methods: ["POST"],
+    pattern: '/api/v1/finance/savings/:id/withdraw',
+    tokens: [{"old":"/api/v1/finance/savings/:id/withdraw","type":0,"val":"api","end":""},{"old":"/api/v1/finance/savings/:id/withdraw","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/savings/:id/withdraw","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/savings/:id/withdraw","type":0,"val":"savings","end":""},{"old":"/api/v1/finance/savings/:id/withdraw","type":1,"val":"id","end":""},{"old":"/api/v1/finance/savings/:id/withdraw","type":0,"val":"withdraw","end":""}],
+    types: placeholder as Registry['finance.savings.savings_accounts.withdraw']['types'],
+  },
+  'finance.savings.savings_accounts.close': {
+    methods: ["POST"],
+    pattern: '/api/v1/finance/savings/:id/close',
+    tokens: [{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"api","end":""},{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"savings","end":""},{"old":"/api/v1/finance/savings/:id/close","type":1,"val":"id","end":""},{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"close","end":""}],
+    types: placeholder as Registry['finance.savings.savings_accounts.close']['types'],
+  },
   'businesses.businesses.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/businesses',
