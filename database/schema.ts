@@ -1248,6 +1248,7 @@ export class LedgerTransactionSchema extends BaseModel {
     'reversalOfTransactionId',
     'reversedAt',
     'status',
+    'tellerSessionId',
     'type',
     'uuid',
   ] as const
@@ -1296,6 +1297,8 @@ export class LedgerTransactionSchema extends BaseModel {
   declare reversedAt: DateTime | null
   @column()
   declare status: string
+  @column()
+  declare tellerSessionId: number | null
   @column()
   declare type: string
   @column()
@@ -1441,6 +1444,81 @@ export class RiskAssessmentSchema extends BaseModel {
   declare rulesTriggered: any | null
   @column()
   declare score: number
+}
+
+export class TellerSessionBalanceSchema extends BaseModel {
+  static $columns = [
+    'countedCash',
+    'createdAt',
+    'currencyCode',
+    'expectedCash',
+    'id',
+    'openingCash',
+    'tellerSessionId',
+    'updatedAt',
+    'variance',
+  ] as const
+  $columns = TellerSessionBalanceSchema.$columns
+  @column()
+  declare countedCash: bigint | number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare currencyCode: string
+  @column()
+  declare expectedCash: bigint | number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare openingCash: bigint | number
+  @column()
+  declare tellerSessionId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare variance: bigint | number | null
+}
+
+export class TellerSessionSchema extends BaseModel {
+  static $columns = [
+    'agentId',
+    'businessId',
+    'closedAt',
+    'createdAt',
+    'id',
+    'notes',
+    'openedAt',
+    'reconciledAt',
+    'reconciledBy',
+    'staffId',
+    'status',
+    'updatedAt',
+  ] as const
+  $columns = TellerSessionSchema.$columns
+  @column()
+  declare agentId: number
+  @column()
+  declare businessId: number
+  @column.dateTime()
+  declare closedAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare notes: string | null
+  @column.dateTime()
+  declare openedAt: DateTime
+  @column.dateTime()
+  declare reconciledAt: DateTime | null
+  @column()
+  declare reconciledBy: number | null
+  @column()
+  declare staffId: number
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
 }
 
 export class UserSchema extends BaseModel {
