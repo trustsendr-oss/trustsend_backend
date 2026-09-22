@@ -40,7 +40,7 @@ export class PenaltyService {
   static async runForPeriod(
     period: DateTime,
     correlationId: string,
-    asOf = DateTime.now()
+    asOf: DateTime = DateTime.now()
   ): Promise<PenaltyOutcome> {
     const periodKey = this.periodKeyFor(period)
 
@@ -70,7 +70,7 @@ export class PenaltyService {
     loan: Loan,
     periodKey: string,
     correlationId: string,
-    asOf = DateTime.now()
+    asOf: DateTime = DateTime.now()
   ): Promise<bigint> {
     if (!loan.penaltyRateBps || !loan.penaltyBasis) return 0n
 

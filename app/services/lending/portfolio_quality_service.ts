@@ -44,7 +44,10 @@ const PAR_THRESHOLDS = [1, 30, 60, 90]
  */
 export class PortfolioQualityService {
   /** Every outstanding loan of this institution that has a payment past due. */
-  static async arrearsFor(providerId: number, asOf = DateTime.now()): Promise<LoanArrears[]> {
+  static async arrearsFor(
+    providerId: number,
+    asOf: DateTime = DateTime.now()
+  ): Promise<LoanArrears[]> {
     const loans = await Loan.query()
       .where('provider_id', providerId)
       .whereIn('status', ['disbursed', 'repaying'])
@@ -84,7 +87,7 @@ export class PortfolioQualityService {
   static async reportFor(
     providerId: number,
     currencyCode = 'USD',
-    asOf = DateTime.now()
+    asOf: DateTime = DateTime.now()
   ): Promise<PortfolioQuality> {
     const loans = await Loan.query()
       .where('provider_id', providerId)
@@ -132,7 +135,7 @@ export class PortfolioQualityService {
     providerId: number,
     afterDays: number,
     correlationId: string,
-    asOf = DateTime.now()
+    asOf: DateTime = DateTime.now()
   ): Promise<number> {
     const arrears = await this.arrearsFor(providerId, asOf)
     const due = arrears.filter((a) => a.daysOverdue >= afterDays)

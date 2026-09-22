@@ -267,7 +267,7 @@ export class LoanService {
         {
           correlationId,
           description: `Disbursement of loan ${loan.id}`,
-          metadata: { loan_id: loan.id, fee: fee.toString() },
+          metadata: { loan_id: loan.id, provider_id: loan.providerId, fee: fee.toString() },
           amount: new Money(loan.principal, loan.currencyCode),
           fee,
           trx,
