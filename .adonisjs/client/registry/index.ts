@@ -666,6 +666,36 @@ const routes = {
     tokens: [{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"api","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"savings","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":1,"val":"id","end":""},{"old":"/api/v1/counter/savings/:id/withdraw","type":0,"val":"withdraw","end":""}],
     types: placeholder as Registry['counter.counter_savings.withdraw']['types'],
   },
+  'counter.counter_loans.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/counter/loans',
+    tokens: [{"old":"/api/v1/counter/loans","type":0,"val":"api","end":""},{"old":"/api/v1/counter/loans","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/loans","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/loans","type":0,"val":"loans","end":""}],
+    types: placeholder as Registry['counter.counter_loans.index']['types'],
+  },
+  'counter.counter_loans.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/counter/loans/:id',
+    tokens: [{"old":"/api/v1/counter/loans/:id","type":0,"val":"api","end":""},{"old":"/api/v1/counter/loans/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/loans/:id","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/loans/:id","type":0,"val":"loans","end":""},{"old":"/api/v1/counter/loans/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['counter.counter_loans.show']['types'],
+  },
+  'counter.counter_loans.approve': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/loans/:id/approve',
+    tokens: [{"old":"/api/v1/counter/loans/:id/approve","type":0,"val":"api","end":""},{"old":"/api/v1/counter/loans/:id/approve","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/loans/:id/approve","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/loans/:id/approve","type":0,"val":"loans","end":""},{"old":"/api/v1/counter/loans/:id/approve","type":1,"val":"id","end":""},{"old":"/api/v1/counter/loans/:id/approve","type":0,"val":"approve","end":""}],
+    types: placeholder as Registry['counter.counter_loans.approve']['types'],
+  },
+  'counter.counter_loans.reject': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/loans/:id/reject',
+    tokens: [{"old":"/api/v1/counter/loans/:id/reject","type":0,"val":"api","end":""},{"old":"/api/v1/counter/loans/:id/reject","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/loans/:id/reject","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/loans/:id/reject","type":0,"val":"loans","end":""},{"old":"/api/v1/counter/loans/:id/reject","type":1,"val":"id","end":""},{"old":"/api/v1/counter/loans/:id/reject","type":0,"val":"reject","end":""}],
+    types: placeholder as Registry['counter.counter_loans.reject']['types'],
+  },
+  'counter.counter_loans.disburse': {
+    methods: ["POST"],
+    pattern: '/api/v1/counter/loans/:id/disburse',
+    tokens: [{"old":"/api/v1/counter/loans/:id/disburse","type":0,"val":"api","end":""},{"old":"/api/v1/counter/loans/:id/disburse","type":0,"val":"v1","end":""},{"old":"/api/v1/counter/loans/:id/disburse","type":0,"val":"counter","end":""},{"old":"/api/v1/counter/loans/:id/disburse","type":0,"val":"loans","end":""},{"old":"/api/v1/counter/loans/:id/disburse","type":1,"val":"id","end":""},{"old":"/api/v1/counter/loans/:id/disburse","type":0,"val":"disburse","end":""}],
+    types: placeholder as Registry['counter.counter_loans.disburse']['types'],
+  },
   'finance.products.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/finance/products',
@@ -707,6 +737,30 @@ const routes = {
     pattern: '/api/v1/finance/savings/:id/close',
     tokens: [{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"api","end":""},{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"savings","end":""},{"old":"/api/v1/finance/savings/:id/close","type":1,"val":"id","end":""},{"old":"/api/v1/finance/savings/:id/close","type":0,"val":"close","end":""}],
     types: placeholder as Registry['finance.savings.savings_accounts.close']['types'],
+  },
+  'finance.savings.borrower_loans.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/finance/loans',
+    tokens: [{"old":"/api/v1/finance/loans","type":0,"val":"api","end":""},{"old":"/api/v1/finance/loans","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/loans","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/loans","type":0,"val":"loans","end":""}],
+    types: placeholder as Registry['finance.savings.borrower_loans.index']['types'],
+  },
+  'finance.savings.borrower_loans.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/finance/loans',
+    tokens: [{"old":"/api/v1/finance/loans","type":0,"val":"api","end":""},{"old":"/api/v1/finance/loans","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/loans","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/loans","type":0,"val":"loans","end":""}],
+    types: placeholder as Registry['finance.savings.borrower_loans.store']['types'],
+  },
+  'finance.savings.borrower_loans.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/finance/loans/:id',
+    tokens: [{"old":"/api/v1/finance/loans/:id","type":0,"val":"api","end":""},{"old":"/api/v1/finance/loans/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/loans/:id","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/loans/:id","type":0,"val":"loans","end":""},{"old":"/api/v1/finance/loans/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['finance.savings.borrower_loans.show']['types'],
+  },
+  'finance.savings.borrower_loans.repay': {
+    methods: ["POST"],
+    pattern: '/api/v1/finance/loans/:id/repay',
+    tokens: [{"old":"/api/v1/finance/loans/:id/repay","type":0,"val":"api","end":""},{"old":"/api/v1/finance/loans/:id/repay","type":0,"val":"v1","end":""},{"old":"/api/v1/finance/loans/:id/repay","type":0,"val":"finance","end":""},{"old":"/api/v1/finance/loans/:id/repay","type":0,"val":"loans","end":""},{"old":"/api/v1/finance/loans/:id/repay","type":1,"val":"id","end":""},{"old":"/api/v1/finance/loans/:id/repay","type":0,"val":"repay","end":""}],
+    types: placeholder as Registry['finance.savings.borrower_loans.repay']['types'],
   },
   'businesses.businesses.index': {
     methods: ["GET","HEAD"],

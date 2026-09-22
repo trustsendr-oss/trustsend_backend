@@ -235,6 +235,13 @@ export interface ApiDefinition {
       deposit: typeof routes['counter.counter_savings.deposit']
       withdraw: typeof routes['counter.counter_savings.withdraw']
     }
+    counterLoans: {
+      index: typeof routes['counter.counter_loans.index']
+      show: typeof routes['counter.counter_loans.show']
+      approve: typeof routes['counter.counter_loans.approve']
+      reject: typeof routes['counter.counter_loans.reject']
+      disburse: typeof routes['counter.counter_loans.disburse']
+    }
   }
   finance: {
     products: {
@@ -248,6 +255,12 @@ export interface ApiDefinition {
         deposit: typeof routes['finance.savings.savings_accounts.deposit']
         withdraw: typeof routes['finance.savings.savings_accounts.withdraw']
         close: typeof routes['finance.savings.savings_accounts.close']
+      }
+      borrowerLoans: {
+        index: typeof routes['finance.savings.borrower_loans.index']
+        store: typeof routes['finance.savings.borrower_loans.store']
+        show: typeof routes['finance.savings.borrower_loans.show']
+        repay: typeof routes['finance.savings.borrower_loans.repay']
       }
     }
   }

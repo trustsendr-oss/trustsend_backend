@@ -77,6 +77,8 @@ const CounterSessionsController = () => import('#controllers/counter/sessions_co
 const CounterCashController = () => import('#controllers/counter/cash_controller')
 const CounterCustomersController = () => import('#controllers/counter/customers_controller')
 const CounterSavingsController = () => import('#controllers/counter/savings_controller')
+const CounterLoansController = () => import('#controllers/counter/loans_controller')
+const BorrowerLoansController = () => import('#controllers/lending/borrower_loans_controller')
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -457,6 +459,13 @@ router
         router.post('savings', [CounterSavingsController, 'store'])
         router.post('savings/:id/deposit', [CounterSavingsController, 'deposit'])
         router.post('savings/:id/withdraw', [CounterSavingsController, 'withdraw'])
+        // The institution's loan book. Approval, refusal and disbursement are separate acts:
+        // saying yes and handing over the money are different decisions, often on different days.
+        router.get('loans', [CounterLoansController, 'index'])
+        router.get('loans/:id', [CounterLoansController, 'show'])
+        router.post('loans/:id/approve', [CounterLoansController, 'approve'])
+        router.post('loans/:id/reject', [CounterLoansController, 'reject'])
+        router.post('loans/:id/disburse', [CounterLoansController, 'disburse'])
       })
       .prefix('counter')
       .as('counter')
@@ -479,6 +488,10 @@ router
         router.post('savings/:id/deposit', [SavingsAccountsController, 'deposit'])
         router.post('savings/:id/withdraw', [SavingsAccountsController, 'withdraw'])
         router.post('savings/:id/close', [SavingsAccountsController, 'close'])
+        router.get('loans', [BorrowerLoansController, 'index'])
+        router.post('loans', [BorrowerLoansController, 'store'])
+        router.get('loans/:id', [BorrowerLoansController, 'show'])
+        router.post('loans/:id/repay', [BorrowerLoansController, 'repay'])
       })
       .prefix('finance')
       .as('finance.savings')

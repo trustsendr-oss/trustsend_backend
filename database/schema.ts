@@ -1305,6 +1305,150 @@ export class LedgerTransactionSchema extends BaseModel {
   declare uuid: string
 }
 
+export class LoanRepaymentSchema extends BaseModel {
+  static $columns = [
+    'amount',
+    'appliedToInterest',
+    'appliedToPrincipal',
+    'createdAt',
+    'id',
+    'ledgerTransactionId',
+    'loanId',
+    'paidAt',
+    'updatedAt',
+  ] as const
+  $columns = LoanRepaymentSchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column()
+  declare appliedToInterest: bigint | number
+  @column()
+  declare appliedToPrincipal: bigint | number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare ledgerTransactionId: string
+  @column()
+  declare loanId: number
+  @column.dateTime()
+  declare paidAt: DateTime
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class LoanScheduleSchema extends BaseModel {
+  static $columns = [
+    'createdAt',
+    'dueAt',
+    'id',
+    'installment',
+    'interest',
+    'loanId',
+    'paid',
+    'principal',
+    'settledAt',
+    'updatedAt',
+  ] as const
+  $columns = LoanScheduleSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime()
+  declare dueAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare installment: number
+  @column()
+  declare interest: bigint | number
+  @column()
+  declare loanId: number
+  @column()
+  declare paid: bigint | number
+  @column()
+  declare principal: bigint | number
+  @column.dateTime()
+  declare settledAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class LoanSchema extends BaseModel {
+  static $columns = [
+    'closedAt',
+    'createdAt',
+    'currencyCode',
+    'decidedAt',
+    'decidedByStaffId',
+    'decisionNotes',
+    'disbursedAt',
+    'disbursementTransactionId',
+    'feesCharged',
+    'id',
+    'interestMethod',
+    'interestOutstanding',
+    'interestPeriod',
+    'interestRateBps',
+    'principal',
+    'principalOutstanding',
+    'productId',
+    'providerId',
+    'requestedAt',
+    'status',
+    'termMonths',
+    'updatedAt',
+    'userId',
+  ] as const
+  $columns = LoanSchema.$columns
+  @column.dateTime()
+  declare closedAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare currencyCode: string
+  @column.dateTime()
+  declare decidedAt: DateTime | null
+  @column()
+  declare decidedByStaffId: number | null
+  @column()
+  declare decisionNotes: string | null
+  @column.dateTime()
+  declare disbursedAt: DateTime | null
+  @column()
+  declare disbursementTransactionId: string | null
+  @column()
+  declare feesCharged: bigint | number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare interestMethod: string
+  @column()
+  declare interestOutstanding: bigint | number
+  @column()
+  declare interestPeriod: string
+  @column()
+  declare interestRateBps: number
+  @column()
+  declare principal: bigint | number
+  @column()
+  declare principalOutstanding: bigint | number
+  @column()
+  declare productId: number
+  @column()
+  declare providerId: number
+  @column.dateTime()
+  declare requestedAt: DateTime
+  @column()
+  declare status: string
+  @column()
+  declare termMonths: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
 export class NotificationSchema extends BaseModel {
   static $columns = [
     'createdAt',

@@ -48,6 +48,7 @@ export const controllers = {
   counter: {
     Cash: () => import('#controllers/counter/cash_controller'),
     Customers: () => import('#controllers/counter/customers_controller'),
+    Loans: () => import('#controllers/counter/loans_controller'),
     Savings: () => import('#controllers/counter/savings_controller'),
     SerializeSession: () => import('#controllers/counter/serialize_session'),
     Sessions: () => import('#controllers/counter/sessions_controller'),
@@ -64,8 +65,10 @@ export const controllers = {
   InternalUsers: () => import('#controllers/internal_users_controller'),
   Kyc: () => import('#controllers/kyc_controller'),
   lending: {
+    BorrowerLoans: () => import('#controllers/lending/borrower_loans_controller'),
     Catalogue: () => import('#controllers/lending/catalogue_controller'),
     Products: () => import('#controllers/lending/products_controller'),
+    SerializeLoan: () => import('#controllers/lending/serialize_loan'),
     SerializeProduct: () => import('#controllers/lending/serialize_product'),
   },
   mobileMoney: {

@@ -1327,6 +1327,66 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/savings_controller').default['withdraw']>>>
     }
   }
+  'counter.counter_loans.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/loans'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['index']>>>
+    }
+  }
+  'counter.counter_loans.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/loans/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['show']>>>
+    }
+  }
+  'counter.counter_loans.approve': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/approve'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['approve']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['approve']>>>
+    }
+  }
+  'counter.counter_loans.reject': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/reject'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/loans').rejectLoanValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/loans').rejectLoanValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['reject']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['reject']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_loans.disburse': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/disburse'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['disburse']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['disburse']>>>
+    }
+  }
   'finance.products.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/finance/products'
@@ -1409,6 +1469,54 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/savings').closeSavingsValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['close']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/savings/accounts_controller').default['close']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'finance.savings.borrower_loans.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/finance/loans'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/borrower_loans_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/borrower_loans_controller').default['index']>>>
+    }
+  }
+  'finance.savings.borrower_loans.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/finance/loans'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/loans').requestLoanValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/loans').requestLoanValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/borrower_loans_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/borrower_loans_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'finance.savings.borrower_loans.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/finance/loans/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/borrower_loans_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/borrower_loans_controller').default['show']>>>
+    }
+  }
+  'finance.savings.borrower_loans.repay': {
+    methods: ["POST"]
+    pattern: '/api/v1/finance/loans/:id/repay'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/loans').repayLoanValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/loans').repayLoanValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/borrower_loans_controller').default['repay']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/borrower_loans_controller').default['repay']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'businesses.businesses.index': {
