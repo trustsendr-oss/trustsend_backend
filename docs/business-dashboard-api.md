@@ -249,6 +249,72 @@ Liste les abonnements webhook du business.
 ### 2.11 `GET /api/v1/business/dashboard/webhooks/:id/deliveries` 🔒
 Historique des 50 dernières tentatives de livraison pour un abonnement.
 
+### 2.12 `POST /api/v1/business/crypto/deposits/address` 🔒
+Génère ou récupère l'adresse blockchain dédiée pour recevoir des stablecoins pour le compte entreprise.
+
+**Body**
+```json
+{
+  "network": "polygon",
+  "token_symbol": "USDC",
+  "currency_code": "USD"
+}
+```
+* `network` : `polygon`, `base`, `arbitrum`, `optimism`, `ethereum`, `solana` (requis)
+* `token_symbol` : `USDC` (défaut), `USDT`, `EURC`
+* `currency_code` : Devise du wallet cible (défaut `USD`)
+
+**Réponse `200`**
+```json
+{
+  "data": {
+    "network": "polygon",
+    "token_symbol": "USDC",
+    "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+    "memo_tag": null,
+    "currency_code": "USD",
+    "wallet_id": 12,
+    "created_at": "2026-09-23T01:30:00.000Z"
+  }
+}
+```
+
+### 2.13 `POST /api/v1/business/crypto/payouts` 🔒
+Initie un retrait de stablecoins depuis le wallet de l'entreprise vers une adresse blockchain externe.
+
+**Body**
+```json
+{
+  "amount": "2500",
+  "currency_code": "USD",
+  "network": "base",
+  "token_symbol": "USDC",
+  "destination_address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "pin": "1234",
+  "idempotency_key": "8f6d2b40-9b37-4d7a-8b1e-e28e75422891"
+}
+```
+
+**Réponse `201`**
+```json
+{
+  "message": "Business crypto withdrawal initiated successfully",
+  "data": {
+    "transaction_id": "TXN-CR7X9M2Q",
+    "status": "processing",
+    "amount": "2500",
+    "currency_code": "USD",
+    "fee": "0",
+    "payment_channel": "crypto_usdc_base",
+    "destination_address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "network": "base",
+    "token_symbol": "USDC",
+    "created_at": "2026-09-23T01:35:00.000Z"
+  }
+}
+```
+
+
 **Réponse `200`**
 ```json
 {

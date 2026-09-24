@@ -21,6 +21,13 @@ export default class KycVerification extends BaseModel {
   @column()
   declare providerReference: string | null
 
+  /** Business KYC (KYB) only — null for user/agent verifications. */
+  @column()
+  declare businessName: string | null
+
+  @column()
+  declare businessType: 'company' | 'startup' | null
+
   @column()
   declare verificationType: 'identity' | 'address' | 'liveness' | 'document' | 'pep_screening'
 

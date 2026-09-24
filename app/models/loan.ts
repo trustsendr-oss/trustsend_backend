@@ -5,7 +5,10 @@ import Business from '#models/business'
 import BusinessStaff from '#models/business_staff'
 import FinancialProduct from '#models/financial_product'
 import LoanRepayment from '#models/loan_repayment'
+import LoanRestructuring from '#models/loan_restructuring'
 import LoanSchedule from '#models/loan_schedule'
+import SavingsAccount from '#models/savings_account'
+import BorrowerGroup from '#models/borrower_group'
 import User from '#models/user'
 
 export type LoanStatus =
@@ -18,12 +21,18 @@ export type LoanStatus =
   | 'defaulted'
   | 'cancelled'
 
+export type LoanStage =
+  | 'requested'
+  | 'under_review'
+  | 'committee_approved'
+  | 'rejected'
+  | 'disbursed'
+  | 'closed'
+
+export type CollateralStatus = 'none' | 'locked' | 'released' | 'seized'
+
 /**
  * A loan made by a partner institution to a TumaPlus account holder.
- *
- * What is owed lives here, not in the ledger: the ledger records the cash that moved, this records
- * the contract it moved under. The terms are the ones agreed at approval, copied from the product
- * so that repricing it never reaches a borrower who already signed.
  */
 export default class Loan extends BaseModel {
   static table = 'loans'
@@ -40,7 +49,14 @@ export default class Loan extends BaseModel {
   @column()
   declare userId: number
 
-  /** The credit officer who decided. A decision belongs to someone. */
+  @column()
+  declare groupId: number | null
+
+  /** The credit officer assigned to follow this borrower/loan. */
+  @column()
+  declare assignedLoanOfficerId: number | null
+
+  /** The credit officer or manager who took the decision. */
   @column()
   declare decidedByStaffId: number | null
 
@@ -51,6 +67,9 @@ export default class Loan extends BaseModel {
   declare principal: bigint
 
   @column()
+  declare approvedPrincipal: bigint | null
+
+  @column()
   declare principalOutstanding: bigint
 
   @column()
@@ -58,6 +77,20 @@ export default class Loan extends BaseModel {
 
   @column()
   declare feesCharged: bigint
+
+  /** Compulsory cash collateral held for this loan */
+  @column()
+  declare mandatorySavingsLocked: bigint
+
+  @column()
+  declare collateralSavingsAccountId: number | null
+
+  @column()
+  declare collateralStatus: CollateralStatus
+
+  /** Workflow stage */
+  @column()
+  declare stage: LoanStage
 
   /** Kept apart from interest so a borrower can see why they owe what they owe. */
   @column()
@@ -94,6 +127,12 @@ export default class Loan extends BaseModel {
   @column.dateTime()
   declare decidedAt: DateTime | null
 
+  @column.dateTime()
+  declare committeeDecisionAt: DateTime | null
+
+  @column()
+  declare committeeNotes: string | null
+
   @column()
   declare decisionNotes: string | null
 
@@ -105,6 +144,21 @@ export default class Loan extends BaseModel {
 
   @column()
   declare disbursementTransactionId: string | null
+
+  @column()
+  declare isRestructured: boolean
+
+  @column.dateTime()
+  declare restructuredAt: DateTime | null
+
+  @column()
+  declare restructureCount: number
+
+  @column.dateTime()
+  declare defaultedAt: DateTime | null
+
+  @column()
+  declare defaultReason: string | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -122,8 +176,17 @@ export default class Loan extends BaseModel {
   @belongsTo(() => User, { foreignKey: 'userId' })
   declare borrower: BelongsTo<typeof User>
 
+  @belongsTo(() => BorrowerGroup, { foreignKey: 'groupId' })
+  declare group: BelongsTo<typeof BorrowerGroup>
+
+  @belongsTo(() => BusinessStaff, { foreignKey: 'assignedLoanOfficerId' })
+  declare assignedLoanOfficer: BelongsTo<typeof BusinessStaff>
+
   @belongsTo(() => BusinessStaff, { foreignKey: 'decidedByStaffId' })
   declare decidedBy: BelongsTo<typeof BusinessStaff>
+
+  @belongsTo(() => SavingsAccount, { foreignKey: 'collateralSavingsAccountId' })
+  declare collateralSavingsAccount: BelongsTo<typeof SavingsAccount>
 
   @hasMany(() => LoanSchedule, { foreignKey: 'loanId' })
   declare schedule: HasMany<typeof LoanSchedule>
@@ -131,12 +194,15 @@ export default class Loan extends BaseModel {
   @hasMany(() => LoanRepayment, { foreignKey: 'loanId' })
   declare repayments: HasMany<typeof LoanRepayment>
 
+  @hasMany(() => LoanRestructuring, { foreignKey: 'loanId' })
+  declare restructurings: HasMany<typeof LoanRestructuring>
+
   /** Everything still owed: principal, interest and anything charged for being late. */
   get totalOutstanding(): bigint {
     return this.principalOutstanding + this.interestOutstanding + this.penaltiesOutstanding
   }
 
   get isOutstanding(): boolean {
-    return this.status === 'disbursed' || this.status === 'repaying'
+    return this.status === 'disbursed' || this.status === 'repaying' || this.status === 'defaulted'
   }
 }

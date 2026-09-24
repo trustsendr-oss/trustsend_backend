@@ -95,6 +95,8 @@ export default class KycController {
         subject_id: kyc.subjectId,
         verification_type: kyc.verificationType,
         provider: kyc.provider,
+        business_name: kyc.businessName,
+        business_type: kyc.businessType,
         status: kyc.status,
         submitted_at: kyc.submittedAt,
         decided_at: kyc.decidedAt,

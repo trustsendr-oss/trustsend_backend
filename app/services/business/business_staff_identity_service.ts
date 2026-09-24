@@ -1,4 +1,4 @@
-import type Agent from '#models/agent'
+import Agent from '#models/agent'
 import BusinessStaff from '#models/business_staff'
 
 export class BusinessStaffNotFoundException extends Error {
@@ -19,6 +19,29 @@ export class StaffNotPostedException extends Error {
   constructor() {
     super('This staff member is not posted to a counter')
     this.name = 'StaffNotPostedException'
+  }
+}
+
+export class CannotCoverCounterException extends Error {
+  constructor() {
+    super('Only a branch manager or an institution admin can work at a counter other than their own')
+    this.name = 'CannotCoverCounterException'
+  }
+}
+
+export class CounterNotFoundException extends Error {
+  constructor() {
+    super('No such counter at this institution')
+    this.name = 'CounterNotFoundException'
+  }
+}
+
+export class NotYourDrawerException extends Error {
+  constructor() {
+    super(
+      'The drawer open at this counter belongs to someone else: open your own before handling cash'
+    )
+    this.name = 'NotYourDrawerException'
   }
 }
 
@@ -67,12 +90,18 @@ export class BusinessStaffIdentityService {
    * @throws CounterNotActiveException if the counter is not active
    */
   static async requireCounterForStaff(staff: BusinessStaff): Promise<Agent> {
-    if (!staff.agentId) {
+    const counterId = this.actingCounterId(staff)
+    if (!counterId) {
       throw new StaffNotPostedException()
     }
 
-    await staff.load('agent')
-    const counter = staff.agent
+    let counter: Agent | null
+    if (counterId === staff.agentId) {
+      await staff.load('agent')
+      counter = staff.agent
+    } else {
+      counter = await Agent.find(counterId)
+    }
 
     if (!counter || counter.businessId !== staff.businessId) {
       // Defensive: the admin API already refuses a cross-institution posting. Reaching this would
@@ -85,6 +114,80 @@ export class BusinessStaffIdentityService {
     }
 
     return counter
+  }
+
+  /* -- Covering a counter ------------------------------------------------------------------
+   *
+   * A teller works the window they are posted to, and only that one. A branch manager or an
+   * institution admin is different: they are the people who step in when a window is short-handed,
+   * and an admin is expected to be able to do anything a teller does. They name the counter they
+   * are working at for the request (the `X-Counter-Id` header, read by business_staff_middleware),
+   * and every counter route then resolves THAT counter through requireCounterForStaff — the same
+   * isolation and status checks, no second code path.
+   *
+   * The choice lives in `$extras`, which Lucid never persists: covering a counter for one request
+   * must never rewrite someone's posting.
+   *
+   * Cash is the one thing covering does not open up by itself. Cash booked at a counter goes into
+   * the drawer open there, and a drawer is one person's statement of what they hold; an admin's
+   * notes landing in a teller's drawer would give that teller a variance that is not theirs. So a
+   * cover can handle cash only through a drawer they opened themselves (requireOwnDrawerWhenCovering).
+   */
+  static readonly COVERING_ROLES = new Set(['branch_manager', 'admin'])
+
+  /** The counter this request acts at: the one being covered, else the posting. */
+  static actingCounterId(staff: BusinessStaff): number | null {
+    return (staff.$extras.actingCounterId as number | undefined) ?? staff.agentId
+  }
+
+  static isCovering(staff: BusinessStaff): boolean {
+    const acting = staff.$extras.actingCounterId as number | undefined
+    return acting !== undefined && acting !== staff.agentId
+  }
+
+  /**
+   * Records, for this request only, that the staff member works at `counterId`.
+   *
+   * @throws CannotCoverCounterException for a role that works only its own window
+   * @throws CounterNotFoundException for a counter that is not this institution's
+   */
+  static async coverCounter(staff: BusinessStaff, counterId: number): Promise<void> {
+    if (counterId === staff.agentId) return
+    if (!this.COVERING_ROLES.has(staff.role)) {
+      throw new CannotCoverCounterException()
+    }
+    const counter = await Agent.find(counterId)
+    if (!counter || counter.businessId !== staff.businessId) {
+      throw new CounterNotFoundException()
+    }
+    staff.$extras.actingCounterId = counter.id
+  }
+
+  /** The counters this person may work at: every live one for a cover, else their posting. */
+  static async countersFor(staff: BusinessStaff): Promise<Agent[]> {
+    if (this.COVERING_ROLES.has(staff.role)) {
+      return Agent.query()
+        .where('business_id', staff.businessId)
+        .whereNot('status', 'terminated')
+        .orderByRaw('parent_agent_id IS NOT NULL')
+        .orderBy('id', 'asc')
+    }
+    if (!staff.agentId) return []
+    const posted = await Agent.find(staff.agentId)
+    return posted ? [posted] : []
+  }
+
+  /** @throws NotYourDrawerException when a cover would book cash into someone else's drawer */
+  static async requireOwnDrawerWhenCovering(staff: BusinessStaff, counter: Agent): Promise<void> {
+    if (!this.isCovering(staff)) return
+    const { default: TellerSession } = await import('#models/teller_session')
+    const open = await TellerSession.query()
+      .where('agent_id', counter.id)
+      .where('status', 'open')
+      .first()
+    if (open && open.staffId !== staff.id) {
+      throw new NotYourDrawerException()
+    }
   }
 
   /**

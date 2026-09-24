@@ -347,4 +347,53 @@ export class CashOutService {
       return txn
     })
   }
+
+  /**
+   * Cancel a withdrawal at the counter that initiated it, before any notes left the drawer.
+   *
+   * The customer-side cancel() above checks the initiating user; at an institution's window the
+   * customer may have walked away and the teller is the one who has to clear the line. Nothing
+   * was debited at initiate() — the funds only stay reserved — so cancelling moves no money.
+   *
+   * @throws CashOutOwnershipException if callerAgentId isn't the counter this cash-out was taken at
+   */
+  static async cancelAtCounter(
+    transactionId: string,
+    callerAgentId: number,
+    reason?: string
+  ): Promise<LedgerTransaction> {
+    return db.transaction(async (trx) => {
+      const txn = await LedgerTransaction.query({ client: trx })
+        .where('id', transactionId)
+        .forUpdate()
+        .firstOrFail()
+
+      if (txn.type !== 'cash_out' || (txn.metadata as any)?.agent_id !== callerAgentId) {
+        throw new CashOutOwnershipException()
+      }
+
+      if (txn.status !== 'reserved') {
+        throw new Error('Transaction must be in reserved status to cancel')
+      }
+
+      txn.status = 'cancelled'
+      txn.completedAt = DateTime.now()
+      txn.failureReason = reason?.trim() || 'Cancelled at the counter'
+      await txn.useTransaction(trx).save()
+
+      await AuditLoggerService.record({
+        actorType: 'agent',
+        actorId: callerAgentId,
+        action: 'transaction.cash_out.cancelled',
+        resourceType: 'ledger_transaction',
+        resourceId: txn.id,
+        before: { status: 'reserved' },
+        after: { status: 'cancelled', reason: txn.failureReason },
+        correlationId: txn.correlationId,
+        trx,
+      })
+
+      return txn
+    })
+  }
 }

@@ -10,10 +10,6 @@ export type SavingsAccountStatus = 'active' | 'matured' | 'closed'
 
 /**
  * Savings held with a partner institution, in an escrow wallet owned by the saver.
- *
- * The rate and period are the ones agreed at opening, copied from the product rather than read
- * from it: repricing a product must never reach a saver who already signed up under different
- * terms.
  */
 export default class SavingsAccount extends BaseModel {
   static table = 'savings_accounts'
@@ -39,6 +35,10 @@ export default class SavingsAccount extends BaseModel {
 
   @column()
   declare status: SavingsAccountStatus
+
+  /** Amount currently pledged / locked as collateral for active loans. */
+  @column()
+  declare lockedCollateralAmount: bigint
 
   @column.dateTime()
   declare openedAt: DateTime
@@ -77,11 +77,19 @@ export default class SavingsAccount extends BaseModel {
 
   /**
    * Whether money can be taken out right now. A term deposit is locked until its date — that lock
-   * is what the institution is paying a higher rate for.
+   * is what the institution is paying a higher rate for. Collateral locks also restrict withdrawals.
    */
   get isWithdrawable(): boolean {
     if (this.status === 'closed') return false
     if (!this.maturesAt) return true
     return this.maturesAt <= DateTime.now()
+  }
+
+  /**
+   * Maximum amount available for withdrawal after deducting pledged cash collateral.
+   */
+  getAvailableBalance(currentBalance: bigint): bigint {
+    const locked = this.lockedCollateralAmount || 0n
+    return currentBalance > locked ? currentBalance - locked : 0n
   }
 }

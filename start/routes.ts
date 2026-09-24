@@ -38,6 +38,10 @@ const BusinessPayoutsController = () => import('#controllers/business/payouts_co
 const BusinessWalletController = () => import('#controllers/business/wallet_controller')
 const BusinessTransactionsController = () => import('#controllers/business/transactions_controller')
 const BusinessWebhooksController = () => import('#controllers/business/webhooks_controller')
+const CryptoDepositsController = () => import('#controllers/crypto/crypto_deposits_controller')
+const CryptoPayoutsController = () => import('#controllers/crypto/crypto_payouts_controller')
+const CryptoWebhooksController = () => import('#controllers/crypto/crypto_webhooks_controller')
+const BusinessCryptoController = () => import('#controllers/business/crypto_controller')
 const BusinessToolkitController = () => import('#controllers/business/toolkit_controller')
 const BusinessPlanController = () => import('#controllers/business/plan_controller')
 const BusinessCardsController = () => import('#controllers/business/cards_controller')
@@ -79,7 +83,30 @@ const CounterCashController = () => import('#controllers/counter/cash_controller
 const CounterCustomersController = () => import('#controllers/counter/customers_controller')
 const CounterSavingsController = () => import('#controllers/counter/savings_controller')
 const CounterLoansController = () => import('#controllers/counter/loans_controller')
+const CounterMeController = () => import('#controllers/counter/me_controller')
+const CounterJournalController = () => import('#controllers/counter/journal_controller')
+const BusinessDashboardOutletsController = () =>
+  import('#controllers/business_dashboard/outlets_controller')
+const BusinessDashboardStaffController = () =>
+  import('#controllers/business_dashboard/staff_controller')
+const BusinessDashboardActivityController = () =>
+  import('#controllers/business_dashboard/activity_controller')
+const BusinessDashboardPortfolioController = () =>
+  import('#controllers/business_dashboard/portfolio_controller')
 const BorrowerLoansController = () => import('#controllers/lending/borrower_loans_controller')
+const CounterLoansCommitteeController = () =>
+  import('#controllers/counter/loans_committee_controller')
+const CounterGroupsController = () => import('#controllers/counter/groups_controller')
+const CounterLoanOfficersController = () => import('#controllers/counter/loan_officers_controller')
+const CounterLoansRestructureController = () =>
+  import('#controllers/counter/loans_restructure_controller')
+const CounterLoansDefaultController = () => import('#controllers/counter/loans_default_controller')
+const CounterPenaltiesController = () => import('#controllers/counter/penalties_controller')
+const CounterVaultController = () => import('#controllers/counter/vault_controller')
+const BusinessDashboardImfController = () =>
+  import('#controllers/business_dashboard/imf_controller')
+const BusinessDashboardImfMigrationController = () =>
+  import('#controllers/business_dashboard/imf_migration_controller')
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -430,6 +457,24 @@ router
       .post('webhooks/payscribe/cards', [CardWebhooksController, 'handle'])
       .as('webhooks.payscribe.cards')
 
+    // Crypto & Stablecoins (Alchemy Web3)
+    router
+      .group(() => {
+        router.post('deposits/address', [CryptoDepositsController, 'address'])
+        router.get('deposits', [CryptoDepositsController, 'index'])
+        router.post('payouts', [CryptoPayoutsController, 'store'])
+        router.get('payouts/:id', [CryptoPayoutsController, 'show'])
+      })
+      .prefix('crypto')
+      .as('crypto')
+      .use(middleware.auth())
+
+    // Inbound Alchemy Webhooks — external caller protected by HMAC signature verification
+    router
+      .post('webhooks/alchemy', [CryptoWebhooksController, 'alchemy'])
+      .as('webhooks.alchemy')
+
+
     // Counter operations, for the staff of a partner institution. Authenticated as an ordinary
     // user, then resolved to an institution through their posting — the third door onto
     // ctx.business, see business_staff_middleware.ts.
@@ -447,6 +492,11 @@ router
         router.post('cash-in/:transaction_id/reject', [CounterCashController, 'rejectCashIn'])
         router.post('cash-out', [CounterCashController, 'cashOut'])
         router.post('cash-out/:transaction_id/confirm', [CounterCashController, 'confirmCashOut'])
+        router.post('cash-out/:transaction_id/cancel', [CounterCashController, 'cancelCashOut'])
+        // Operations of the open shift still awaiting their second act (confirm / reject / cancel).
+        router.get('cash/pending', [CounterCashController, 'pending'])
+        // The institution's journal: cash at its counters, savings and loan movements.
+        router.get('transactions', [CounterJournalController, 'index'])
         // Enrolment. Throttled like the directory lookups it resembles: exact-match on a 9-digit
         // code is enumerable given enough requests, whoever is asking.
         router
@@ -467,9 +517,47 @@ router
         router.post('loans/:id/approve', [CounterLoansController, 'approve'])
         router.post('loans/:id/reject', [CounterLoansController, 'reject'])
         router.post('loans/:id/disburse', [CounterLoansController, 'disburse'])
+        // IMF committee circuit — multi-person credit approval (P1)
+        router.post('loans/:id/submit', [CounterLoansCommitteeController, 'submit'])
+        router.post('loans/:id/committee-approve', [CounterLoansCommitteeController, 'committeeApprove'])
+        router.post('loans/:id/committee-reject', [CounterLoansCommitteeController, 'committeeReject'])
+        // Loan officer portfolio assignment (P2)
+        router.post('loans/:id/assign', [CounterLoanOfficersController, 'assignLoan'])
+        router.post('borrowers/assign', [CounterLoanOfficersController, 'assignBorrower'])
+        router.get('staff/:id/portfolio', [CounterLoanOfficersController, 'portfolio'])
+        // Solidarity lending groups (P2)
+        router.get('groups', [CounterGroupsController, 'index'])
+        router.post('groups', [CounterGroupsController, 'store'])
+        router.get('groups/:id', [CounterGroupsController, 'show'])
+        router.get('groups/:id/summary', [CounterGroupsController, 'summary'])
+        router.post('groups/:id/members', [CounterGroupsController, 'addMember'])
+        router.delete('groups/:id/members/:userId', [CounterGroupsController, 'removeMember'])
+        // IMF Debt Restructuring (P3)
+        router.post('loans/:id/restructure', [CounterLoansRestructureController, 'restructure'])
+        router.get('loans/:id/restructurings', [CounterLoansRestructureController, 'history'])
+        // IMF Default & Collateral Seizure (P3)
+        router.post('loans/:id/default', [CounterLoansDefaultController, 'markDefault'])
+        router.post('loans/:id/seize-collateral', [CounterLoansDefaultController, 'seizeCollateral'])
+        // IMF Penalty Execution (P3)
+        router.post('penalties/run', [CounterPenaltiesController, 'run'])
+        // IMF Vault & Cash Management (Étape A)
+        router.get('vaults', [CounterVaultController, 'index'])
+        router.post('vaults/replenish', [CounterVaultController, 'replenish'])
+        router.post('vaults/sweep', [CounterVaultController, 'sweep'])
+        router.get('vaults/transfers', [CounterVaultController, 'transfers'])
+        router.post('vaults/transfers/:id/approve', [CounterVaultController, 'approve'])
+        router.post('vaults/transfers/:id/reject', [CounterVaultController, 'reject'])
       })
       .prefix('counter')
       .as('counter')
+      .use(middleware.auth())
+      .use(middleware.businessStaff())
+
+    // Who the signed-in person is at their institution: role, counter posting, institution. The
+    // staff application cannot decide what to show without it — see counter/me_controller.ts.
+    router
+      .get('business/staff/me', [CounterMeController, 'show'])
+      .as('business.staff.me')
       .use(middleware.auth())
       .use(middleware.businessStaff())
 
@@ -478,6 +566,17 @@ router
     router
       .get('finance/products', [LendingCatalogueController, 'index'])
       .as('finance.products.index')
+    router
+      .get('finance/products/:id', [LendingCatalogueController, 'showProduct'])
+      .where('id', router.matchers.number())
+      .as('finance.products.show')
+    router
+      .get('finance/institutions', [LendingCatalogueController, 'institutions'])
+      .as('finance.institutions.index')
+    router
+      .get('finance/institutions/:id', [LendingCatalogueController, 'showInstitution'])
+      .where('id', router.matchers.number())
+      .as('finance.institutions.show')
 
     // Someone's own savings with a partner institution. Behind middleware.auth(): these move money
     // between two wallets the SAME person owns, so the account holder is the only caller there is.
@@ -712,6 +811,8 @@ router
         router
           .get('mobile-money/payouts/:id/live-status', [BusinessPayoutsController, 'liveStatus'])
           .use(middleware.businessPlan('mobile_money.payouts'))
+        router.post('crypto/deposits/address', [BusinessCryptoController, 'address'])
+        router.post('crypto/payouts', [BusinessCryptoController, 'payout'])
         router
           .post('wallet', [BusinessWalletController, 'store'])
           .use(middleware.businessPlan('wallet.multi_currency'))
@@ -934,6 +1035,8 @@ router
         router
           .get('mobile-money/payouts/:id/live-status', [BusinessPayoutsController, 'liveStatus'])
           .use(middleware.businessPlan('mobile_money.payouts'))
+        router.post('crypto/deposits/address', [BusinessCryptoController, 'address'])
+        router.post('crypto/payouts', [BusinessCryptoController, 'payout'])
         router
           .post('wallet', [BusinessWalletController, 'store'])
           .use(middleware.businessPlan('wallet.multi_currency'))
@@ -1021,6 +1124,40 @@ router
         router
           .post('products/:id/archive', [LendingProductsController, 'archive'])
           .use(middleware.businessPlan('lending.credit'))
+
+        // The institution running its own network: its counters (agents it owns — not TumaPlus
+        // network agents), the people it posts to them, and what happens at its windows.
+        router.get('outlets', [BusinessDashboardOutletsController, 'index'])
+        router.post('outlets', [BusinessDashboardOutletsController, 'store'])
+        router.get('outlets/:id', [BusinessDashboardOutletsController, 'show'])
+        router.patch('outlets/:id', [BusinessDashboardOutletsController, 'update'])
+        router.post('outlets/:id/suspend', [BusinessDashboardOutletsController, 'suspend'])
+        router.post('outlets/:id/reactivate', [BusinessDashboardOutletsController, 'reactivate'])
+        router.get('staff', [BusinessDashboardStaffController, 'index'])
+        router.post('staff', [BusinessDashboardStaffController, 'store'])
+        router.patch('staff/:id', [BusinessDashboardStaffController, 'update'])
+        router.get('teller-sessions', [BusinessDashboardActivityController, 'sessions'])
+        // Its book, read by management. Deciding stays with named staff on counter/loans.
+        router.get('loans', [BusinessDashboardPortfolioController, 'loans'])
+        router.get('loans/:id', [BusinessDashboardPortfolioController, 'loan'])
+        router.get('savings', [BusinessDashboardPortfolioController, 'savings'])
+        router.get('customers', [BusinessDashboardPortfolioController, 'customers'])
+        // Same journal as counter/transactions, read by management. Not `transactions`: that path
+        // is the mobile-money history shared with the API-key group.
+        router.get('journal', [CounterJournalController, 'index'])
+        // IMF Regulatory, Provisioning & Portfolio Quality Reporting (P4)
+        router.get('imf/regulatory-report', [BusinessDashboardImfController, 'regulatoryReport'])
+        router.get('imf/provisioning', [BusinessDashboardImfController, 'provisioning'])
+        router.get('imf/arrears', [BusinessDashboardImfController, 'arrears'])
+        // IMF Legacy / Paper / Excel Migration Tool (Étape B)
+        router.post('imf/migration/validate', [
+          BusinessDashboardImfMigrationController,
+          'validate',
+        ])
+        router.post('imf/migration/commit', [
+          BusinessDashboardImfMigrationController,
+          'commit',
+        ])
       })
       .prefix('business/dashboard')
       .as('business.dashboard')

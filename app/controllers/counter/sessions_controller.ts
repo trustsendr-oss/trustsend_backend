@@ -3,6 +3,7 @@ import TellerSession from '#models/teller_session'
 import {
   TellerSessionService,
   MissingCountException,
+  PendingOperationsException,
   SelfReconciliationException,
   SessionAlreadyOpenException,
   SessionStateException,
@@ -48,7 +49,15 @@ export default class CounterSessionsController {
     }
 
     const session = await TellerSessionService.openSessionFor(businessStaff.agentId)
-    return response.ok({ data: session ? serializeSession(session) : null })
+    if (!session) {
+      return response.ok({ data: null })
+    }
+
+    // `live` is recomputed on every read and never stored: the frozen `expected_cash` on each
+    // balance stays null until the close writes it once.
+    return response.ok({
+      data: { ...serializeSession(session), live: await TellerSessionService.liveTotals(session) },
+    })
   }
 
   /** POST /api/v1/counter/sessions — open the drawer with what is physically in it. */
@@ -149,6 +158,9 @@ export default class CounterSessionsController {
   private handle(error: unknown, response: HttpContext['response']) {
     if (error instanceof StaffNotPostedException || error instanceof CounterNotActiveException) {
       return response.forbidden({ message: (error as Error).message })
+    }
+    if (error instanceof PendingOperationsException) {
+      return response.conflict({ message: error.message, code: 'E_PENDING_OPERATIONS' })
     }
     if (error instanceof SessionAlreadyOpenException || error instanceof SessionStateException) {
       return response.conflict({ message: (error as Error).message, code: 'E_SESSION_STATE' })

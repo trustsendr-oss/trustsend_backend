@@ -2,7 +2,11 @@ import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 import User from '#models/user'
 import type BusinessStaff from '#models/business_staff'
-import { BusinessStaffIdentityService } from '#services/business/business_staff_identity_service'
+import {
+  BusinessStaffIdentityService,
+  CannotCoverCounterException,
+  CounterNotFoundException,
+} from '#services/business/business_staff_identity_service'
 
 /**
  * Runs AFTER middleware.auth() has authenticated an ordinary user session, and resolves the
@@ -38,6 +42,27 @@ export default class BusinessStaffMiddleware {
         message: 'This account is not active staff of any institution.',
         code: 'E_NOT_INSTITUTION_STAFF',
       })
+    }
+
+    // A branch manager or an admin names the counter they are covering; anyone else may only
+    // name their own. See BusinessStaffIdentityService.coverCounter.
+    const requested = ctx.request.header('x-counter-id')
+    if (requested !== undefined && requested !== '') {
+      const counterId = Number(requested)
+      if (!Number.isInteger(counterId) || counterId <= 0) {
+        return ctx.response.badRequest({ message: 'Invalid X-Counter-Id', code: 'E_BAD_COUNTER' })
+      }
+      try {
+        await BusinessStaffIdentityService.coverCounter(staff, counterId)
+      } catch (error) {
+        if (error instanceof CannotCoverCounterException) {
+          return ctx.response.forbidden({ message: error.message, code: 'E_CANNOT_COVER' })
+        }
+        if (error instanceof CounterNotFoundException) {
+          return ctx.response.notFound({ message: error.message, code: 'E_COUNTER_NOT_FOUND' })
+        }
+        throw error
+      }
     }
 
     ctx.business = staff.business

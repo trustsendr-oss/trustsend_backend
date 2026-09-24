@@ -192,6 +192,7 @@ export interface ApiDefinition {
     payscribe: {
       cards: typeof routes['webhooks.payscribe.cards']
     }
+    alchemy: typeof routes['webhooks.alchemy']
   }
   mobileMoney: {
     mobileMoneyDeposits: {
@@ -210,6 +211,16 @@ export interface ApiDefinition {
       listAllPaymentMethodsRaw: typeof routes['mobile_money.mobile_money_toolkit.list_all_payment_methods_raw']
     }
   }
+  crypto: {
+    cryptoDeposits: {
+      address: typeof routes['crypto.crypto_deposits.address']
+      index: typeof routes['crypto.crypto_deposits.index']
+    }
+    cryptoPayouts: {
+      store: typeof routes['crypto.crypto_payouts.store']
+      show: typeof routes['crypto.crypto_payouts.show']
+    }
+  }
   counter: {
     counterSessions: {
       index: typeof routes['counter.counter_sessions.index']
@@ -224,6 +235,11 @@ export interface ApiDefinition {
       rejectCashIn: typeof routes['counter.counter_cash.reject_cash_in']
       cashOut: typeof routes['counter.counter_cash.cash_out']
       confirmCashOut: typeof routes['counter.counter_cash.confirm_cash_out']
+      cancelCashOut: typeof routes['counter.counter_cash.cancel_cash_out']
+      pending: typeof routes['counter.counter_cash.pending']
+    }
+    counterJournal: {
+      index: typeof routes['counter.counter_journal.index']
     }
     counterCustomers: {
       show: typeof routes['counter.counter_customers.show']
@@ -242,10 +258,262 @@ export interface ApiDefinition {
       reject: typeof routes['counter.counter_loans.reject']
       disburse: typeof routes['counter.counter_loans.disburse']
     }
+    counterLoansCommittee: {
+      submit: typeof routes['counter.counter_loans_committee.submit']
+      committeeApprove: typeof routes['counter.counter_loans_committee.committee_approve']
+      committeeReject: typeof routes['counter.counter_loans_committee.committee_reject']
+    }
+    counterLoanOfficers: {
+      assignLoan: typeof routes['counter.counter_loan_officers.assign_loan']
+      assignBorrower: typeof routes['counter.counter_loan_officers.assign_borrower']
+      portfolio: typeof routes['counter.counter_loan_officers.portfolio']
+    }
+    counterGroups: {
+      index: typeof routes['counter.counter_groups.index']
+      store: typeof routes['counter.counter_groups.store']
+      show: typeof routes['counter.counter_groups.show']
+      summary: typeof routes['counter.counter_groups.summary']
+      addMember: typeof routes['counter.counter_groups.add_member']
+      removeMember: typeof routes['counter.counter_groups.remove_member']
+    }
+    counterLoansRestructure: {
+      restructure: typeof routes['counter.counter_loans_restructure.restructure']
+      history: typeof routes['counter.counter_loans_restructure.history']
+    }
+    counterLoansDefault: {
+      markDefault: typeof routes['counter.counter_loans_default.mark_default']
+      seizeCollateral: typeof routes['counter.counter_loans_default.seize_collateral']
+    }
+    counterPenalties: {
+      run: typeof routes['counter.counter_penalties.run']
+    }
+    counterVault: {
+      index: typeof routes['counter.counter_vault.index']
+      replenish: typeof routes['counter.counter_vault.replenish']
+      sweep: typeof routes['counter.counter_vault.sweep']
+      transfers: typeof routes['counter.counter_vault.transfers']
+      approve: typeof routes['counter.counter_vault.approve']
+      reject: typeof routes['counter.counter_vault.reject']
+    }
+  }
+  business: {
+    staff: {
+      me: typeof routes['business.staff.me']
+    }
+    lendingProducts: {
+      index: typeof routes['business.lending_products.index']
+      store: typeof routes['business.lending_products.store']
+      show: typeof routes['business.lending_products.show']
+      update: typeof routes['business.lending_products.update']
+      submit: typeof routes['business.lending_products.submit']
+      archive: typeof routes['business.lending_products.archive']
+    }
+    businessDeposits: {
+      store: typeof routes['business.business_deposits.store']
+      show: typeof routes['business.business_deposits.show']
+      liveStatus: typeof routes['business.business_deposits.live_status']
+    }
+    businessPayouts: {
+      store: typeof routes['business.business_payouts.store']
+      show: typeof routes['business.business_payouts.show']
+      liveStatus: typeof routes['business.business_payouts.live_status']
+    }
+    businessCrypto: {
+      address: typeof routes['business.business_crypto.address']
+      payout: typeof routes['business.business_crypto.payout']
+    }
+    businessWallet: {
+      store: typeof routes['business.business_wallet.store']
+      index: typeof routes['business.business_wallet.index']
+      show: typeof routes['business.business_wallet.show']
+    }
+    businessSwaps: {
+      quote: typeof routes['business.business_swaps.quote']
+      store: typeof routes['business.business_swaps.store']
+    }
+    businessTransactions: {
+      index: typeof routes['business.business_transactions.index']
+    }
+    businessWebhooks: {
+      index: typeof routes['business.business_webhooks.index']
+      store: typeof routes['business.business_webhooks.store']
+      destroy: typeof routes['business.business_webhooks.destroy']
+      getDeliveries: typeof routes['business.business_webhooks.get_deliveries']
+    }
+    businessToolkit: {
+      listPaymentMethods: typeof routes['business.business_toolkit.list_payment_methods']
+      listAllPaymentMethodsRaw: typeof routes['business.business_toolkit.list_all_payment_methods_raw']
+    }
+    businessPlan: {
+      index: typeof routes['business.business_plan.index']
+      current: typeof routes['business.business_plan.current']
+      subscribe: typeof routes['business.business_plan.subscribe']
+    }
+    businessSandbox: {
+      fund: typeof routes['business.business_sandbox.fund']
+    }
+    businessCards: {
+      index: typeof routes['business.business_cards.index']
+      store: typeof routes['business.business_cards.store']
+      show: typeof routes['business.business_cards.show']
+      topup: typeof routes['business.business_cards.topup']
+      withdraw: typeof routes['business.business_cards.withdraw']
+      freeze: typeof routes['business.business_cards.freeze']
+      unfreeze: typeof routes['business.business_cards.unfreeze']
+      terminate: typeof routes['business.business_cards.terminate']
+      transactions: typeof routes['business.business_cards.transactions']
+    }
+    auth: {
+      businessDashboardAuth: {
+        requestSignupOtp: typeof routes['business.auth.business_dashboard_auth.request_signup_otp']
+        signup: typeof routes['business.auth.business_dashboard_auth.signup']
+        login: typeof routes['business.auth.business_dashboard_auth.login']
+        refresh: typeof routes['business.auth.business_dashboard_auth.refresh']
+        logout: typeof routes['business.auth.business_dashboard_auth.logout']
+        changePassword: typeof routes['business.auth.business_dashboard_auth.change_password']
+      }
+    }
+    dashboard: {
+      onboarding: {
+        businessDashboardProfile: {
+          show: typeof routes['business.dashboard.onboarding.business_dashboard_profile.show']
+          update: typeof routes['business.dashboard.onboarding.business_dashboard_profile.update']
+        }
+        businessPin: {
+          setPin: typeof routes['business.dashboard.onboarding.business_pin.set_pin']
+          changePin: typeof routes['business.dashboard.onboarding.business_pin.change_pin']
+        }
+        businessKyc: {
+          submit: typeof routes['business.dashboard.onboarding.business_kyc.submit']
+          getStatus: typeof routes['business.dashboard.onboarding.business_kyc.get_status']
+        }
+        businessNotifications: {
+          index: typeof routes['business.dashboard.onboarding.business_notifications.index']
+          markRead: typeof routes['business.dashboard.onboarding.business_notifications.mark_read']
+          markAllRead: typeof routes['business.dashboard.onboarding.business_notifications.mark_all_read']
+        }
+        businessPlan: {
+          index: typeof routes['business.dashboard.onboarding.business_plan.index']
+          current: typeof routes['business.dashboard.onboarding.business_plan.current']
+          subscribe: typeof routes['business.dashboard.onboarding.business_plan.subscribe']
+        }
+      }
+      pinReset: {
+        businessPin: {
+          requestReset: typeof routes['business.dashboard.pin_reset.business_pin.request_reset']
+          confirmReset: typeof routes['business.dashboard.pin_reset.business_pin.confirm_reset']
+        }
+      }
+      businessDeposits: {
+        store: typeof routes['business.dashboard.business_deposits.store']
+        show: typeof routes['business.dashboard.business_deposits.show']
+        liveStatus: typeof routes['business.dashboard.business_deposits.live_status']
+      }
+      businessPayouts: {
+        store: typeof routes['business.dashboard.business_payouts.store']
+        show: typeof routes['business.dashboard.business_payouts.show']
+        liveStatus: typeof routes['business.dashboard.business_payouts.live_status']
+      }
+      businessCrypto: {
+        address: typeof routes['business.dashboard.business_crypto.address']
+        payout: typeof routes['business.dashboard.business_crypto.payout']
+      }
+      businessWallet: {
+        store: typeof routes['business.dashboard.business_wallet.store']
+        index: typeof routes['business.dashboard.business_wallet.index']
+        show: typeof routes['business.dashboard.business_wallet.show']
+      }
+      businessSwaps: {
+        quote: typeof routes['business.dashboard.business_swaps.quote']
+        store: typeof routes['business.dashboard.business_swaps.store']
+      }
+      businessTransactions: {
+        index: typeof routes['business.dashboard.business_transactions.index']
+      }
+      businessWebhooks: {
+        index: typeof routes['business.dashboard.business_webhooks.index']
+        store: typeof routes['business.dashboard.business_webhooks.store']
+        destroy: typeof routes['business.dashboard.business_webhooks.destroy']
+        getDeliveries: typeof routes['business.dashboard.business_webhooks.get_deliveries']
+      }
+      businessToolkit: {
+        listPaymentMethods: typeof routes['business.dashboard.business_toolkit.list_payment_methods']
+        listAllPaymentMethodsRaw: typeof routes['business.dashboard.business_toolkit.list_all_payment_methods_raw']
+      }
+      businessOverview: {
+        show: typeof routes['business.dashboard.business_overview.show']
+      }
+      businessSandbox: {
+        fund: typeof routes['business.dashboard.business_sandbox.fund']
+      }
+      businessDashboardApiKeys: {
+        index: typeof routes['business.dashboard.business_dashboard_api_keys.index']
+        store: typeof routes['business.dashboard.business_dashboard_api_keys.store']
+        destroy: typeof routes['business.dashboard.business_dashboard_api_keys.destroy']
+      }
+      businessCards: {
+        index: typeof routes['business.dashboard.business_cards.index']
+        store: typeof routes['business.dashboard.business_cards.store']
+        show: typeof routes['business.dashboard.business_cards.show']
+        topup: typeof routes['business.dashboard.business_cards.topup']
+        withdraw: typeof routes['business.dashboard.business_cards.withdraw']
+        freeze: typeof routes['business.dashboard.business_cards.freeze']
+        unfreeze: typeof routes['business.dashboard.business_cards.unfreeze']
+        terminate: typeof routes['business.dashboard.business_cards.terminate']
+        transactions: typeof routes['business.dashboard.business_cards.transactions']
+      }
+      lendingProducts: {
+        index: typeof routes['business.dashboard.lending_products.index']
+        store: typeof routes['business.dashboard.lending_products.store']
+        show: typeof routes['business.dashboard.lending_products.show']
+        update: typeof routes['business.dashboard.lending_products.update']
+        submit: typeof routes['business.dashboard.lending_products.submit']
+        archive: typeof routes['business.dashboard.lending_products.archive']
+      }
+      businessDashboardOutlets: {
+        index: typeof routes['business.dashboard.business_dashboard_outlets.index']
+        store: typeof routes['business.dashboard.business_dashboard_outlets.store']
+        show: typeof routes['business.dashboard.business_dashboard_outlets.show']
+        update: typeof routes['business.dashboard.business_dashboard_outlets.update']
+        suspend: typeof routes['business.dashboard.business_dashboard_outlets.suspend']
+        reactivate: typeof routes['business.dashboard.business_dashboard_outlets.reactivate']
+      }
+      businessDashboardStaff: {
+        index: typeof routes['business.dashboard.business_dashboard_staff.index']
+        store: typeof routes['business.dashboard.business_dashboard_staff.store']
+        update: typeof routes['business.dashboard.business_dashboard_staff.update']
+      }
+      businessDashboardActivity: {
+        sessions: typeof routes['business.dashboard.business_dashboard_activity.sessions']
+      }
+      businessDashboardPortfolio: {
+        loans: typeof routes['business.dashboard.business_dashboard_portfolio.loans']
+        loan: typeof routes['business.dashboard.business_dashboard_portfolio.loan']
+        savings: typeof routes['business.dashboard.business_dashboard_portfolio.savings']
+        customers: typeof routes['business.dashboard.business_dashboard_portfolio.customers']
+      }
+      counterJournal: {
+        index: typeof routes['business.dashboard.counter_journal.index']
+      }
+      businessDashboardImf: {
+        regulatoryReport: typeof routes['business.dashboard.business_dashboard_imf.regulatory_report']
+        provisioning: typeof routes['business.dashboard.business_dashboard_imf.provisioning']
+        arrears: typeof routes['business.dashboard.business_dashboard_imf.arrears']
+      }
+      businessDashboardImfMigration: {
+        validate: typeof routes['business.dashboard.business_dashboard_imf_migration.validate']
+        commit: typeof routes['business.dashboard.business_dashboard_imf_migration.commit']
+      }
+    }
   }
   finance: {
     products: {
       index: typeof routes['finance.products.index']
+      show: typeof routes['finance.products.show']
+    }
+    institutions: {
+      index: typeof routes['finance.institutions.index']
+      show: typeof routes['finance.institutions.show']
     }
     savings: {
       savingsAccounts: {
@@ -371,171 +639,6 @@ export interface ApiDefinition {
       deactivate: typeof routes['internal_users.internal_users.deactivate']
       resetPassword: typeof routes['internal_users.internal_users.reset_password']
       resetMfa: typeof routes['internal_users.internal_users.reset_mfa']
-    }
-  }
-  business: {
-    lendingProducts: {
-      index: typeof routes['business.lending_products.index']
-      store: typeof routes['business.lending_products.store']
-      show: typeof routes['business.lending_products.show']
-      update: typeof routes['business.lending_products.update']
-      submit: typeof routes['business.lending_products.submit']
-      archive: typeof routes['business.lending_products.archive']
-    }
-    businessDeposits: {
-      store: typeof routes['business.business_deposits.store']
-      show: typeof routes['business.business_deposits.show']
-      liveStatus: typeof routes['business.business_deposits.live_status']
-    }
-    businessPayouts: {
-      store: typeof routes['business.business_payouts.store']
-      show: typeof routes['business.business_payouts.show']
-      liveStatus: typeof routes['business.business_payouts.live_status']
-    }
-    businessWallet: {
-      store: typeof routes['business.business_wallet.store']
-      index: typeof routes['business.business_wallet.index']
-      show: typeof routes['business.business_wallet.show']
-    }
-    businessSwaps: {
-      quote: typeof routes['business.business_swaps.quote']
-      store: typeof routes['business.business_swaps.store']
-    }
-    businessTransactions: {
-      index: typeof routes['business.business_transactions.index']
-    }
-    businessWebhooks: {
-      index: typeof routes['business.business_webhooks.index']
-      store: typeof routes['business.business_webhooks.store']
-      destroy: typeof routes['business.business_webhooks.destroy']
-      getDeliveries: typeof routes['business.business_webhooks.get_deliveries']
-    }
-    businessToolkit: {
-      listPaymentMethods: typeof routes['business.business_toolkit.list_payment_methods']
-      listAllPaymentMethodsRaw: typeof routes['business.business_toolkit.list_all_payment_methods_raw']
-    }
-    businessPlan: {
-      index: typeof routes['business.business_plan.index']
-      current: typeof routes['business.business_plan.current']
-      subscribe: typeof routes['business.business_plan.subscribe']
-    }
-    businessSandbox: {
-      fund: typeof routes['business.business_sandbox.fund']
-    }
-    businessCards: {
-      index: typeof routes['business.business_cards.index']
-      store: typeof routes['business.business_cards.store']
-      show: typeof routes['business.business_cards.show']
-      topup: typeof routes['business.business_cards.topup']
-      withdraw: typeof routes['business.business_cards.withdraw']
-      freeze: typeof routes['business.business_cards.freeze']
-      unfreeze: typeof routes['business.business_cards.unfreeze']
-      terminate: typeof routes['business.business_cards.terminate']
-      transactions: typeof routes['business.business_cards.transactions']
-    }
-    auth: {
-      businessDashboardAuth: {
-        requestSignupOtp: typeof routes['business.auth.business_dashboard_auth.request_signup_otp']
-        signup: typeof routes['business.auth.business_dashboard_auth.signup']
-        login: typeof routes['business.auth.business_dashboard_auth.login']
-        refresh: typeof routes['business.auth.business_dashboard_auth.refresh']
-        logout: typeof routes['business.auth.business_dashboard_auth.logout']
-        changePassword: typeof routes['business.auth.business_dashboard_auth.change_password']
-      }
-    }
-    dashboard: {
-      onboarding: {
-        businessDashboardProfile: {
-          show: typeof routes['business.dashboard.onboarding.business_dashboard_profile.show']
-          update: typeof routes['business.dashboard.onboarding.business_dashboard_profile.update']
-        }
-        businessPin: {
-          setPin: typeof routes['business.dashboard.onboarding.business_pin.set_pin']
-          changePin: typeof routes['business.dashboard.onboarding.business_pin.change_pin']
-        }
-        businessKyc: {
-          submit: typeof routes['business.dashboard.onboarding.business_kyc.submit']
-          getStatus: typeof routes['business.dashboard.onboarding.business_kyc.get_status']
-        }
-        businessNotifications: {
-          index: typeof routes['business.dashboard.onboarding.business_notifications.index']
-          markRead: typeof routes['business.dashboard.onboarding.business_notifications.mark_read']
-          markAllRead: typeof routes['business.dashboard.onboarding.business_notifications.mark_all_read']
-        }
-        businessPlan: {
-          index: typeof routes['business.dashboard.onboarding.business_plan.index']
-          current: typeof routes['business.dashboard.onboarding.business_plan.current']
-          subscribe: typeof routes['business.dashboard.onboarding.business_plan.subscribe']
-        }
-      }
-      pinReset: {
-        businessPin: {
-          requestReset: typeof routes['business.dashboard.pin_reset.business_pin.request_reset']
-          confirmReset: typeof routes['business.dashboard.pin_reset.business_pin.confirm_reset']
-        }
-      }
-      businessDeposits: {
-        store: typeof routes['business.dashboard.business_deposits.store']
-        show: typeof routes['business.dashboard.business_deposits.show']
-        liveStatus: typeof routes['business.dashboard.business_deposits.live_status']
-      }
-      businessPayouts: {
-        store: typeof routes['business.dashboard.business_payouts.store']
-        show: typeof routes['business.dashboard.business_payouts.show']
-        liveStatus: typeof routes['business.dashboard.business_payouts.live_status']
-      }
-      businessWallet: {
-        store: typeof routes['business.dashboard.business_wallet.store']
-        index: typeof routes['business.dashboard.business_wallet.index']
-        show: typeof routes['business.dashboard.business_wallet.show']
-      }
-      businessSwaps: {
-        quote: typeof routes['business.dashboard.business_swaps.quote']
-        store: typeof routes['business.dashboard.business_swaps.store']
-      }
-      businessTransactions: {
-        index: typeof routes['business.dashboard.business_transactions.index']
-      }
-      businessWebhooks: {
-        index: typeof routes['business.dashboard.business_webhooks.index']
-        store: typeof routes['business.dashboard.business_webhooks.store']
-        destroy: typeof routes['business.dashboard.business_webhooks.destroy']
-        getDeliveries: typeof routes['business.dashboard.business_webhooks.get_deliveries']
-      }
-      businessToolkit: {
-        listPaymentMethods: typeof routes['business.dashboard.business_toolkit.list_payment_methods']
-        listAllPaymentMethodsRaw: typeof routes['business.dashboard.business_toolkit.list_all_payment_methods_raw']
-      }
-      businessOverview: {
-        show: typeof routes['business.dashboard.business_overview.show']
-      }
-      businessSandbox: {
-        fund: typeof routes['business.dashboard.business_sandbox.fund']
-      }
-      businessDashboardApiKeys: {
-        index: typeof routes['business.dashboard.business_dashboard_api_keys.index']
-        store: typeof routes['business.dashboard.business_dashboard_api_keys.store']
-        destroy: typeof routes['business.dashboard.business_dashboard_api_keys.destroy']
-      }
-      businessCards: {
-        index: typeof routes['business.dashboard.business_cards.index']
-        store: typeof routes['business.dashboard.business_cards.store']
-        show: typeof routes['business.dashboard.business_cards.show']
-        topup: typeof routes['business.dashboard.business_cards.topup']
-        withdraw: typeof routes['business.dashboard.business_cards.withdraw']
-        freeze: typeof routes['business.dashboard.business_cards.freeze']
-        unfreeze: typeof routes['business.dashboard.business_cards.unfreeze']
-        terminate: typeof routes['business.dashboard.business_cards.terminate']
-        transactions: typeof routes['business.dashboard.business_cards.transactions']
-      }
-      lendingProducts: {
-        index: typeof routes['business.dashboard.lending_products.index']
-        store: typeof routes['business.dashboard.lending_products.store']
-        show: typeof routes['business.dashboard.lending_products.show']
-        update: typeof routes['business.dashboard.lending_products.update']
-        submit: typeof routes['business.dashboard.lending_products.submit']
-        archive: typeof routes['business.dashboard.lending_products.archive']
-      }
     }
   }
   internal: {

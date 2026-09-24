@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import Business from '#models/business'
 import FinancialProduct from '#models/financial_product'
 import type { FinancialProductKind, FinancialProductStatus } from '#models/financial_product'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
@@ -266,6 +267,65 @@ export class FinancialProductService {
     if (filters.currencyCode) query.where('currency_code', filters.currencyCode)
 
     return query.orderBy('interest_rate_bps', 'asc')
+  }
+
+  /**
+   * Active institutions with at least one published offer, a page at a time, by name.
+   *
+   * The catalogue grew past what a phone should download in one go; this is what a borrower
+   * browses. Offers for the page come in a second query, so an institution with many products
+   * does not skew the page size.
+   */
+  static async listInstitutions(filters: { search?: string; page: number; limit: number }) {
+    const query = Business.query()
+      .where('status', 'active')
+      .whereExists((sub) =>
+        sub
+          .from('financial_products')
+          .whereColumn('financial_products.provider_id', 'businesses.id')
+          .where('financial_products.status', 'active')
+      )
+
+    if (filters.search) query.whereILike('name', `%${filters.search}%`)
+
+    const page = await query
+      .orderBy('name', 'asc')
+      .orderBy('id', 'asc')
+      .paginate(filters.page, filters.limit)
+
+    const ids = page.all().map((business) => business.id)
+    const products = ids.length
+      ? await FinancialProduct.query()
+          .whereIn('provider_id', ids)
+          .where('status', 'active')
+          .orderBy('interest_rate_bps', 'asc')
+      : []
+
+    return { page, products }
+  }
+
+  /** One active institution and its published offers; null when it is not active. */
+  static async findInstitution(id: number) {
+    const business = await Business.query().where('id', id).where('status', 'active').first()
+    if (!business) return null
+
+    const products = await FinancialProduct.query()
+      .where('provider_id', id)
+      .where('status', 'active')
+      .preload('provider')
+      .orderBy('interest_rate_bps', 'asc')
+
+    return { business, products }
+  }
+
+  /** One published offer of an active institution, as a borrower may see it. */
+  static async findPublished(id: number) {
+    return FinancialProduct.query()
+      .where('id', id)
+      .where('status', 'active')
+      .whereHas('provider', (provider) => provider.where('status', 'active'))
+      .preload('provider')
+      .first()
   }
 
   /** Resolves a product owned by this provider, so no institution can act on another's. */

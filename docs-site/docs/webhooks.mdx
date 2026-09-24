@@ -11,10 +11,13 @@ Les webhooks envoient une requête HTTP à votre serveur dès qu'une opération 
 
 | Événement | Déclenché lorsque |
 |---|---|
-| `mobile_money_deposit.completed` | Un dépôt a abouti et votre wallet est crédité |
-| `mobile_money_deposit.failed` | Un dépôt a échoué |
-| `mobile_money_payout.completed` | Un retrait a abouti |
-| `mobile_money_payout.failed` | Un retrait a échoué |
+| `mobile_money_deposit.completed` | Un dépôt mobile money a abouti et votre wallet est crédité |
+| `mobile_money_deposit.failed` | Un dépôt mobile money a échoué |
+| `mobile_money_payout.completed` | Un retrait mobile money a abouti |
+| `mobile_money_payout.failed` | Un retrait mobile money a échoué |
+| `crypto_deposit.completed` | Un dépôt en stablecoins (USDC/USDT) a abouti et votre wallet est crédité |
+| `crypto_payout.completed` | Un retrait en stablecoins a abouti et la transaction blockchain est confirmée |
+| `crypto_payout.failed` | Un retrait crypto a échoué (fonds recrédités sur votre wallet) |
 
 ## Format d'une livraison
 

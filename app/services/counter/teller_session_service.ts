@@ -3,6 +3,7 @@ import db from '@adonisjs/lucid/services/db'
 import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import type Agent from '#models/agent'
 import type BusinessStaff from '#models/business_staff'
+import LedgerTransaction from '#models/ledger_transaction'
 import TellerSession from '#models/teller_session'
 import TellerSessionBalance from '#models/teller_session_balance'
 import Wallet from '#models/wallet'
@@ -41,6 +42,15 @@ export class UnknownCurrencyException extends Error {
   constructor(currencyCode: string) {
     super(`This counter holds no ${currencyCode} float`)
     this.name = 'UnknownCurrencyException'
+  }
+}
+
+export class PendingOperationsException extends Error {
+  constructor(count: number) {
+    super(
+      `This session still has ${count} cash operation(s) awaiting confirmation — confirm, reject or cancel them before closing`
+    )
+    this.name = 'PendingOperationsException'
   }
 }
 
@@ -157,6 +167,13 @@ export class TellerSessionService {
     }
 
     return db.transaction(async (trx) => {
+      // An operation still awaiting its second act would land on a shift that has already been
+      // counted: its notes would move after the count and nobody's variance would show them.
+      const pending = await this.pendingOperationsQuery(session.id, trx)
+      if (pending.length > 0) {
+        throw new PendingOperationsException(pending.length)
+      }
+
       const balances = await TellerSessionBalance.query({ client: trx }).where(
         'teller_session_id',
         session.id
@@ -169,27 +186,9 @@ export class TellerSessionService {
           throw new MissingCountException(balance.currencyCode)
         }
 
-        // The gross that crossed the counter, from the transactions booked to this shift. Reversed
-        // transactions are excluded: a reversal cancels the movement, so the notes never moved.
-        const movements = await db
-          .query()
-          .from('ledger_transactions')
-          .where('teller_session_id', session.id)
-          .where('currency_code', balance.currencyCode)
-          .whereIn('status', ['completed', 'settled'])
-          .select('type', 'amount')
-          .useTransaction(trx)
+        const totals = await this.movementTotals(session.id, balance.currencyCode, trx)
 
-        let net = 0n
-        for (const movement of movements) {
-          const amount = BigInt(movement.amount ?? 0)
-          // Cash-in puts notes in the drawer, cash-out takes them out. Anything else was not a
-          // counter movement and must not shift the expectation.
-          if (movement.type === 'cash_in') net += amount
-          else if (movement.type === 'cash_out') net -= amount
-        }
-
-        balance.expectedCash = balance.openingCash + net
+        balance.expectedCash = balance.openingCash + totals.cashIn - totals.cashOut
         balance.countedCash = count
         balance.variance = count - balance.expectedCash
         await balance.useTransaction(trx).save()
@@ -292,6 +291,76 @@ export class TellerSessionService {
       throw new NoOpenSessionException()
     }
     return session.id
+  }
+
+  /**
+   * The gross that crossed the counter in one currency, from the tracking rows booked to this
+   * shift. Only completed/settled rows count: a pending deposit's notes may never arrive, and a
+   * reversed or cancelled one never moved. The same computation serves the close (where it is
+   * frozen) and the live figure an open drawer shows, so the two can never disagree.
+   */
+  static async movementTotals(
+    sessionId: number,
+    currencyCode: string,
+    trx?: TransactionClientContract
+  ): Promise<{ cashIn: bigint; cashOut: bigint; count: number }> {
+    const query = db
+      .query()
+      .from('ledger_transactions')
+      .where('teller_session_id', sessionId)
+      .where('currency_code', currencyCode)
+      .whereIn('status', ['completed', 'settled'])
+      .whereIn('type', ['cash_in', 'cash_out'])
+      .select('type', 'amount')
+    if (trx) query.useTransaction(trx)
+    const movements = await query
+
+    let cashIn = 0n
+    let cashOut = 0n
+    for (const movement of movements) {
+      const amount = BigInt(movement.amount ?? 0)
+      if (movement.type === 'cash_in') cashIn += amount
+      else cashOut += amount
+    }
+    return { cashIn, cashOut, count: movements.length }
+  }
+
+  /**
+   * What the drawer should hold right now, per currency. Computed, never stored: the stored
+   * `expectedCash` is written once at close and must stay a statement about that moment.
+   */
+  static async liveTotals(session: TellerSession) {
+    const balances = session.balances ?? []
+    return Promise.all(
+      balances.map(async (balance) => {
+        const totals = await this.movementTotals(session.id, balance.currencyCode)
+        return {
+          currency_code: balance.currencyCode,
+          cash_in: totals.cashIn.toString(),
+          cash_out: totals.cashOut.toString(),
+          operations: totals.count,
+          expected_cash: (balance.openingCash + totals.cashIn - totals.cashOut).toString(),
+        }
+      })
+    )
+  }
+
+  /**
+   * Operations initiated on this shift that still await their second act: a deposit whose notes
+   * have not been confirmed in the drawer (`pending`), a withdrawal whose notes have not been
+   * handed over (`reserved`).
+   */
+  static pendingOperationsQuery(sessionId: number, trx?: TransactionClientContract) {
+    const query = LedgerTransaction.query()
+      .where('teller_session_id', sessionId)
+      .where((q) => {
+        q.where((inner) => inner.where('type', 'cash_in').where('status', 'pending')).orWhere(
+          (inner) => inner.where('type', 'cash_out').where('status', 'reserved')
+        )
+      })
+      .orderBy('created_at', 'asc')
+    if (trx) query.useTransaction(trx)
+    return query
   }
 
   /** The shift currently taking cash at a counter, if any. */

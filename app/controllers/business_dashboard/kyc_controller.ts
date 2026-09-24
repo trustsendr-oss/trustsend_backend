@@ -2,13 +2,27 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import vine from '@vinejs/vine'
 import KycVerification from '#models/kyc_verification'
-import KycDocument from '#models/kyc_document'
+import KycDocument, { type KycDocumentType } from '#models/kyc_document'
 import { KycDocumentStorageService } from '#services/security/kyc_document_storage_service'
 import { collectAndValidateKycDocuments } from '#services/security/kyc_submission_service'
+
+const BUSINESS_TYPES = ['company', 'startup'] as const
+
+/**
+ * Business documents required on top of the representative's identity, by business_type: an
+ * established company proves it exists with its RCCM; a startup that may not have one yet proves
+ * its address instead, with a document dated within the last 3 months.
+ */
+const REQUIRED_BUSINESS_DOCUMENTS: Record<(typeof BUSINESS_TYPES)[number], KycDocumentType> = {
+  company: 'business_registration_certificate',
+  startup: 'proof_of_address',
+}
 
 const submitBusinessKycValidator = vine.create({
   verification_type: vine.enum(['identity', 'address', 'liveness', 'document', 'pep_screening']),
   provider: vine.string().optional(),
+  business_name: vine.string().trim().minLength(2).maxLength(255),
+  business_type: vine.enum(BUSINESS_TYPES),
 })
 
 /**
@@ -34,11 +48,20 @@ export default class BusinessKycController {
       return response.status(collected.status).send({ message: collected.message })
     }
 
+    const requiredDocument = REQUIRED_BUSINESS_DOCUMENTS[payload.business_type]
+    if (!collected.files.some((f) => f.type === requiredDocument)) {
+      return response.badRequest({
+        message: `Missing required document for business_type "${payload.business_type}": ${requiredDocument}.`,
+      })
+    }
+
     const kyc = new KycVerification()
     kyc.subjectType = 'business'
     kyc.subjectId = business.id
     kyc.verificationType = payload.verification_type
     kyc.provider = payload.provider || null
+    kyc.businessName = payload.business_name
+    kyc.businessType = payload.business_type
     kyc.status = 'pending'
     kyc.submittedAt = DateTime.now()
 
@@ -59,6 +82,8 @@ export default class BusinessKycController {
         kyc_id: kyc.id,
         status: kyc.status,
         verification_type: kyc.verificationType,
+        business_name: kyc.businessName,
+        business_type: kyc.businessType,
         documents: collected.files.map((f) => f.type),
         submitted_at: kyc.submittedAt,
       },
@@ -92,6 +117,8 @@ export default class BusinessKycController {
         status: kyc.status,
         verification_type: kyc.verificationType,
         provider: kyc.provider,
+        business_name: kyc.businessName,
+        business_type: kyc.businessType,
         documents: documents.map((d) => d.documentType),
         submitted_at: kyc.submittedAt,
         decided_at: kyc.decidedAt,

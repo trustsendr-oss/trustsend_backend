@@ -9,6 +9,7 @@ import LoanSchedule from '#models/loan_schedule'
 import Wallet from '#models/wallet'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { LedgerService } from '#services/ledger/ledger_service'
+import { CollateralService } from '#services/lending/collateral_service'
 import { Money } from '#services/money/money'
 import { buildSchedule, scheduleTotals } from '#services/lending/amortisation'
 
@@ -205,6 +206,16 @@ export class LoanService {
   static async disburse(loan: Loan, correlationId: string): Promise<Loan> {
     if (loan.status !== 'approved') throw new LoanStateException(loan.status, 'disbursed')
 
+    // If a committee circuit was engaged (stage is set), the committee must have approved before
+    // any money can leave. A loan that is still 'under_review' cannot be disbursed regardless
+    // of its status — the two fields are independent dimensions, and both must be satisfied.
+    if (loan.stage && loan.stage !== 'committee_approved' && loan.stage !== 'disbursed') {
+      throw new LoanStateException(
+        loan.stage,
+        `disbursed (stage must be 'committee_approved', got '${loan.stage}')`
+      )
+    }
+
     const product = await FinancialProduct.findOrFail(loan.productId)
     const fee = this.arrangementFee(product, loan.principal)
     const netToBorrower = loan.principal - fee
@@ -296,12 +307,41 @@ export class LoanService {
 
       const totals = scheduleTotals(lines)
       loan.status = 'disbursed'
+      // Advance the committee stage as well so the two fields stay consistent.
+      if (loan.stage === 'committee_approved' || loan.stage === null) {
+        loan.stage = 'disbursed'
+      }
       loan.disbursedAt = DateTime.now()
       loan.disbursementTransactionId = posted.id
       loan.feesCharged = fee
       loan.principalOutstanding = totals.principal
       loan.interestOutstanding = totals.interest
       await loan.useTransaction(trx).save()
+
+      // Lock mandatory savings as collateral when the product requires it.
+      // mandatorySavingsBps > 0 means the borrower must keep a % of the principal locked for the
+      // life of the loan. CollateralService.lockCollateral() finds the borrower's savings account
+      // and freezes the required amount through a ledger posting.
+      if (product.mandatorySavingsBps && product.mandatorySavingsBps > 0) {
+        try {
+          await CollateralService.lockCollateral(loan, product, correlationId, trx)
+        } catch {
+          // Collateral lock failure is logged but does NOT roll back the disbursement.
+          // The money has already moved; a failed lock is a compliance issue to resolve
+          // manually, not a reason to strand funds in transit.
+          await AuditLoggerService.record({
+            actorType: 'business',
+            actorId: loan.providerId,
+            action: 'loan.collateral.lock_failed',
+            resourceType: 'loan',
+            resourceId: loan.id,
+            before: undefined,
+            after: { reason: 'collateral lock failed post-disbursement' },
+            correlationId,
+            trx,
+          })
+        }
+      }
 
       await AuditLoggerService.record({
         actorType: 'business',

@@ -310,4 +310,197 @@ test.group('Counter routes over HTTP', (group) => {
     assert.notProperty(body, 'balance')
     assert.notProperty(body, 'phone')
   })
+
+  test('an open drawer shows its live expected cash', async ({ client, assert }) => {
+    const suffix = `${Date.now()}`.slice(-8)
+    const { teller, counter } = await institution(suffix)
+    const { user: customer } = await walkInCustomer(suffix, teller.posting, counter.id)
+
+    await client
+      .post('/api/v1/counter/sessions')
+      .loginAs(teller.person)
+      .json({ opening_cash: [{ currency_code: 'USD', amount: '50000' }] })
+
+    const initiated = await client.post('/api/v1/counter/cash-in').loginAs(teller.person).json({
+      customer_code: customer.code!,
+      amount: '12000',
+      currency_code: 'USD',
+      teller_pin: '1111',
+      idempotency_key: randomUUID(),
+    })
+
+    // Still pending: the notes are not in the drawer yet, so the expectation does not move.
+    let current = await client.get('/api/v1/counter/sessions/current').loginAs(teller.person)
+    assert.equal(json(current).data.live[0].expected_cash, '50000')
+    assert.isNull(json(current).data.balances[0].expected_cash, 'the frozen figure stays unset')
+
+    await client
+      .post(`/api/v1/counter/cash-in/${json(initiated).data.transaction_id}/confirm`)
+      .loginAs(teller.person)
+      .json({ teller_pin: '1111' })
+
+    current = await client.get('/api/v1/counter/sessions/current').loginAs(teller.person)
+    assert.equal(json(current).data.live[0].cash_in, '12000')
+    assert.equal(json(current).data.live[0].expected_cash, '62000')
+  })
+
+  test('pending operations are listed and block the close', async ({ client, assert }) => {
+    const suffix = `${Date.now()}`.slice(-8)
+    const { teller, counter } = await institution(suffix)
+    const { user: customer } = await walkInCustomer(suffix, teller.posting, counter.id)
+
+    const opened = await client
+      .post('/api/v1/counter/sessions')
+      .loginAs(teller.person)
+      .json({ opening_cash: [{ currency_code: 'USD', amount: '0' }] })
+    const sessionId = json(opened).data.id
+
+    const initiated = await client.post('/api/v1/counter/cash-in').loginAs(teller.person).json({
+      customer_code: customer.code!,
+      amount: '5000',
+      currency_code: 'USD',
+      teller_pin: '1111',
+      idempotency_key: randomUUID(),
+    })
+    const transactionId = json(initiated).data.transaction_id
+
+    const pending = await client.get('/api/v1/counter/cash/pending').loginAs(teller.person)
+    assert.equal(pending.status(), 200)
+    assert.deepEqual(
+      json(pending).data.map((row: { transaction_id: string }) => row.transaction_id),
+      [transactionId]
+    )
+    assert.equal(json(pending).data[0].customer.code, customer.code)
+
+    const refused = await client
+      .post(`/api/v1/counter/sessions/${sessionId}/close`)
+      .loginAs(teller.person)
+      .json({ counted_cash: [{ currency_code: 'USD', amount: '0' }] })
+    assert.equal(refused.status(), 409)
+    assert.equal(json(refused).code, 'E_PENDING_OPERATIONS')
+
+    await client
+      .post(`/api/v1/counter/cash-in/${transactionId}/reject`)
+      .loginAs(teller.person)
+      .json({})
+
+    const closed = await client
+      .post(`/api/v1/counter/sessions/${sessionId}/close`)
+      .loginAs(teller.person)
+      .json({ counted_cash: [{ currency_code: 'USD', amount: '0' }] })
+    assert.equal(closed.status(), 200)
+  })
+
+  test('a withdrawal can be cancelled at the counter, once', async ({ client, assert }) => {
+    const suffix = `${Date.now()}`.slice(-8)
+    const { teller, counter } = await institution(suffix)
+    const { user: customer, wallet } = await walkInCustomer(suffix, teller.posting, counter.id)
+    await db.from('wallets').where('id', wallet.id).update({ balance_cache: 50_000n })
+
+    await client
+      .post('/api/v1/counter/sessions')
+      .loginAs(teller.person)
+      .json({ opening_cash: [{ currency_code: 'USD', amount: '100000' }] })
+
+    const initiated = await client.post('/api/v1/counter/cash-out').loginAs(teller.person).json({
+      customer_code: customer.code!,
+      amount: '10000',
+      currency_code: 'USD',
+      customer_pin: '2222',
+      idempotency_key: randomUUID(),
+    })
+    const transactionId = json(initiated).data.transaction_id
+
+    const cancelled = await client
+      .post(`/api/v1/counter/cash-out/${transactionId}/cancel`)
+      .loginAs(teller.person)
+      .json({ reason: 'Client parti' })
+    assert.equal(cancelled.status(), 200)
+    assert.equal(json(cancelled).data.status, 'cancelled')
+    await wallet.refresh()
+    assert.equal(Number(wallet.balanceCache), 50_000, 'nothing was debited')
+
+    const again = await client
+      .post(`/api/v1/counter/cash-out/${transactionId}/cancel`)
+      .loginAs(teller.person)
+      .json({})
+    assert.equal(again.status(), 409)
+    assert.equal(json(again).code, 'E_TRANSACTION_STATE')
+  })
+
+  test("another institution's teller cannot cancel a withdrawal", async ({ client, assert }) => {
+    const suffix = `${Date.now()}`.slice(-8)
+    const first = await institution(suffix)
+    const second = await institution(`${Number(suffix) + 1}`.slice(-8))
+    const { user: customer, wallet } = await walkInCustomer(
+      suffix,
+      first.teller.posting,
+      first.counter.id
+    )
+    await db.from('wallets').where('id', wallet.id).update({ balance_cache: 50_000n })
+
+    await client
+      .post('/api/v1/counter/sessions')
+      .loginAs(first.teller.person)
+      .json({ opening_cash: [{ currency_code: 'USD', amount: '100000' }] })
+    const initiated = await client
+      .post('/api/v1/counter/cash-out')
+      .loginAs(first.teller.person)
+      .json({
+        customer_code: customer.code!,
+        amount: '10000',
+        currency_code: 'USD',
+        customer_pin: '2222',
+        idempotency_key: randomUUID(),
+      })
+
+    const res = await client
+      .post(`/api/v1/counter/cash-out/${json(initiated).data.transaction_id}/cancel`)
+      .loginAs(second.teller.person)
+      .json({})
+    assert.equal(res.status(), 403)
+  })
+
+  test('the journal lists this institution cash, and only its own', async ({ client, assert }) => {
+    const suffix = `${Date.now()}`.slice(-8)
+    const first = await institution(suffix)
+    const second = await institution(`${Number(suffix) + 1}`.slice(-8))
+    const { user: customer } = await walkInCustomer(suffix, first.teller.posting, first.counter.id)
+
+    await client
+      .post('/api/v1/counter/sessions')
+      .loginAs(first.teller.person)
+      .json({ opening_cash: [{ currency_code: 'USD', amount: '0' }] })
+    const initiated = await client
+      .post('/api/v1/counter/cash-in')
+      .loginAs(first.teller.person)
+      .json({
+        customer_code: customer.code!,
+        amount: '3000',
+        currency_code: 'USD',
+        teller_pin: '1111',
+        idempotency_key: randomUUID(),
+      })
+    const transactionId = json(initiated).data.transaction_id
+
+    const own = await client
+      .get('/api/v1/counter/transactions')
+      .qs({ search: customer.code! })
+      .loginAs(first.teller.person)
+    assert.equal(own.status(), 200)
+    const row = json(own).data.find(
+      (r: { transaction_id: string }) => r.transaction_id === transactionId
+    )
+    assert.exists(row)
+    assert.equal(row.type, 'cash_in')
+    assert.equal(row.amount, '3000')
+    assert.equal(row.customer.code, customer.code)
+    assert.isNotNull(row.operator)
+
+    const other = await client.get('/api/v1/counter/transactions').loginAs(second.teller.person)
+    assert.notInclude(
+      json(other).data.map((r: { transaction_id: string }) => r.transaction_id),
+      transactionId
+    )
+  })
 })

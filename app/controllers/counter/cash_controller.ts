@@ -11,7 +11,10 @@ import {
   counterCashInValidator,
   counterCashOutValidator,
   counterConfirmValidator,
+  counterCancelValidator,
 } from '#validators/counter_cash'
+import { TellerSessionService } from '#services/counter/teller_session_service'
+import { InstitutionJournalService } from '#services/counter/institution_journal_service'
 
 /**
  * Cash over an institution's counter.
@@ -241,6 +244,45 @@ export default class CounterCashController {
     }
   }
 
+  /**
+   * GET /api/v1/counter/cash/pending — operations on this teller's open shift still awaiting
+   * their second act. Without it, an operation initiated before a page reload is invisible, yet
+   * still blocks the close.
+   */
+  async pending({ businessStaff, response }: HttpContext) {
+    if (!businessStaff.agentId) {
+      return response.ok({ data: [] })
+    }
+    const session = await TellerSessionService.openSessionFor(businessStaff.agentId)
+    if (!session) {
+      return response.ok({ data: [] })
+    }
+
+    const rows = await TellerSessionService.pendingOperationsQuery(session.id)
+    return response.ok({ data: await InstitutionJournalService.serialize(rows) })
+  }
+
+  /**
+   * POST /api/v1/counter/cash-out/:transaction_id/cancel — the notes never left the drawer.
+   *
+   * Nothing was debited at initiation, so cancelling moves no money; it only releases the line.
+   * No PIN: it can only ever stop money from moving, never make it move.
+   */
+  async cancelCashOut({ businessStaff, params, request, response }: HttpContext) {
+    const payload = await request.validateUsing(counterCancelValidator)
+    try {
+      const counter = await BusinessStaffIdentityService.requireCounterForStaff(businessStaff)
+      const txn = await CashOutService.cancelAtCounter(
+        params.transaction_id,
+        counter.id,
+        payload.reason
+      )
+      return response.ok({ data: { transaction_id: txn.id, status: txn.status } })
+    } catch (error) {
+      return this.handle(error, response)
+    }
+  }
+
   /** The customer's spendable wallet — never a savings escrow, hence the primary scope. */
   private async resolveCustomerWallet(customerCode: string, currencyCode: string) {
     const customer = await User.findBy('code', customerCode)
@@ -278,7 +320,10 @@ export default class CounterCashController {
   }
 
   private handle(error: unknown, response: HttpContext['response']) {
-    const err = error as Error
+    const err = error as Error & { code?: string }
+    if (err.code === 'E_ROW_NOT_FOUND') {
+      return response.notFound({ message: 'Transaction not found' })
+    }
     switch (err.name) {
       case 'StaffNotPostedException':
       case 'CounterNotActiveException':
@@ -293,6 +338,11 @@ export default class CounterCashController {
       case 'TransactionLimitExceededException':
         return response.unprocessableEntity({ message: err.message })
       default:
+        // The services signal a wrong state with a plain Error ("must be in … status"): that is
+        // the caller acting on a stale screen, not a server fault.
+        if (/must be in \w+ status/.test(err.message ?? '')) {
+          return response.conflict({ message: err.message, code: 'E_TRANSACTION_STATE' })
+        }
         return response.internalServerError({ message: err.message || 'Counter operation failed' })
     }
   }

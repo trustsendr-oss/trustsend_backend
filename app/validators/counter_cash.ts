@@ -33,3 +33,7 @@ export const counterCashOutValidator = vine.create({
 export const counterConfirmValidator = vine.create({
   teller_pin: pin,
 })
+
+export const counterCancelValidator = vine.create({
+  reason: vine.string().trim().maxLength(500).optional(),
+})

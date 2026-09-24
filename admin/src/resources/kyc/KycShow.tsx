@@ -324,6 +324,16 @@ function KycShowContent() {
             <Labeled label="Provider">
               <TextField source="provider" emptyText="—" />
             </Labeled>
+            {record.subject_type === 'business' && (
+              <Labeled label="Business name">
+                <TextField source="business_name" emptyText="—" />
+              </Labeled>
+            )}
+            {record.subject_type === 'business' && (
+              <Labeled label="Business type">
+                <TextField source="business_type" emptyText="—" />
+              </Labeled>
+            )}
             <Labeled label="Submitted">
               <DateField source="submitted_at" showTime emptyText="—" />
             </Labeled>

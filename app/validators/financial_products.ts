@@ -58,3 +58,9 @@ export const listPublishedProductsValidator = vine.create({
   kind: vine.enum(KINDS).optional(),
   currency_code: vine.string().fixedLength(3).optional(),
 })
+
+export const listInstitutionsValidator = vine.create({
+  page: vine.number().positive().min(1).optional(),
+  limit: vine.number().positive().min(1).max(50).optional(),
+  search: vine.string().trim().maxLength(80).optional(),
+})

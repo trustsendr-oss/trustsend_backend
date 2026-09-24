@@ -1135,6 +1135,66 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/cards/webhooks_controller').default['handle']>>>
     }
   }
+  'crypto.crypto_deposits.address': {
+    methods: ["POST"]
+    pattern: '/api/v1/crypto/deposits/address'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/crypto').createCryptoDepositAddressValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/crypto').createCryptoDepositAddressValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_deposits_controller').default['address']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_deposits_controller').default['address']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'crypto.crypto_deposits.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/crypto/deposits'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_deposits_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_deposits_controller').default['index']>>>
+    }
+  }
+  'crypto.crypto_payouts.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/crypto/payouts'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/crypto').createCryptoPayoutValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/crypto').createCryptoPayoutValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_payouts_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_payouts_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'crypto.crypto_payouts.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/crypto/payouts/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_payouts_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_payouts_controller').default['show']>>>
+    }
+  }
+  'webhooks.alchemy': {
+    methods: ["POST"]
+    pattern: '/api/v1/webhooks/alchemy'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_webhooks_controller').default['alchemy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_webhooks_controller').default['alchemy']>>>
+    }
+  }
   'counter.counter_sessions.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/counter/sessions'
@@ -1253,6 +1313,42 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/counter_cash').counterConfirmValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['confirmCashOut']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['confirmCashOut']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_cash.cancel_cash_out': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/cash-out/:transaction_id/cancel'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/counter_cash').counterCancelValidator)>>
+      paramsTuple: [ParamValue]
+      params: { transaction_id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/counter_cash').counterCancelValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['cancelCashOut']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['cancelCashOut']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'counter.counter_cash.pending': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/cash/pending'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['pending']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/cash_controller').default['pending']>>>
+    }
+  }
+  'counter.counter_journal.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/transactions'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/journal_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/journal_controller').default['index']>>>
     }
   }
   'counter.counter_customers.show': {
@@ -1387,6 +1483,294 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_controller').default['disburse']>>>
     }
   }
+  'counter.counter_loans_committee.submit': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/submit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_committee_controller').default['submit']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_committee_controller').default['submit']>>>
+    }
+  }
+  'counter.counter_loans_committee.committee_approve': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/committee-approve'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_committee_controller').default['committeeApprove']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_committee_controller').default['committeeApprove']>>>
+    }
+  }
+  'counter.counter_loans_committee.committee_reject': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/committee-reject'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_committee_controller').default['committeeReject']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_committee_controller').default['committeeReject']>>>
+    }
+  }
+  'counter.counter_loan_officers.assign_loan': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/assign'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loan_officers_controller').default['assignLoan']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loan_officers_controller').default['assignLoan']>>>
+    }
+  }
+  'counter.counter_loan_officers.assign_borrower': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/borrowers/assign'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loan_officers_controller').default['assignBorrower']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loan_officers_controller').default['assignBorrower']>>>
+    }
+  }
+  'counter.counter_loan_officers.portfolio': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/staff/:id/portfolio'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loan_officers_controller').default['portfolio']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loan_officers_controller').default['portfolio']>>>
+    }
+  }
+  'counter.counter_groups.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/groups'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['index']>>>
+    }
+  }
+  'counter.counter_groups.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/groups'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['store']>>>
+    }
+  }
+  'counter.counter_groups.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/groups/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['show']>>>
+    }
+  }
+  'counter.counter_groups.summary': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/groups/:id/summary'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['summary']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['summary']>>>
+    }
+  }
+  'counter.counter_groups.add_member': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/groups/:id/members'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['addMember']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['addMember']>>>
+    }
+  }
+  'counter.counter_groups.remove_member': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/counter/groups/:id/members/:userId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; userId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['removeMember']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/groups_controller').default['removeMember']>>>
+    }
+  }
+  'counter.counter_loans_restructure.restructure': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/restructure'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_restructure_controller').default['restructure']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_restructure_controller').default['restructure']>>>
+    }
+  }
+  'counter.counter_loans_restructure.history': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/loans/:id/restructurings'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_restructure_controller').default['history']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_restructure_controller').default['history']>>>
+    }
+  }
+  'counter.counter_loans_default.mark_default': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/default'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_default_controller').default['markDefault']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_default_controller').default['markDefault']>>>
+    }
+  }
+  'counter.counter_loans_default.seize_collateral': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/loans/:id/seize-collateral'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/loans_default_controller').default['seizeCollateral']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/loans_default_controller').default['seizeCollateral']>>>
+    }
+  }
+  'counter.counter_penalties.run': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/penalties/run'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/penalties_controller').default['run']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/penalties_controller').default['run']>>>
+    }
+  }
+  'counter.counter_vault.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/vaults'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['index']>>>
+    }
+  }
+  'counter.counter_vault.replenish': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/vaults/replenish'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['replenish']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['replenish']>>>
+    }
+  }
+  'counter.counter_vault.sweep': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/vaults/sweep'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['sweep']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['sweep']>>>
+    }
+  }
+  'counter.counter_vault.transfers': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/counter/vaults/transfers'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['transfers']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['transfers']>>>
+    }
+  }
+  'counter.counter_vault.approve': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/vaults/transfers/:id/approve'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['approve']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['approve']>>>
+    }
+  }
+  'counter.counter_vault.reject': {
+    methods: ["POST"]
+    pattern: '/api/v1/counter/vaults/transfers/:id/reject'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['reject']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/vault_controller').default['reject']>>>
+    }
+  }
+  'business.staff.me': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/staff/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/me_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/me_controller').default['show']>>>
+    }
+  }
   'finance.products.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/finance/products'
@@ -1397,6 +1781,42 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/financial_products').listPublishedProductsValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'finance.products.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/finance/products/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['showProduct']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['showProduct']>>>
+    }
+  }
+  'finance.institutions.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/finance/institutions'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/financial_products').listInstitutionsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['institutions']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['institutions']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'finance.institutions.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/finance/institutions/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['showInstitution']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['showInstitution']>>>
     }
   }
   'finance.savings.savings_accounts.index': {
@@ -2515,6 +2935,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/payouts_controller').default['liveStatus']>>>
     }
   }
+  'business.business_crypto.address': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/crypto/deposits/address'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/crypto').createCryptoDepositAddressValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/crypto').createCryptoDepositAddressValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/crypto_controller').default['address']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/crypto_controller').default['address']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'business.business_crypto.payout': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/crypto/payouts'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/crypto').createCryptoPayoutValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/crypto').createCryptoPayoutValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/crypto_controller').default['payout']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/crypto_controller').default['payout']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'business.business_wallet.store': {
     methods: ["POST"]
     pattern: '/api/v1/business/wallet'
@@ -3211,6 +3655,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/payouts_controller').default['liveStatus']>>>
     }
   }
+  'business.dashboard.business_crypto.address': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/crypto/deposits/address'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/crypto').createCryptoDepositAddressValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/crypto').createCryptoDepositAddressValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/crypto_controller').default['address']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/crypto_controller').default['address']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'business.dashboard.business_crypto.payout': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/crypto/payouts'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/crypto').createCryptoPayoutValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/crypto').createCryptoPayoutValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/crypto_controller').default['payout']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/crypto_controller').default['payout']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'business.dashboard.business_wallet.store': {
     methods: ["POST"]
     pattern: '/api/v1/business/dashboard/wallet'
@@ -3593,6 +4061,246 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['archive']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/products_controller').default['archive']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_outlets.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/outlets'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['index']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_outlets.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/outlets'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['store']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_outlets.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/outlets/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['show']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_outlets.update': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/business/dashboard/outlets/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['update']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_outlets.suspend': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/outlets/:id/suspend'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['suspend']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['suspend']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_outlets.reactivate': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/outlets/:id/reactivate'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['reactivate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/outlets_controller').default['reactivate']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_staff.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/staff'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/staff_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/staff_controller').default['index']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_staff.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/staff'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/staff_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/staff_controller').default['store']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_staff.update': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/business/dashboard/staff/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/staff_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/staff_controller').default['update']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_activity.sessions': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/teller-sessions'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/activity_controller').default['sessions']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/activity_controller').default['sessions']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_portfolio.loans': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/loans'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/portfolio_controller').default['loans']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/portfolio_controller').default['loans']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_portfolio.loan': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/loans/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/portfolio_controller').default['loan']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/portfolio_controller').default['loan']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_portfolio.savings': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/savings'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/portfolio_controller').default['savings']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/portfolio_controller').default['savings']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_portfolio.customers': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/customers'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/portfolio_controller').default['customers']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/portfolio_controller').default['customers']>>>
+    }
+  }
+  'business.dashboard.counter_journal.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/journal'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/counter/journal_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/counter/journal_controller').default['index']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_imf.regulatory_report': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/imf/regulatory-report'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_controller').default['regulatoryReport']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_controller').default['regulatoryReport']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_imf.provisioning': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/imf/provisioning'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_controller').default['provisioning']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_controller').default['provisioning']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_imf.arrears': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/imf/arrears'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_controller').default['arrears']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_controller').default['arrears']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_imf_migration.validate': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/imf/migration/validate'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_migration_controller').default['validate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_migration_controller').default['validate']>>>
+    }
+  }
+  'business.dashboard.business_dashboard_imf_migration.commit': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/imf/migration/commit'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_migration_controller').default['commit']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_migration_controller').default['commit']>>>
     }
   }
 }

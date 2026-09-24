@@ -1,0 +1,167 @@
+---
+sidebar_position: 4
+title: Stablecoins & Crypto
+---
+
+# Stablecoins & Crypto (Web3 Gateway)
+
+L'API Business TrustSend permet d'accepter des **dépôts et d'exécuter des retraits en Stablecoins (USDC, USDT, EURC)** sur les réseaux blockchain de layer 2 et layer 1 (Polygon, Base, Arbitrum, Optimism, Ethereum) via l'infrastructure **Alchemy**.
+
+Les dépôts sont automatiquement crédités sur votre portefeuille USD (ou la devise associée) et les retraits sont débités directement de votre solde avec protection par code PIN et clé d'idempotence.
+
+---
+
+## 1. Réseaux et Tokens supportés
+
+| Réseau (`network`) | Tokens supportés (`token_symbol`) | Vitesse & Frais Réseau |
+|---|---|---|
+| `polygon` | `USDC`, `USDT` | Très rapide (&lt; 5s), frais négligeables (~$0.01) |
+| `base` | `USDC`, `EURC` | Très rapide (&lt; 2s), réseau L2 Coinbase (~$0.01) |
+| `arbitrum` | `USDC`, `USDT` | Très rapide (&lt; 2s), réseau L2 Arbitrum One (~$0.02) |
+| `optimism` | `USDC`, `USDT` | Très rapide (&lt; 2s), réseau L2 OP Mainnet (~$0.02) |
+| `ethereum` | `USDC`, `USDT` | Standard L1 (~15s), frais variables |
+
+:::tip 
+Parité et conversion
+Les dépôts en stablecoins adossés au dollar (**USDC** et **USDT**) sont crédités à parité 1:1 sur votre wallet USD (ex: **50.00 USDC = $50.00 USD**). Vous pouvez ensuite convertir ces fonds instantanément vers vos wallets en devises locales (**CDF, KES, RWF, EUR**) via [l'API de Swaps](/business/swaps).
+:::
+
+---
+
+## 2. Obtenir une adresse de dépôt
+
+Génère ou récupère l'adresse blockchain dédiée pour recevoir des stablecoins pour votre compte entreprise.
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/crypto/deposits/address'}</span>
+</div>
+
+### Paramètres
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `network` | string | **Oui** | Réseau blockchain : `polygon`, `base`, `arbitrum`, `optimism`, `ethereum`, `solana` |
+| `token_symbol` | string | Non | Token attendu : `USDC` (défaut), `USDT`, `EURC` |
+| `currency_code` | string | Non | Devise du wallet récepteur (défaut: `USD`) |
+
+### Exemple de requête
+
+```bash
+curl -X POST https://api.trustsend.africa/api/v1/business/crypto/deposits/address \
+  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "network": "polygon",
+    "token_symbol": "USDC",
+    "currency_code": "USD"
+  }'
+```
+
+### Réponse `200 OK`
+
+```json
+{
+  "data": {
+    "network": "polygon",
+    "token_symbol": "USDC",
+    "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+    "memo_tag": null,
+    "currency_code": "USD",
+    "wallet_id": 12,
+    "created_at": "2026-09-23T01:30:00.000Z"
+  }
+}
+```
+
+Dès qu'un paiement est détecté sur cette adresse, Alchemy notifie TrustSend. Votre wallet est crédité automatiquement et un webhook `crypto_deposit.completed` est envoyé à votre serveur.
+
+---
+
+## 3. Initier un retrait Crypto
+
+Effectue un virement de stablecoins depuis votre wallet vers une adresse blockchain externe.
+
+<div className="ts-endpoint">
+  <span className="ts-endpoint__label">POST</span>
+  <span className="ts-endpoint__url">{'/api/v1/business/crypto/payouts'}</span>
+</div>
+
+### Paramètres
+
+| Paramètre | Type | Requis | Description |
+|---|---|---|---|
+| `amount` | string | **Oui** | Montant en centièmes (`"5000"` = 50.00 USD), sans zéro initial |
+| `currency_code` | string | Non | Devise du wallet source (défaut: `USD`) |
+| `network` | string | **Oui** | Réseau de destination : `polygon`, `base`, `arbitrum`, `optimism`, `ethereum` |
+| `token_symbol` | string | **Oui** | Symbole du token : `USDC`, `USDT`, `EURC` |
+| `destination_address` | string | **Oui** | Adresse publique du destinataire (`0x...`) |
+| `memo_tag` | string | Non | Tag ou mémo optionnel |
+| `pin` | string | **Oui** | Code PIN à 4 chiffres sécurisant votre compte |
+| `idempotency_key` | string (UUID) | **Oui** | Clé unique pour garantir qu'aucun double débit n'a lieu |
+
+### Exemple de requête
+
+```bash
+curl -X POST https://api.trustsend.africa/api/v1/business/crypto/payouts \
+  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "2500",
+    "currency_code": "USD",
+    "network": "base",
+    "token_symbol": "USDC",
+    "destination_address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "pin": "1234",
+    "idempotency_key": "8f6d2b40-9b37-4d7a-8b1e-e28e75422891"
+  }'
+```
+
+### Réponse `201 Created`
+
+```json
+{
+  "message": "Business crypto withdrawal initiated successfully",
+  "data": {
+    "transaction_id": "TXN-CR7X9M2Q",
+    "status": "processing",
+    "amount": "2500",
+    "currency_code": "USD",
+    "fee": "0",
+    "payment_channel": "crypto_usdc_base",
+    "destination_address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "network": "base",
+    "token_symbol": "USDC",
+    "created_at": "2026-09-23T01:35:00.000Z"
+  }
+}
+```
+
+---
+
+## 4. Événements Webhooks Crypto
+
+Configurez vos abonnements webhooks pour recevoir les notifications d'état :
+
+| Événement | Description |
+|---|---|
+| `crypto_deposit.completed` | Déclenché lorsqu'un dépôt en stablecoins a été validé on-chain et crédité sur votre wallet. |
+| `crypto_payout.completed` | Déclenché lorsque le retrait a été miné et confirmé sur la blockchain. |
+| `crypto_payout.failed` | Déclenché en cas d'échec on-chain (fonds recrédités automatiquement sur votre wallet). |
+
+### Exemple de payload webhook
+
+```json
+{
+  "transaction_id": "TXN-CR7X9M2Q",
+  "type": "crypto_deposit",
+  "status": "completed",
+  "metadata": {
+    "network": "polygon",
+    "token_symbol": "USDC",
+    "tx_hash": "0x8f2d5e...9b1a",
+    "raw_amount": "50000000",
+    "wallet_id": 12
+  }
+}
+```
