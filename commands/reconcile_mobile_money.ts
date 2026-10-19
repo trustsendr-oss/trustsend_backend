@@ -1,6 +1,7 @@
 import { BaseCommand } from '@adonisjs/core/ace'
 import { MobileMoneyReconciliationService } from '#services/mobile_money/mobile_money_reconciliation_service'
 import { PawaPayProvider } from '#services/mobile_money/pawapay_provider'
+import { RemittanceService } from '#services/remittances/remittance_service'
 
 /**
  * Safety net for the async-payment double-write gap (see MobileMoneyReconciliationService).
@@ -21,6 +22,12 @@ export default class ReconcileMobileMoney extends BaseCommand {
 
     this.logger.info(
       `Checked ${result.checked}, healed ${result.healed}, marked failed ${result.markedFailed}, still pending ${result.stillPending}`
+    )
+
+    // International transfers paid out to mobile money follow the same provider.
+    const remittances = await RemittanceService.reconcileMobileMoney(provider)
+    this.logger.info(
+      `Remittances: dispatched ${remittances.dispatched}, settled ${remittances.settled}, still pending ${remittances.stillPending}`
     )
 
     const drifts = await MobileMoneyReconciliationService.reconcileWalletBalances(provider)

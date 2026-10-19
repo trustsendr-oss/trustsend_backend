@@ -32,6 +32,27 @@ export default class AgentApplication extends BaseModel {
   @column()
   declare rejectionReason: string | null
 
+  @column()
+  declare businessName: string | null
+
+  @column()
+  declare phone: string | null
+
+  @column()
+  declare city: string | null
+
+  @column()
+  declare region: string | null
+
+  @column()
+  declare address: string | null
+
+  @column()
+  declare motivation: string | null
+
+  @column()
+  declare approvedAgentId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

@@ -8,6 +8,9 @@ import { Dashboard } from './pages/Dashboard'
 import { lightTheme, darkTheme } from './theme/theme'
 import { resourceIcons } from './layout/AppMenu'
 import { AgentList, AgentShow, AgentCreate, AgentEdit } from './resources/agents'
+import { AgentApplicationList, AgentApplicationShow } from './resources/agentApplications'
+import { RemittanceList, RemittanceShow } from './resources/remittances'
+import { WatchlistList, WatchlistCreate } from './resources/watchlist/Watchlist'
 import { BusinessList, BusinessShow, BusinessCreate } from './resources/businesses'
 import {
   BusinessStaffList,
@@ -64,6 +67,30 @@ export default function App() {
         create={AgentCreate}
         edit={AgentEdit}
         icon={resourceIcons.agents}
+        recordRepresentation="full_name"
+      />
+      <Resource
+        name="agent_applications"
+        options={{ label: 'Agent applications' }}
+        list={AgentApplicationList}
+        show={AgentApplicationShow}
+        icon={resourceIcons.agent_applications}
+        recordRepresentation="business_name"
+      />
+      <Resource
+        name="remittances"
+        options={{ label: 'International transfers' }}
+        list={RemittanceList}
+        show={RemittanceShow}
+        icon={resourceIcons.remittances}
+        recordRepresentation="id"
+      />
+      <Resource
+        name="watchlist"
+        options={{ label: 'Watchlist' }}
+        list={WatchlistList}
+        create={WatchlistCreate}
+        icon={resourceIcons.watchlist}
         recordRepresentation="full_name"
       />
       <Resource

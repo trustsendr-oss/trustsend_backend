@@ -52,7 +52,7 @@ const app = express();
 
 app.post('/webhooks/trustsend', express.raw({ type: 'application/json' }), (req, res) => {
   const expected = crypto
-    .createHmac('sha256', process.env.TRUSTSEND_WEBHOOK_SECRET)
+    .createHmac('sha256', process.env.REEMITE_WEBHOOK_SECRET)
     .update(req.body)
     .digest('hex');
 

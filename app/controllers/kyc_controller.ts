@@ -4,12 +4,13 @@ import KycVerification from '#models/kyc_verification'
 import KycDocument from '#models/kyc_document'
 import type InternalUser from '#models/internal_user'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
-import { InAppNotificationService } from '#services/notifications/in_app_notification_service'
+import { KycNotifier } from '#services/kyc/kyc_notifier'
 import {
   KycDocumentStorageService,
   sniffKycDocumentMimeType,
 } from '#services/security/kyc_document_storage_service'
 import { collectAndValidateKycDocuments } from '#services/security/kyc_submission_service'
+import { KycSubjectService } from '#services/kyc/kyc_subject_service'
 import vine from '@vinejs/vine'
 
 const initiateKycValidator = vine.create({
@@ -59,13 +60,30 @@ export default class KycController {
     if (status) query.where('status', status)
     if (subjectType) query.where('subject_type', subjectType)
 
+    // Free-text search on who the file is about (name, e-mail, code) or its KYC id.
+    const term = String(request.input('q') ?? '').trim()
+    if (term) {
+      const matches = await KycSubjectService.matching(term)
+      query.where((q) => {
+        for (const [type, ids] of Object.entries(matches)) {
+          if (ids.length)
+            q.orWhere((sub) => sub.where('subject_type', type).whereIn('subject_id', ids))
+        }
+        if (/^\d+$/.test(term)) q.orWhere('id', Number(term))
+        // Nothing matched: keep the query valid and empty rather than unfiltered.
+        q.orWhereRaw('false')
+      })
+    }
+
     const verifications = await query
+    const subjects = await KycSubjectService.resolveMany(verifications)
 
     return response.ok({
       data: verifications.map((k) => ({
         id: k.id,
         subject_type: k.subjectType,
         subject_id: k.subjectId,
+        subject: KycSubjectService.lookup(subjects, k),
         verification_type: k.verificationType,
         provider: k.provider,
         status: k.status,
@@ -87,12 +105,14 @@ export default class KycController {
   async show({ auth, params, response }: HttpContext) {
     await auth.authenticateUsing(['internal'])
     const kyc = await KycVerification.findOrFail(params.kyc_id)
+    const subjects = await KycSubjectService.resolveMany([kyc])
 
     return response.ok({
       data: {
         id: kyc.id,
         subject_type: kyc.subjectType,
         subject_id: kyc.subjectId,
+        subject: KycSubjectService.lookup(subjects, kyc),
         verification_type: kyc.verificationType,
         provider: kyc.provider,
         business_name: kyc.businessName,
@@ -148,6 +168,8 @@ export default class KycController {
         doc.mimeType = file.mimeType
         await doc.save()
       }
+
+      await KycNotifier.submitted(kyc)
 
       return response.created({
         data: {
@@ -297,14 +319,7 @@ export default class KycController {
         correlationId: (params as any).correlationId || 'unknown',
       })
 
-      await InAppNotificationService.notify({
-        recipientType: kyc.subjectType,
-        recipientId: kyc.subjectId,
-        type: 'kyc.approved',
-        title: 'KYC approved',
-        message: `Your ${kyc.verificationType} verification has been approved.`,
-        data: { kyc_id: kyc.id },
-      })
+      await KycNotifier.decided(kyc)
 
       return response.ok({
         data: {
@@ -361,14 +376,7 @@ export default class KycController {
         correlationId: (params as any).correlationId || 'unknown',
       })
 
-      await InAppNotificationService.notify({
-        recipientType: kyc.subjectType,
-        recipientId: kyc.subjectId,
-        type: 'kyc.rejected',
-        title: 'KYC rejected',
-        message: `Your ${kyc.verificationType} verification was rejected: ${reason}`,
-        data: { kyc_id: kyc.id, reason },
-      })
+      await KycNotifier.decided(kyc)
 
       return response.ok({
         data: {

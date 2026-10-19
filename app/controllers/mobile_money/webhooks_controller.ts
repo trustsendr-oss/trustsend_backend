@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { PawaPaySignatureService } from '#services/mobile_money/pawapay_signature_service'
 import { MobileMoneyDepositService } from '#services/mobile_money/mobile_money_deposit_service'
 import { MobileMoneyPayoutService } from '#services/mobile_money/mobile_money_payout_service'
+import { RemittanceService } from '#services/remittances/remittance_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { SandboxMode } from '#services/sandbox/sandbox_mode'
 // Nommé appLogger : les handlers reçoivent déjà un `logger` depuis le HttpContext.
@@ -86,10 +87,25 @@ export default class MobileMoneyWebhooksController {
           { providerTransactionId: body.providerTransactionId, failureReason }
         )
       } else {
-        await MobileMoneyPayoutService.confirmFromCallback('pawapay', body.payoutId!, body.status, {
-          providerTransactionId: body.providerTransactionId,
-          failureReason,
-        })
+        // An international transfer paid out to mobile money carries its own PawaPay reference;
+        // anything else is an ordinary wallet payout.
+        const settledRemittance =
+          body.status === 'COMPLETED' || body.status === 'FAILED'
+            ? await RemittanceService.confirmMobileMoneyPayout(
+                body.payoutId!,
+                body.status,
+                { providerTransactionId: body.providerTransactionId, failureReason },
+                `pawapay-${body.payoutId}`
+              )
+            : null
+        if (!settledRemittance) {
+          await MobileMoneyPayoutService.confirmFromCallback(
+            'pawapay',
+            body.payoutId!,
+            body.status,
+            { providerTransactionId: body.providerTransactionId, failureReason }
+          )
+        }
       }
     } catch (error) {
       // Never surface a 5xx to PawaPay for an internal processing error — that would trigger

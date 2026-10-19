@@ -16,6 +16,13 @@ const CashOutController = () => import('#controllers/transfers/cash_out_controll
 const AgentsController = () => import('#controllers/agents_controller')
 const AgentKycController = () => import('#controllers/agent_kyc_controller')
 const AgentFloatController = () => import('#controllers/agent_float_controller')
+const AgentWorkspaceController = () => import('#controllers/agent_workspace_controller')
+const AgentApplicationsController = () => import('#controllers/agent_applications_controller')
+const RemittancesController = () => import('#controllers/remittances_controller')
+const AgentRemittancesController = () => import('#controllers/agent_remittances_controller')
+const AdminRemittancesController = () => import('#controllers/admin/remittances_controller')
+const AdminAgentApplicationsController = () =>
+  import('#controllers/admin/agent_applications_controller')
 const KycController = () => import('#controllers/kyc_controller')
 const DisputesController = () => import('#controllers/disputes_controller')
 const WebhooksController = () => import('#controllers/webhooks_controller')
@@ -47,6 +54,7 @@ const BusinessPlanController = () => import('#controllers/business/plan_controll
 const BusinessCardsController = () => import('#controllers/business/cards_controller')
 const BusinessSandboxController = () => import('#controllers/business/sandbox_controller')
 const InternalAuthController = () => import('#controllers/internal_auth_controller')
+const PushTokensController = () => import('#controllers/push_tokens_controller')
 const InternalUsersController = () => import('#controllers/internal_users_controller')
 const BusinessDashboardAuthController = () =>
   import('#controllers/business_dashboard/auth_controller')
@@ -123,6 +131,13 @@ router
   .group(() => {
     router
       .group(() => {
+        router.post('signup/request-otp', [controllers.NewAccount, 'requestOtp']).use(
+          middleware.throttle({
+            maxRequests: 5,
+            windowMinutes: 15,
+            name: 'user-signup-otp-request',
+          })
+        )
         router
           .post('signup', [controllers.NewAccount, 'store'])
           .use(middleware.throttle({ maxRequests: 10, windowMinutes: 15, name: 'user-signup' }))
@@ -137,6 +152,11 @@ router
     router
       .group(() => {
         router.get('profile', [controllers.Profile, 'show'])
+        router.get('avatar', [controllers.Profile, 'avatar'])
+        router.post('avatar', [controllers.Profile, 'updateAvatar'])
+        router.delete('avatar', [controllers.Profile, 'destroyAvatar'])
+        router.post('push-tokens', [PushTokensController, 'store'])
+        router.delete('push-tokens', [PushTokensController, 'destroy'])
         router.post('logout', [controllers.AccessTokens, 'destroy'])
         router.post('pin', [PinController, 'setPin'])
         router.post('pin/change', [PinController, 'changePin'])
@@ -311,15 +331,69 @@ router
 
     // Agent self-service float operations — same regular-user guard as agents.kyc above, agent
     // resolved via AgentIdentityService. float-transfer pushes float to a direct sub-agent;
-    // float-convert moves the agent's own personal wallet money into their own float wallet. See
+    // float-convert moves the agent's own personal wallet money into their own float wallet, and
+    // float-withdraw moves it back (also open to a suspended agent). See
     // agent_float_controller.ts and float_transfer_service.ts.
     router
       .group(() => {
         router.post('float-transfer', [AgentFloatController, 'transfer'])
         router.post('float-convert', [AgentFloatController, 'convert'])
+        router.post('float-withdraw', [AgentFloatController, 'withdraw'])
       })
       .prefix('agents')
       .as('agents.float')
+      .use(middleware.auth())
+
+    // The signed-in agent's own workspace (same app as customers). Singular `agent/`, apart from
+    // the admin `agents/` group below, so `agent/me` can never be read as `agents/:id`. Every
+    // route resolves the agent from the user — see agent_workspace_controller.ts.
+    router
+      .group(() => {
+        router.get('me', [AgentWorkspaceController, 'me'])
+        router.get('operations', [AgentWorkspaceController, 'operations'])
+        router.get('operations/:transaction_id', [AgentWorkspaceController, 'operation'])
+        router.get('cash-outs/:transaction_id', [AgentWorkspaceController, 'cashOut'])
+        router.get('sub-agents', [AgentWorkspaceController, 'subAgents'])
+      })
+      .prefix('agent')
+      .as('agent_workspace')
+      .use(middleware.auth())
+
+    // "Become an agent" — the signed-in customer applies and follows their own application.
+    // Not IP-throttled: carriers put many customers behind one address. The flood guard is the
+    // one-open-application-per-user rule, enforced by a partial unique index.
+    router
+      .group(() => {
+        router.get('mine', [AgentApplicationsController, 'mine'])
+        router.get('eligibility', [AgentApplicationsController, 'eligibility'])
+        router.post('', [AgentApplicationsController, 'store'])
+      })
+      .prefix('agent-applications')
+      .as('agent_applications')
+      .use(middleware.auth())
+
+    // International transfers into the DRC — sender side. See remittances_controller.ts.
+    router
+      .group(() => {
+        router.get('corridor', [RemittancesController, 'corridor'])
+        router.post('quote', [RemittancesController, 'quote'])
+        router.get('', [RemittancesController, 'index'])
+        router.post('', [RemittancesController, 'store'])
+        router.get(':id', [RemittancesController, 'show'])
+        router.post(':id/cancel', [RemittancesController, 'cancel'])
+      })
+      .prefix('remittances')
+      .as('remittances')
+      .use(middleware.auth())
+
+    // Paying out a transfer at the counter (active agents, resolved from the user).
+    router
+      .group(() => {
+        router.post('lookup', [AgentRemittancesController, 'lookup'])
+        router.post(':id/pay', [AgentRemittancesController, 'pay'])
+      })
+      .prefix('agent/remittances')
+      .as('agent_remittances')
       .use(middleware.auth())
 
     // Agents (admin routes - protected)
@@ -470,10 +544,7 @@ router
       .use(middleware.auth())
 
     // Inbound Alchemy Webhooks — external caller protected by HMAC signature verification
-    router
-      .post('webhooks/alchemy', [CryptoWebhooksController, 'alchemy'])
-      .as('webhooks.alchemy')
-
+    router.post('webhooks/alchemy', [CryptoWebhooksController, 'alchemy']).as('webhooks.alchemy')
 
     // Counter operations, for the staff of a partner institution. Authenticated as an ordinary
     // user, then resolved to an institution through their posting — the third door onto
@@ -519,8 +590,14 @@ router
         router.post('loans/:id/disburse', [CounterLoansController, 'disburse'])
         // IMF committee circuit — multi-person credit approval (P1)
         router.post('loans/:id/submit', [CounterLoansCommitteeController, 'submit'])
-        router.post('loans/:id/committee-approve', [CounterLoansCommitteeController, 'committeeApprove'])
-        router.post('loans/:id/committee-reject', [CounterLoansCommitteeController, 'committeeReject'])
+        router.post('loans/:id/committee-approve', [
+          CounterLoansCommitteeController,
+          'committeeApprove',
+        ])
+        router.post('loans/:id/committee-reject', [
+          CounterLoansCommitteeController,
+          'committeeReject',
+        ])
         // Loan officer portfolio assignment (P2)
         router.post('loans/:id/assign', [CounterLoanOfficersController, 'assignLoan'])
         router.post('borrowers/assign', [CounterLoanOfficersController, 'assignBorrower'])
@@ -537,7 +614,10 @@ router
         router.get('loans/:id/restructurings', [CounterLoansRestructureController, 'history'])
         // IMF Default & Collateral Seizure (P3)
         router.post('loans/:id/default', [CounterLoansDefaultController, 'markDefault'])
-        router.post('loans/:id/seize-collateral', [CounterLoansDefaultController, 'seizeCollateral'])
+        router.post('loans/:id/seize-collateral', [
+          CounterLoansDefaultController,
+          'seizeCollateral',
+        ])
         // IMF Penalty Execution (P3)
         router.post('penalties/run', [CounterPenaltiesController, 'run'])
         // IMF Vault & Cash Management (Étape A)
@@ -628,6 +708,37 @@ router
       })
       .prefix('admin/business-staff')
       .as('admin.business_staff')
+      .use(middleware.auth({ guards: ['internal'] }))
+      .use(middleware.isInternalUser())
+
+    // Compliance oversight of international transfers and the screening watchlist.
+    router
+      .group(() => {
+        router.get('remittances', [AdminRemittancesController, 'index'])
+        router.get('remittances/:id', [AdminRemittancesController, 'show'])
+        router.post('remittances/:id/release', [AdminRemittancesController, 'release'])
+        router.post('remittances/:id/reject', [AdminRemittancesController, 'reject'])
+        router.get('watchlist', [AdminRemittancesController, 'watchlist'])
+        router.post('watchlist', [AdminRemittancesController, 'addToWatchlist'])
+        router.delete('watchlist/:id', [AdminRemittancesController, 'removeFromWatchlist'])
+      })
+      .prefix('admin')
+      .as('admin.remittances')
+      .use(middleware.auth({ guards: ['internal'] }))
+      .use(middleware.isInternalUser())
+
+    // Review queue for "become an agent" applications (internal_user only). Approval creates the
+    // agent in pending_approval — see admin/agent_applications_controller.ts.
+    router
+      .group(() => {
+        router.get('', [AdminAgentApplicationsController, 'index'])
+        router.get(':id', [AdminAgentApplicationsController, 'show'])
+        router.post(':id/review', [AdminAgentApplicationsController, 'review'])
+        router.post(':id/approve', [AdminAgentApplicationsController, 'approve'])
+        router.post(':id/reject', [AdminAgentApplicationsController, 'reject'])
+      })
+      .prefix('admin/agent-applications')
+      .as('admin.agent_applications')
       .use(middleware.auth({ guards: ['internal'] }))
       .use(middleware.isInternalUser())
 
@@ -1150,14 +1261,8 @@ router
         router.get('imf/provisioning', [BusinessDashboardImfController, 'provisioning'])
         router.get('imf/arrears', [BusinessDashboardImfController, 'arrears'])
         // IMF Legacy / Paper / Excel Migration Tool (Étape B)
-        router.post('imf/migration/validate', [
-          BusinessDashboardImfMigrationController,
-          'validate',
-        ])
-        router.post('imf/migration/commit', [
-          BusinessDashboardImfMigrationController,
-          'commit',
-        ])
+        router.post('imf/migration/validate', [BusinessDashboardImfMigrationController, 'validate'])
+        router.post('imf/migration/commit', [BusinessDashboardImfMigrationController, 'commit'])
       })
       .prefix('business/dashboard')
       .as('business.dashboard')

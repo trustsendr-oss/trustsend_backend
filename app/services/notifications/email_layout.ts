@@ -1,46 +1,37 @@
+import { fileURLToPath } from 'node:url'
+
 /**
- * Shared HTML layout for every transactional e-mail, carrying the same visual world as the
- * institution dashboard: navy header, light blue-grey backdrop, a white card, one blue for the
- * single action.
+ * The one e-mail document every message is wrapped in, and the blocks message bodies are built
+ * from. Colours and typeface are the Reemite app's own (src/constants/theme.ts in the mobile
+ * app), so a mail reads as coming from the same product as the screen it talks about.
  *
- * Written against mail clients, not browsers, so the rules differ from the app's own CSS:
- *
- * - Tables for structure. Outlook renders through Word, which ignores flex, grid and float.
- * - Styles inline on each element. Gmail strips most of what a <style> block declares, so the
- *   block below only carries the dark-mode and small-screen rules that cannot be inlined, and
- *   nothing depends on them surviving.
- * - No images. Most clients block remote images by default, and a logo that fails leaves a
- *   broken frame where the brand should be — the wordmark is text, so it always arrives.
- * - Same two faces as the app (tumaplus_imf/src/index.css): Inter Tight for what is read as a
- *   figure or a heading — title, amount, code, wordmark — and Inter for running text. Gmail
- *   drops @font-face entirely, so both are requested for the clients that honour it (Apple
- *   Mail, iOS) and every other reader falls back to their system sans, spelled out below.
+ * Inline styles only, tables for layout: most clients strip <style> and ignore flexbox/grid.
  */
 
-/* Tokens copied from the app's @theme — change them there first, then here. */
-const NAV = '#101b3a'
-const NAV_TEXT = '#93a2c4'
-const CANVAS = '#edf1f7'
-const SURFACE = '#ffffff'
-const SURFACE_2 = '#f5f7fb'
-const LINE = '#e6eaf2'
-const INK = '#0f172a'
-const INK_2 = '#334155'
-const MUTED = '#64748b'
-const MUTED_2 = '#94a3b8'
-const ACCENT = '#2563eb'
+const INK = '#0F1222'
+const INK_2 = '#4A5065'
+const MUTED = '#7A8094'
+const LINE = '#E7E9EF'
+const TINT = '#F2F5FE'
+const NAVY = '#1E1872'
 
 const SYSTEM_FALLBACK =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-/** --font-display: headings, amounts, codes, the wordmark. */
-const DISPLAY = `'Inter Tight', Inter, ${SYSTEM_FALLBACK}`
-/** --font-sans: everything else. */
-const SANS = `Inter, ${SYSTEM_FALLBACK}`
-/** The app's `.tabular` class: figures compared digit by digit keep the same width. */
-const TABULAR = 'font-variant-numeric:tabular-nums;font-feature-settings:\'tnum\';'
+const FONT = `'Plus Jakarta Sans', ${SYSTEM_FALLBACK}`
+const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace"
+/** Figures compared digit by digit keep the same width. */
+const TABULAR = "font-variant-numeric:tabular-nums;font-feature-settings:'tnum';"
 
-/** --shadow-card: the panel sits on the canvas and casts downward, as in the app. */
-const SHADOW_CARD = '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.04)'
+/**
+ * Content-ID of the app icon embedded in every message. Inline (cid:) rather than a remote URL:
+ * it shows even where remote images are blocked by default, and does not depend on APP_URL
+ * being reachable from the recipient's inbox. NotificationService attaches the file whenever
+ * a rendered message references this id.
+ */
+export const BRAND_ICON_CID = 'reemite-icon'
+export const BRAND_ICON_PATH = fileURLToPath(
+  new URL('../../../resources/brand/reemite-icon.png', import.meta.url)
+)
 
 /**
  * Values interpolated into a message come from user-controlled fields — a full name, a
@@ -55,110 +46,122 @@ export function escapeHtml(value: unknown): string {
 }
 
 /* ------------------------------------------------------------------------------------------ */
-/* Building blocks                                                                             */
+/* Text                                                                                        */
 /* ------------------------------------------------------------------------------------------ */
 
-/** A paragraph of body copy. */
-export function p(html: string): string {
-  return `<p style="margin:0 0 16px;font-family:${SANS};font-size:15px;line-height:1.6;color:${INK_2};">${html}</p>`
+/** A body paragraph. `muted` for secondary lines, `last` to drop the bottom margin. */
+export function text(html: string, options: { muted?: boolean; last?: boolean } = {}): string {
+  const color = options.muted ? MUTED : INK_2
+  const size = options.muted ? 13 : 15
+  return `<p style="margin:0 0 ${options.last ? 0 : 20}px;font-family:${FONT};font-size:${size}px;line-height:1.6;color:${color};">${html}</p>`
 }
 
-/** The one line that states what happened, above the detail. */
-export function lead(html: string): string {
-  return `<p style="margin:0 0 20px;font-family:${DISPLAY};font-size:17px;line-height:1.45;font-weight:600;letter-spacing:-0.01em;color:${INK};">${html}</p>`
-}
+/* ------------------------------------------------------------------------------------------ */
+/* Codes                                                                                       */
+/* ------------------------------------------------------------------------------------------ */
 
 /**
- * A one-time code. Letter-spaced and oversized because it is read off the screen and typed by
- * hand, often on a second device — the spacing is what stops a 6 from being read into a group
- * of 8 digits.
+ * A one-time code — the only thing in the message the reader has to act on. Left-aligned with
+ * the text above it, on a faint tint of the brand blue so it reads as the one element to copy.
+ *
+ * `token` is for long secrets that are pasted rather than typed (the 43-character PIN reset
+ * token): monospace so l/I/0/O stay distinct, wrapped anywhere, and selected in one tap where
+ * the client honours user-select — its `-` and `_` would otherwise stop a word selection.
  */
-export function codeBox(code: unknown, note?: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 16px;">
+export function otpCode(code: unknown, options: { token?: boolean } = {}): string {
+  const style = options.token
+    ? `font-family:${MONO};font-size:16px;line-height:1.55;font-weight:600;word-break:break-all;-webkit-user-select:all;user-select:all;`
+    : `font-family:${FONT};font-size:32px;line-height:1.2;font-weight:700;letter-spacing:10px;${TABULAR}`
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 12px;">
   <tr>
-    <td align="center" style="background-color:${SURFACE_2};border:1px solid ${LINE};border-radius:14px;padding:22px 16px;">
-      <div style="font-family:${DISPLAY};font-size:30px;font-weight:700;letter-spacing:8px;${TABULAR}color:${INK};">${escapeHtml(code)}</div>
-      ${note ? `<div style="margin-top:8px;font-family:${SANS};font-size:13px;color:${MUTED};">${escapeHtml(note)}</div>` : ''}
+    <td style="background-color:${TINT};border-radius:12px;padding:18px 22px;">
+      <div style="${style}color:${INK};">${escapeHtml(code)}</div>
     </td>
   </tr>
 </table>`
 }
 
-/**
- * Key/value detail block — reference, date, amount. A table rather than lines of text so the
- * labels stay in one column when a long reference wraps.
- */
-export function detailList(rows: Array<[string, string]>): string {
-  const body = rows
-    .filter(([, value]) => value !== '' && value !== undefined && value !== null)
-    .map(
-      ([label, value]) => `  <tr>
-    <td style="padding:10px 0;font-family:${SANS};font-size:13px;color:${MUTED};white-space:nowrap;vertical-align:top;">${escapeHtml(label)}</td>
-    <td align="right" style="padding:10px 0 10px 16px;font-family:${SANS};font-size:14px;font-weight:500;${TABULAR}color:${INK};word-break:break-word;">${escapeHtml(value)}</td>
-  </tr>`
-    )
-    .join('\n')
+/* ------------------------------------------------------------------------------------------ */
+/* Notices                                                                                     */
+/* ------------------------------------------------------------------------------------------ */
 
-  if (!body) return ''
+export type Tone = 'success' | 'warning' | 'danger' | 'info'
 
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 20px;border-top:1px solid ${LINE};border-bottom:1px solid ${LINE};">
-${body}
-</table>`
-}
-
-/** The amount an e-mail is actually about, set large enough to be read before the sentence. */
-export function amountBlock(amount: string, caption?: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 20px;">
-  <tr>
-    <td style="padding:0;">
-      ${caption ? `<div style="font-family:${SANS};font-size:13px;font-weight:500;color:${MUTED};margin-bottom:4px;">${escapeHtml(caption)}</div>` : ''}
-      <div style="font-family:${DISPLAY};font-size:28px;line-height:1.25;font-weight:700;letter-spacing:-0.02em;${TABULAR}color:${INK};">${escapeHtml(amount)}</div>
-    </td>
-  </tr>
-</table>`
-}
-
-type NoticeTone = 'success' | 'warning' | 'danger' | 'info'
-
-const NOTICE_COLORS: Record<NoticeTone, { bg: string; fg: string }> = {
-  success: { bg: '#dcfce7', fg: '#15803d' },
-  warning: { bg: '#fef3c7', fg: '#b45309' },
-  danger: { bg: '#fee2e2', fg: '#b91c1c' },
-  info: { bg: '#dbeafe', fg: '#1d4ed8' },
+const TONES: Record<Tone, { bg: string; fg: string }> = {
+  success: { bg: '#E8F5EE', fg: '#1F7D47' },
+  warning: { bg: '#FDF3E1', fg: '#8A5A00' },
+  danger: { bg: '#FDECEE', fg: '#C7182B' },
+  info: { bg: TINT, fg: '#1E46D1' },
 }
 
 /** A short status line — a refusal reason, a reassurance that nothing was debited. */
-export function notice(tone: NoticeTone, html: string): string {
-  const { bg, fg } = NOTICE_COLORS[tone]
+export function notice(tone: Tone, html: string): string {
+  const { bg, fg } = TONES[tone]
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 20px;">
   <tr>
-    <td style="background-color:${bg};border-radius:12px;padding:14px 16px;font-family:${SANS};font-size:14px;line-height:1.5;color:${fg};">${html}</td>
+    <td style="background-color:${bg};border-radius:12px;padding:13px 16px;font-family:${FONT};font-size:14px;line-height:1.5;font-weight:500;color:${fg};">${html}</td>
   </tr>
 </table>`
 }
 
+/* ------------------------------------------------------------------------------------------ */
+/* Receipt                                                                                     */
+/* ------------------------------------------------------------------------------------------ */
+
+export type ReceiptStatus = 'completed' | 'pending' | 'failed'
+
+const STATUS_LABEL: Record<ReceiptStatus, { label: string; tone: Tone }> = {
+  completed: { label: 'Effectué', tone: 'success' },
+  pending: { label: 'En attente', tone: 'warning' },
+  failed: { label: 'Échoué', tone: 'danger' },
+}
+
+export type ReceiptRow = [label: string, value: string | null | undefined]
+
 /**
- * Primary action. A padded table cell rather than an <a> with padding: Outlook ignores padding
- * on inline elements, which would collapse the button to bare underlined text.
+ * The record of a movement, laid out like the app's receipt screen: what it was and how much at
+ * the top, with its status, then every detail support would ask for, in a fixed order. Rows
+ * whose value is missing are dropped rather than shown empty — an operation that had no fee says
+ * nothing about fees, instead of "Frais : ".
  */
-export function button(label: string, href: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">
+export function receipt(options: {
+  caption: string
+  amount: string
+  /** `in` adds a +, `out` a − : the direction is read before the sentence. */
+  direction?: 'in' | 'out'
+  status: ReceiptStatus
+  rows: ReceiptRow[]
+}): string {
+  const { label, tone } = STATUS_LABEL[options.status]
+  const pill = TONES[tone]
+  const sign = options.direction === 'in' ? '+ ' : options.direction === 'out' ? '− ' : ''
+
+  const rows = options.rows
+    .filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== '')
+    .map(
+      ([rowLabel, value], index) => `      <tr>
+        <td style="padding:11px 0;${index ? `border-top:1px solid ${LINE};` : ''}font-family:${FONT};font-size:13px;color:${MUTED};white-space:nowrap;vertical-align:top;">${escapeHtml(rowLabel)}</td>
+        <td align="right" style="padding:11px 0 11px 16px;${index ? `border-top:1px solid ${LINE};` : ''}font-family:${FONT};font-size:14px;font-weight:600;${TABULAR}color:${INK};word-break:break-word;">${escapeHtml(value)}</td>
+      </tr>`
+    )
+    .join('\n')
+
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 20px;border:1px solid ${LINE};border-radius:14px;border-collapse:separate;">
   <tr>
-    <td align="center" style="background-color:${ACCENT};border-radius:12px;">
-      <a href="${escapeHtml(href)}" style="display:inline-block;padding:11px 20px;font-family:${SANS};font-size:14px;line-height:18px;font-weight:500;color:#ffffff;text-decoration:none;">${escapeHtml(label)}</a>
+    <td style="padding:20px 20px 18px;border-bottom:1px solid ${LINE};">
+      <div style="font-family:${FONT};font-size:13px;font-weight:500;color:${MUTED};margin:0 0 4px;">${escapeHtml(options.caption)}</div>
+      <div style="font-family:${FONT};font-size:28px;line-height:1.25;font-weight:700;letter-spacing:-0.02em;${TABULAR}color:${INK};">${escapeHtml(sign + options.amount)}</div>
+      <div style="margin-top:10px;"><span style="display:inline-block;background-color:${pill.bg};color:${pill.fg};border-radius:999px;padding:3px 10px;font-family:${FONT};font-size:12px;font-weight:600;">${label}</span></div>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:4px 20px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+${rows}
+      </table>
     </td>
   </tr>
 </table>`
-}
-
-/** Fine print inside the card — the "ignore this message" line. */
-export function fineprint(html: string): string {
-  return `<p style="margin:0;font-family:${SANS};font-size:13px;line-height:1.6;color:${MUTED};">${html}</p>`
-}
-
-/** Horizontal rule matching the card's own hairline. */
-export function divider(): string {
-  return `<div style="height:1px;line-height:1px;font-size:0;background-color:${LINE};margin:0 0 20px;">&nbsp;</div>`
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -167,28 +170,27 @@ export function divider(): string {
 
 export interface EmailDocumentOptions {
   brand: string
-  /** Small line under the wordmark, as under the institution name in the app's sidebar. */
-  tagline?: string
-  /** Shown as the heading inside the card, and as the document title. */
+  /** The heading: says what happened or what to do, not what the product is called. */
   title: string
   /**
    * The grey line an inbox shows next to the subject. Left out, clients fall back to the first
-   * words of the body, which on these messages is a greeting — the same for every e-mail and
-   * worth nothing at a glance.
+   * words of the body, which on most of these messages is a greeting.
    */
   preheader: string
   /** Pre-rendered blocks, built from the helpers above. */
   body: string
-  /** Optional greeting line: "Bonjour Marie," */
+  /** Name to greet, when the message is about someone's own account. */
   greeting?: string
-  /** Replaces the default legal footer when a message needs its own. */
+  /** Replaces the default footer line. */
   footerNote?: string
 }
 
+/**
+ * A white page and a single column: the app icon and name, the heading, the body, and one line
+ * of footer. No banner, no card, no canvas colour — nothing around the content competes with it.
+ */
 export function emailDocument(options: EmailDocumentOptions): string {
-  const { brand, tagline = 'Ensemble pour votre avenir', title, preheader, body, greeting, footerNote } =
-    options
-  const monogram = escapeHtml(brand.trim().charAt(0).toUpperCase() || 'T')
+  const { brand, title, preheader, body, greeting, footerNote } = options
   const year = new Date().getFullYear()
 
   return `<!DOCTYPE html>
@@ -197,70 +199,55 @@ export function emailDocument(options: EmailDocumentOptions): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
-<!-- Light only, like the app, which has no dark theme. Declaring "dark" would let Apple Mail
-     darken the card while every text colour stays inlined for a white background. -->
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
 <title>${escapeHtml(title)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
-  /* Only what cannot be inlined lives here; nothing below is required for the mail to read
-     correctly in a client that discards it. */
-  @media (max-width: 620px) {
-    .sm-px { padding-left: 20px !important; padding-right: 20px !important; }
-    .sm-py { padding-top: 24px !important; padding-bottom: 24px !important; }
+  @media (max-width: 520px) {
+    .sm-pad { padding: 32px 20px !important; }
   }
 </style>
 </head>
-<body style="margin:0;padding:0;width:100%;background-color:${CANVAS};-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;width:100%;background-color:#ffffff;-webkit-font-smoothing:antialiased;">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${escapeHtml(preheader)}</div>
 <!-- Second hidden run stops the client from pulling the body's first words in after the
      preheader and gluing them together in the inbox preview. -->
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
 
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:${CANVAS};">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;">
   <tr>
-    <td align="center" style="padding:32px 16px;">
-
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:100%;">
-
-        <!-- Brand bar, drawn like the top of the app's sidebar: navy, a blue tile, the name in
-             white and a muted line under it. Text, never an image: blocked remote images are
-             the default in most clients, and a brand that fails to load is worse than one set
-             in type. -->
+    <td align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="520" style="width:520px;max-width:100%;">
         <tr>
-          <td style="background-color:${NAV};border-radius:18px 18px 0 0;padding:22px 32px;" class="sm-px">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <td class="sm-pad" style="padding:48px 24px 40px;">
+
+            <!-- The name stays in type beside the icon: if a client hides the image, the
+                 sender is still named. -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 36px;">
               <tr>
-                <td width="40" height="40" align="center" valign="middle" style="width:40px;height:40px;background-color:${ACCENT};border-radius:12px;font-family:${DISPLAY};font-size:18px;font-weight:700;line-height:40px;color:#ffffff;">${monogram}</td>
-                <td style="padding-left:12px;">
-                  <div style="font-family:${DISPLAY};font-size:15px;line-height:1.25;font-weight:600;color:#ffffff;">${escapeHtml(brand)}</div>
-                  ${tagline ? `<div style="font-family:${SANS};font-size:11px;line-height:1.35;color:${NAV_TEXT};">${escapeHtml(tagline)}</div>` : ''}
+                <td width="40" valign="middle" style="width:40px;">
+                  <img src="cid:${BRAND_ICON_CID}" width="40" height="40" alt="" style="display:block;width:40px;height:40px;border:0;border-radius:10px;background-color:${NAVY};">
                 </td>
+                <td valign="middle" style="padding-left:12px;font-family:${FONT};font-size:17px;font-weight:700;letter-spacing:-0.01em;color:${INK};">${escapeHtml(brand)}</td>
               </tr>
             </table>
-          </td>
-        </tr>
 
-        <tr>
-          <td class="sm-px sm-py" style="background-color:${SURFACE};border-radius:0 0 18px 18px;padding:32px;box-shadow:${SHADOW_CARD};">
-            <h1 style="margin:0 0 ${greeting ? '16px' : '20px'};font-family:${DISPLAY};font-size:22px;line-height:1.3;font-weight:700;letter-spacing:-0.02em;color:${INK};">${escapeHtml(title)}</h1>
-            ${greeting ? p(`Bonjour ${escapeHtml(greeting)},`) : ''}
+            <h1 style="margin:0 0 ${greeting ? 16 : 12}px;font-family:${FONT};font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-0.02em;color:${INK};">${escapeHtml(title)}</h1>
+            ${greeting ? text(`Bonjour ${escapeHtml(greeting)},`) : ''}
             ${body}
+
+            <div style="height:1px;line-height:1px;font-size:0;background-color:${LINE};margin:32px 0 20px;">&nbsp;</div>
+            <p style="margin:0 0 6px;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};">${
+              footerNote
+                ? escapeHtml(footerNote)
+                : `Message automatique de ${escapeHtml(brand)}, merci de ne pas y répondre.`
+            }</p>
+            <p style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};">&copy; ${year} ${escapeHtml(brand)}</p>
+
           </td>
         </tr>
-
-        <tr>
-          <td style="padding:24px 32px 0;" class="sm-px">
-            <p style="margin:0 0 6px;font-family:${SANS};font-size:12px;line-height:1.6;color:${MUTED};">
-              ${footerNote ? escapeHtml(footerNote) : `Ce message vous est adressé automatiquement par ${escapeHtml(brand)}. Merci de ne pas y répondre.`}
-            </p>
-            <p style="margin:0;font-family:${SANS};font-size:12px;color:${MUTED_2};">&copy; ${year} ${escapeHtml(brand)}</p>
-          </td>
-        </tr>
-
       </table>
-
     </td>
   </tr>
 </table>
@@ -272,6 +259,13 @@ export function emailDocument(options: EmailDocumentOptions): string {
  * Plain-text alternative. Worth sending alongside the HTML: some clients and most filters read
  * it, and a message with no text part scores as spam more often.
  */
-export function plainText(lines: Array<string | null | undefined>): string {
+export function plainText(lines: Array<string | null | undefined | false>): string {
   return lines.filter((line): line is string => typeof line === 'string').join('\n')
+}
+
+/** Receipt rows as plain-text lines: "Référence : TXN-…". */
+export function plainRows(rows: ReceiptRow[]): string[] {
+  return rows
+    .filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== '')
+    .map(([label, value]) => `${label} : ${value}`)
 }

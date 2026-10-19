@@ -3,8 +3,8 @@ import type { Config } from '@docusaurus/types'
 import type * as Preset from '@docusaurus/preset-classic'
 
 const config: Config = {
-  title: 'TrustSend API',
-  tagline: 'Documentation des APIs backend TrustSend',
+  title: 'Reemite API',
+  tagline: 'Documentation des APIs backend Reemite',
   favicon: 'img/favicon.svg',
 
   future: {
@@ -65,9 +65,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'TrustSend',
+      title: 'Reemite',
       logo: {
-        alt: 'TrustSend',
+        alt: 'Reemite',
         src: 'img/logo.png',
       },
       items: [
@@ -105,7 +105,7 @@ const config: Config = {
         {
           title: 'Produit',
           items: [
-            { label: 'TrustSend', href: 'https://www.trustsend.africa' },
+            { label: 'Reemite', href: 'https://www.trustsend.africa' },
             { label: 'Espace client', href: 'https://business.trustsend.africa' },
             { label: 'Tarifs', href: 'https://www.trustsend.africa/pricing' },
           ],
@@ -118,7 +118,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `TrustSend — documentation API business, mise à jour le ${new Date().toLocaleDateString('fr-FR')}.`,
+      copyright: `Reemite — documentation API business, mise à jour le ${new Date().toLocaleDateString('fr-FR')}.`,
     },
     prism: {
       theme: prismThemes.oneLight,

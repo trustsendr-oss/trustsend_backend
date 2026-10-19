@@ -1,4 +1,4 @@
-# Architecture & Sécurité de la Circulation Monétaire : IMF ⇄ Utilisateur ⇄ Réseau d'Agents TumaPlus / TrustSend
+# Architecture & Sécurité de la Circulation Monétaire : IMF ⇄ Utilisateur ⇄ Réseau d'Agents TumaPlus / Reemite
 
 > **Document de référence pour la trésorerie et la gestion des flux physiques & numériques.**
 
@@ -8,7 +8,7 @@
 
 L'écosystème TumaPlus unifie deux mondes :
 1. **L'Institution de Microfinance (IMF)** : prêteur institutionnel, collecteur d'épargne avec coffres-forts physiques (Vault) et comptoirs (Counters).
-2. **Le Réseau d'Agents TumaPlus / TrustSend** : commerçants de proximité et kiosques équipés de Float numérique effectuant du Cash-In et Cash-Out.
+2. **Le Réseau d'Agents TumaPlus / Reemite** : commerçants de proximité et kiosques équipés de Float numérique effectuant du Cash-In et Cash-Out.
 3. **L'Utilisateur (Emprunteur / Épargnant)** : détenteur d'un wallet multi-devises dans l'application mobile.
 
 ```

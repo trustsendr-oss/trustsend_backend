@@ -171,6 +171,7 @@ export default class CardsController {
       }
       if (
         err.name === 'InsufficientWalletBalanceException' ||
+        err.name === 'FundsReservedException' ||
         err instanceof InsufficientWalletBalanceException
       ) {
         return response.paymentRequired({ message: err.message })
@@ -430,7 +431,8 @@ export default class CardsController {
     const err = error as any
     if (
       err instanceof InsufficientWalletBalanceException ||
-      err.name === 'InsufficientWalletBalanceException'
+      err.name === 'InsufficientWalletBalanceException' ||
+      err.name === 'FundsReservedException'
     ) {
       return response.paymentRequired({ message: err.message })
     }

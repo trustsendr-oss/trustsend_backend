@@ -31,6 +31,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/assets_controller').default['currencyLogo']>>>
     }
   }
+  'auth.new_account.request_otp': {
+    methods: ["POST"]
+    pattern: '/api/v1/auth/signup/request-otp'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/user').requestSignupOtpValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/user').requestSignupOtpValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/new_account_controller').default['requestOtp']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/new_account_controller').default['requestOtp']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'auth.new_account.store': {
     methods: ["POST"]
     pattern: '/api/v1/auth/signup'
@@ -77,6 +89,66 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['show']>>>
+    }
+  }
+  'profile.profile.avatar': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/account/avatar'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['avatar']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['avatar']>>>
+    }
+  }
+  'profile.profile.update_avatar': {
+    methods: ["POST"]
+    pattern: '/api/v1/account/avatar'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['updateAvatar']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['updateAvatar']>>>
+    }
+  }
+  'profile.profile.destroy_avatar': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/account/avatar'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['destroyAvatar']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['destroyAvatar']>>>
+    }
+  }
+  'profile.push_tokens.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/account/push-tokens'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/push_tokens_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/push_tokens_controller').default['store']>>>
+    }
+  }
+  'profile.push_tokens.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/account/push-tokens'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/push_tokens_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/push_tokens_controller').default['destroy']>>>
     }
   }
   'profile.access_tokens.destroy': {
@@ -617,6 +689,210 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_float_controller').default['convert']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_float_controller').default['convert']>>>
+    }
+  }
+  'agents.float.agent_float.withdraw': {
+    methods: ["POST"]
+    pattern: '/api/v1/agents/float-withdraw'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_float_controller').default['withdraw']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_float_controller').default['withdraw']>>>
+    }
+  }
+  'agent_workspace.agent_workspace.me': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/agent/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['me']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['me']>>>
+    }
+  }
+  'agent_workspace.agent_workspace.operations': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/agent/operations'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['operations']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['operations']>>>
+    }
+  }
+  'agent_workspace.agent_workspace.operation': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/agent/operations/:transaction_id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { transaction_id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['operation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['operation']>>>
+    }
+  }
+  'agent_workspace.agent_workspace.cash_out': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/agent/cash-outs/:transaction_id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { transaction_id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['cashOut']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['cashOut']>>>
+    }
+  }
+  'agent_workspace.agent_workspace.sub_agents': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/agent/sub-agents'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['subAgents']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_workspace_controller').default['subAgents']>>>
+    }
+  }
+  'agent_applications.agent_applications.mine': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/agent-applications/mine'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_applications_controller').default['mine']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_applications_controller').default['mine']>>>
+    }
+  }
+  'agent_applications.agent_applications.eligibility': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/agent-applications/eligibility'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_applications_controller').default['eligibility']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_applications_controller').default['eligibility']>>>
+    }
+  }
+  'agent_applications.agent_applications.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/agent-applications'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_applications_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_applications_controller').default['store']>>>
+    }
+  }
+  'remittances.remittances.corridor': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/remittances/corridor'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['corridor']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['corridor']>>>
+    }
+  }
+  'remittances.remittances.quote': {
+    methods: ["POST"]
+    pattern: '/api/v1/remittances/quote'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['quote']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['quote']>>>
+    }
+  }
+  'remittances.remittances.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/remittances'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['index']>>>
+    }
+  }
+  'remittances.remittances.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/remittances'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['store']>>>
+    }
+  }
+  'remittances.remittances.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/remittances/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['show']>>>
+    }
+  }
+  'remittances.remittances.cancel': {
+    methods: ["POST"]
+    pattern: '/api/v1/remittances/:id/cancel'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['cancel']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/remittances_controller').default['cancel']>>>
+    }
+  }
+  'agent_remittances.agent_remittances.lookup': {
+    methods: ["POST"]
+    pattern: '/api/v1/agent/remittances/lookup'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_remittances_controller').default['lookup']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_remittances_controller').default['lookup']>>>
+    }
+  }
+  'agent_remittances.agent_remittances.pay': {
+    methods: ["POST"]
+    pattern: '/api/v1/agent/remittances/:id/pay'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/agent_remittances_controller').default['pay']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/agent_remittances_controller').default['pay']>>>
     }
   }
   'agents.agents.index': {
@@ -2105,6 +2381,150 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['update']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/business_staff_controller').default['update']>>>
+    }
+  }
+  'admin.remittances.admin_remittances.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/remittances'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['index']>>>
+    }
+  }
+  'admin.remittances.admin_remittances.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/remittances/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['show']>>>
+    }
+  }
+  'admin.remittances.admin_remittances.release': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/remittances/:id/release'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['release']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['release']>>>
+    }
+  }
+  'admin.remittances.admin_remittances.reject': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/remittances/:id/reject'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['reject']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['reject']>>>
+    }
+  }
+  'admin.remittances.admin_remittances.watchlist': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/watchlist'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['watchlist']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['watchlist']>>>
+    }
+  }
+  'admin.remittances.admin_remittances.add_to_watchlist': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/watchlist'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['addToWatchlist']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['addToWatchlist']>>>
+    }
+  }
+  'admin.remittances.admin_remittances.remove_from_watchlist': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/admin/watchlist/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['removeFromWatchlist']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['removeFromWatchlist']>>>
+    }
+  }
+  'admin.agent_applications.admin_agent_applications.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/agent-applications'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['index']>>>
+    }
+  }
+  'admin.agent_applications.admin_agent_applications.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/agent-applications/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['show']>>>
+    }
+  }
+  'admin.agent_applications.admin_agent_applications.review': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/agent-applications/:id/review'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['review']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['review']>>>
+    }
+  }
+  'admin.agent_applications.admin_agent_applications.approve': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/agent-applications/:id/approve'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['approve']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['approve']>>>
+    }
+  }
+  'admin.agent_applications.admin_agent_applications.reject': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/agent-applications/:id/reject'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['reject']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/agent_applications_controller').default['reject']>>>
     }
   }
   'admin.financial_products.admin_financial_products.index': {

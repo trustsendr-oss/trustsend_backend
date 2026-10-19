@@ -3,6 +3,7 @@ import LedgerTransaction from '#models/ledger_transaction'
 import LedgerAccount from '#models/ledger_account'
 import OutboxEvent from '#models/outbox_event'
 import { type Money } from '#services/money/money'
+import { CashOutHoldService } from '#services/transactions/cash_out_hold_service'
 import { LedgerService } from '#services/ledger/ledger_service'
 import { LimitService } from '#services/ledger/limit_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
@@ -117,6 +118,8 @@ export class P2pTransferService {
           senderWallet.balance_cache
         )
       }
+      // Money reserved for a cash withdrawal is still in balance_cache but no longer spendable.
+      await CashOutHoldService.assertAvailable(senderWallet, request.amount.amount, trx)
 
       // 3. Verify transaction limit (per_transaction_limit)
       if (

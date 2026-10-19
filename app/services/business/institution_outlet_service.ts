@@ -5,7 +5,6 @@ import AgentStatusHistory from '#models/agent_status_history'
 import type Business from '#models/business'
 import { AgentOnboardingService } from '#services/agents/agent_onboarding_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
-import { IdGenerator } from '#services/security/id_generator'
 import { TellerSessionService } from '#services/counter/teller_session_service'
 
 export class OutletTransitionException extends Error {
@@ -21,8 +20,6 @@ export class OutletSessionOpenException extends Error {
     this.name = 'OutletSessionOpenException'
   }
 }
-
-const MAX_CODE_ATTEMPTS = 5
 
 /**
  * An institution running its own branch network: opening counters, editing them, suspending and
@@ -219,10 +216,6 @@ export class InstitutionOutletService {
   }
 
   private static async uniqueCode(): Promise<string> {
-    for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
-      const candidate = IdGenerator.generateNumericCode()
-      if (!(await Agent.findBy('code', candidate))) return candidate
-    }
-    throw new Error('Unable to generate a unique counter code after several attempts')
+    return AgentOnboardingService.generateUniqueCode()
   }
 }

@@ -3,9 +3,11 @@ import Agent from '#models/agent'
 import User from '#models/user'
 import type InternalUser from '#models/internal_user'
 import { AgentLifecycleService } from '#services/agents/agent_lifecycle_service'
-import { AgentOnboardingService } from '#services/agents/agent_onboarding_service'
+import {
+  AGENT_CODE_PATTERN,
+  AgentOnboardingService,
+} from '#services/agents/agent_onboarding_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
-import { IdGenerator } from '#services/security/id_generator'
 import vine from '@vinejs/vine'
 
 // Smallest-unit strings (no zero, no leading zeros) — same convention as card amounts.
@@ -74,10 +76,11 @@ const createAgentValidator = vine.create({
     }),
   phone: vine.string().minLength(8).maxLength(20),
   region: vine.string().optional(),
+  // Exactly 9 digits — the only form customers can look up and withdraw from (see
+  // AGENT_CODE_PATTERN). Omitted: AgentOnboardingService generates a unique one.
   code: vine
     .string()
-    .minLength(2)
-    .maxLength(20)
+    .regex(AGENT_CODE_PATTERN)
     .unique(async (db, value) => {
       const agent = await db.from('agents').where('code', value).first()
       return !agent
@@ -147,7 +150,7 @@ export default class AgentsController {
       const agent = await AgentOnboardingService.create({
         userId: payload.user_id,
         businessId: payload.business_id,
-        code: payload.code || IdGenerator.generateId('AG'),
+        code: payload.code,
         fullName: payload.full_name,
         email: payload.email,
         phone: payload.phone,

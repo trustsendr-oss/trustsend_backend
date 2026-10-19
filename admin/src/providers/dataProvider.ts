@@ -14,6 +14,9 @@ import { apiFetch, apiFetchEnvelope } from './httpClient'
  */
 const RESOURCE_PATH: Record<string, string> = {
   agents: '/agents',
+  agent_applications: '/admin/agent-applications',
+  remittances: '/admin/remittances',
+  watchlist: '/admin/watchlist',
   businesses: '/businesses',
   business_staff: '/admin/business-staff',
   financial_products: '/admin/financial-products',
@@ -74,7 +77,9 @@ function applySort<T extends Record<string, any>>(records: T[], field?: string, 
 // server-side; every other filter key on those resources still falls back to the client-side
 // applyFilters above (client-side pagination too — these three stay in the "small list" group).
 const SERVER_FILTER_KEYS: Record<string, string[]> = {
-  kyc: ['status', 'subject_type'],
+  kyc: ['status', 'subject_type', 'q'],
+  agent_applications: ['status'],
+  remittances: ['status'],
   disputes: ['status', 'raised_by_type'],
   ledger_accounts: ['owner_type'],
 }
@@ -277,6 +282,35 @@ export const adminActions = {
     apiFetch(`/agents/${id}/suspend`, { method: 'POST', body: JSON.stringify({ reason }) }),
   agentDeactivate: (id: number | string, reason: string) =>
     apiFetch(`/agents/${id}/deactivate`, { method: 'POST', body: JSON.stringify({ reason }) }),
+
+  remittanceRelease: (id: number | string) =>
+    apiFetch(`/admin/remittances/${id}/release`, { method: 'POST' }),
+  remittanceReject: (id: number | string, reason: string) =>
+    apiFetch(`/admin/remittances/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+
+  agentApplicationReview: (id: number | string) =>
+    apiFetch(`/admin/agent-applications/${id}/review`, { method: 'POST' }),
+  agentApplicationApprove: (
+    id: number | string,
+    decision: {
+      tier: string
+      email?: string
+      parent_agent_id?: number
+      commission_rate?: number
+    }
+  ) =>
+    apiFetch<{ approved_agent_id: number | null }>(`/admin/agent-applications/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify(decision),
+    }),
+  agentApplicationReject: (id: number | string, reason: string) =>
+    apiFetch(`/admin/agent-applications/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
 
   businessApprove: (id: number | string) =>
     apiFetch(`/businesses/${id}/approve`, { method: 'POST' }),

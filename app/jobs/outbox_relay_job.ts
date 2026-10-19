@@ -71,6 +71,9 @@ export async function handleOutboxRelay(): Promise<void> {
         case 'cash_out.initiated':
           await handleCashOutInitiated(event)
           break
+        case 'cash_out.completed':
+          await handleCashOutCompleted(event)
+          break
         case 'mobile_money_deposit.completed':
         case 'mobile_money_deposit.failed':
         case 'mobile_money_payout.completed':
@@ -141,6 +144,54 @@ function formatDate(value: DateTime | null | undefined): string {
   return (value ?? DateTime.now()).setLocale('fr').toFormat("d LLLL yyyy 'à' HH:mm")
 }
 
+/** "Compte USD": the wallet a movement touched, as the app names it. */
+function accountLabel(currency: string | null | undefined): string | null {
+  return currency ? `Compte ${currency}` : null
+}
+
+/** "+250 788 123 456" from the stored digits; the stored value as-is when it is not digits. */
+function phoneLabel(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) return raw
+  return `+${digits.replace(/^(\d{3})(\d{3})(\d{3})(\d+)$/, '$1 $2 $3 $4')}`
+}
+
+/**
+ * The operator behind a provider code ("MTN_MOMO_RWA" → "MTN Mobile Money"). Unknown codes are
+ * shown as stored: a raw code is still more useful on a receipt than nothing.
+ */
+function operatorLabel(code: string | null | undefined): string | null {
+  if (!code) return null
+  const c = code.toUpperCase()
+  const known: Array<[string, string]> = [
+    ['MPESA', 'M-Pesa'],
+    ['VODACOM', 'M-Pesa'],
+    ['AIRTEL', 'Airtel Money'],
+    ['MTN', 'MTN Mobile Money'],
+    ['ORANGE', 'Orange Money'],
+    ['ECOCASH', 'EcoCash'],
+    ['WAVE', 'Wave'],
+    ['TIGO', 'Tigo Pesa'],
+    ['MIXX', 'Mixx by Yas'],
+    ['HALOTEL', 'HaloPesa'],
+    ['LUMICASH', 'Lumicash'],
+    ['MOOV', 'Moov Money'],
+    ['FREE', 'Free Money'],
+  ]
+  return known.find(([key]) => c.includes(key))?.[1] ?? code
+}
+
+/** Sum of two minor-unit amounts, formatted. */
+function formatSum(a: unknown, b: unknown, currency: string): string {
+  return formatAmount(BigInt(String(a ?? 0)) + BigInt(String(b ?? 0)), currency)
+}
+
+/** Difference of two minor-unit amounts, formatted. */
+function formatDifference(a: unknown, b: unknown, currency: string): string {
+  return formatAmount(BigInt(String(a ?? 0)) - BigInt(String(b ?? 0)), currency)
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                 Gestionnaires                              */
 /* -------------------------------------------------------------------------- */
@@ -151,9 +202,11 @@ function formatDate(value: DateTime | null | undefined): string {
  */
 async function handleP2pTransferCompleted(event: OutboxEvent): Promise<void> {
   const payload = event.payload as any
-  const amount = formatAmount(payload.amount?.amount ?? '0', payload.amount?.currencyCode ?? '')
+  const currency = payload.amount?.currencyCode ?? ''
+  const amount = formatAmount(payload.amount?.amount ?? '0', currency)
   const reference = payload.transaction_uuid ?? event.aggregateId
   const date = formatDate(event.createdAt)
+  const account = accountLabel(currency)
 
   const [sender, recipient] = await Promise.all([
     TransactionNotifier.recipientForWallet(payload.sender_wallet_id),
@@ -170,6 +223,8 @@ async function handleP2pTransferCompleted(event: OutboxEvent): Promise<void> {
     await TransactionNotifier.email(sender, `Transfert envoyé — ${amount}`, 'transfer_sent', {
       amount,
       counterparty: recipient?.name ?? 'un destinataire',
+      counterparty_code: recipient?.code,
+      account,
       reference,
       date,
     })
@@ -185,6 +240,8 @@ async function handleP2pTransferCompleted(event: OutboxEvent): Promise<void> {
     await TransactionNotifier.email(recipient, `Vous avez reçu ${amount}`, 'transfer_received', {
       amount,
       counterparty: sender?.name ?? 'un expéditeur',
+      counterparty_code: sender?.code,
+      account,
       reference,
       date,
     })
@@ -210,9 +267,15 @@ async function handleCashInInitiated(event: OutboxEvent): Promise<void> {
     data: { transaction_id: reference, agent_id: payload.agent_id },
   })
 
+  const agent = payload.agent_id
+    ? await TransactionNotifier.recipientForActor('agent', Number(payload.agent_id))
+    : null
   await TransactionNotifier.email(recipient, `Dépôt en attente — ${amount}`, 'cash_in_pending', {
     amount,
+    agent: agent ? [agent.name, agent.code].filter(Boolean).join(' · ') : null,
+    account: accountLabel(payload.currency_code),
     reference,
+    date: formatDate(event.createdAt),
   })
 }
 
@@ -235,9 +298,65 @@ async function handleCashOutInitiated(event: OutboxEvent): Promise<void> {
     data: { transaction_id: reference, user_wallet_id: payload.user_wallet_id },
   })
 
+  // The customer made the request in the app a moment ago: an in-app row (and its push) is
+  // enough to confirm it went through. The e-mail waits for the money to actually change hands.
+  const customer = await TransactionNotifier.recipientForWallet(payload.user_wallet_id)
+
   await TransactionNotifier.email(agent, `Demande de retrait — ${amount}`, 'cash_out_requested', {
     amount,
+    counterparty: customer?.name,
+    counterparty_code: customer?.code,
     reference,
+    date: formatDate(event.createdAt),
+  })
+
+  if (customer) {
+    await TransactionNotifier.inApp(customer, {
+      type: 'cash_out.initiated',
+      title: 'Retrait demandé',
+      message: `Votre demande de retrait de ${amount} est transmise à l'agent. Présentez-vous à son guichet pour récupérer les espèces.`,
+      data: { transaction_id: reference, agent_id: payload.agent_id },
+    })
+  }
+}
+
+/** Cash-out paid out by the agent: the customer gets the record of it, in-app and by e-mail. */
+async function handleCashOutCompleted(event: OutboxEvent): Promise<void> {
+  const payload = event.payload as any
+  const transaction = await LedgerTransaction.find(payload.transaction_id ?? event.aggregateId)
+  if (!transaction) return
+
+  const customer = await TransactionNotifier.recipientForActor(
+    transaction.initiatedByType,
+    transaction.initiatedById
+  )
+  if (!customer) return
+
+  const metadata = (transaction.metadata ?? {}) as Record<string, any>
+  const currency = transaction.currencyCode ?? metadata.currency_code ?? ''
+  const amount = formatAmount(transaction.amount ?? metadata.amount ?? '0', currency)
+  const fee = transaction.fee ? formatAmount(transaction.fee, currency) : ''
+  const agent = metadata.agent_id
+    ? await TransactionNotifier.recipientForActor('agent', Number(metadata.agent_id))
+    : null
+  const counterparty = agent?.name ?? "l'agent"
+
+  await TransactionNotifier.inApp(customer, {
+    type: 'cash_out.completed',
+    title: 'Retrait effectué',
+    message: `${amount} vous ont été remis en espèces par ${counterparty}.`,
+    data: { transaction_id: transaction.id },
+  })
+
+  await TransactionNotifier.email(customer, `Retrait effectué — ${amount}`, 'cash_out_completed', {
+    amount,
+    fee,
+    // The fee is paid on top of the cash handed over (cash_out_service.ts).
+    total: formatSum(transaction.amount ?? metadata.amount, transaction.fee, currency),
+    counterparty: [agent?.name ?? counterparty, agent?.code].filter(Boolean).join(' · '),
+    account: accountLabel(currency),
+    reference: transaction.id,
+    date: formatDate(transaction.completedAt ?? event.createdAt),
   })
 }
 
@@ -259,10 +378,11 @@ async function handleMobileMoneyTerminal(event: OutboxEvent): Promise<void> {
   )
   if (!recipient) return
 
-  const amount = formatAmount(
-    transaction.amount ?? payload.amount ?? '0',
-    transaction.currencyCode ?? payload.currency_code ?? ''
-  )
+  const currency = transaction.currencyCode ?? payload.currency_code ?? ''
+  const gross = transaction.amount ?? payload.amount ?? '0'
+  const amount = formatAmount(gross, currency)
+  const metadata = (transaction.metadata ?? {}) as Record<string, any>
+  const feeMinor = transaction.fee ?? metadata.fee ?? null
   const date = formatDate(transaction.completedAt ?? event.createdAt)
   const reason = (transaction.metadata as any)?.failure_reason?.message ?? transaction.failureReason
 
@@ -290,9 +410,14 @@ async function handleMobileMoneyTerminal(event: OutboxEvent): Promise<void> {
 
   await TransactionNotifier.email(recipient, chosen.subject, chosen.template, {
     amount,
-    counterparty: transaction.counterpartyPhone
-      ? `+${transaction.counterpartyPhone}`
-      : 'le numéro indiqué',
+    fee: feeMinor !== null ? formatAmount(feeMinor, currency) : null,
+    // Both directions take the fee out of the gross: credited on a top-up, delivered on a send.
+    net: feeMinor !== null ? formatDifference(gross, feeMinor, currency) : null,
+    phone: phoneLabel(transaction.counterpartyPhone ?? metadata.phone_number),
+    counterparty: phoneLabel(transaction.counterpartyPhone) ?? 'le numéro indiqué',
+    channel: operatorLabel(transaction.paymentChannel ?? metadata.provider_code),
+    account: accountLabel(currency),
+    provider_reference: metadata.provider_transaction_id ?? transaction.providerReferenceId,
     reference: transaction.uuid,
     date,
     reason,

@@ -8,8 +8,8 @@ import { AuditLoggerService } from '#services/audit/audit_logger_service'
 export class AgentTerminationService {
   /**
    * Terminate an agent
-   * REQUIRES: agent wallet must have zero balance
-   * Cannot terminate if agent still holds float
+   * REQUIRES: every float wallet of the agent must have zero balance
+   * Cannot terminate if agent still holds float, in any currency
    */
   static async terminate(
     agentId: number,
@@ -20,16 +20,17 @@ export class AgentTerminationService {
     return db.transaction(async (trx) => {
       const agent = await Agent.findOrFail(agentId, { client: trx })
 
-      if (!agent.walletId) {
-        throw new Error('Agent has no wallet')
-      }
+      // Every float, in every currency the agent ever held — not just agents.wallet_id (USD).
+      const wallets = await Wallet.query({ client: trx })
+        .where('agent_id', agent.id)
+        .orderBy('id', 'asc')
+        .forUpdate()
 
-      // Verify wallet has zero balance
-      const wallet = await Wallet.findOrFail(agent.walletId, { client: trx })
-
-      if (wallet.balanceCache !== 0n) {
+      const funded = wallets.filter((w) => w.balanceCache !== 0n)
+      if (funded.length > 0) {
+        const held = funded.map((w) => `${w.currencyCode} ${w.balanceCache}`).join(', ')
         throw new Error(
-          `Cannot terminate agent with non-zero balance (${wallet.balanceCache}). Must settle float first.`
+          `Cannot terminate agent with non-zero float (${held}). The agent must move it to their personal wallet first (POST /agents/float-withdraw).`
         )
       }
 
@@ -44,9 +45,10 @@ export class AgentTerminationService {
 
       await agent.useTransaction(trx).save()
 
-      // Freeze wallet
-      wallet.status = 'closed'
-      await wallet.useTransaction(trx).save()
+      for (const wallet of wallets) {
+        wallet.status = 'closed'
+        await wallet.useTransaction(trx).save()
+      }
 
       // Record status history
       const history = new AgentStatusHistory()
@@ -66,7 +68,7 @@ export class AgentTerminationService {
         action: 'agent.terminated',
         resourceType: 'agent',
         resourceId: agent.id,
-        before: { status: previousStatus, walletBalance: wallet.balanceCache.toString() },
+        before: { status: previousStatus, closed_wallet_ids: wallets.map((w) => w.id) },
         after: { status: 'terminated', reason },
         correlationId,
         trx,

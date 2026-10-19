@@ -5,6 +5,7 @@ import db from '@adonisjs/lucid/services/db'
 import LedgerTransaction from '#models/ledger_transaction'
 import Wallet from '#models/wallet'
 import { Money } from '#services/money/money'
+import { CashOutHoldService } from '#services/transactions/cash_out_hold_service'
 import { LedgerService } from '#services/ledger/ledger_service'
 import { LimitService } from '#services/ledger/limit_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
@@ -60,6 +61,7 @@ export class CryptoPayoutService {
       if (wallet.balanceCache < totalDebit) {
         throw new InsufficientCryptoBalanceException()
       }
+      await CashOutHoldService.assertAvailable(wallet, totalDebit, trx)
 
       await LimitService.assertWithinLimits(wallet, totalDebit, trx)
 

@@ -97,6 +97,15 @@ export default class CashOutController {
         })
       }
 
+      // The same person on both sides of the counter would confirm their own payout: refused.
+      if (agent.userId === user.id) {
+        await IdempotencyService.fail(identity)
+        return response.unprocessableEntity({
+          message: 'You cannot withdraw cash at your own agent counter',
+          code: 'SELF_CASH_OUT',
+        })
+      }
+
       const amount = new Money(BigInt(payload.amount), currencyCode)
       const correlationId = (request as any).correlationId || 'unknown'
       const txn = await CashOutService.initiate({
@@ -111,6 +120,10 @@ export default class CashOutController {
         data: {
           transaction_id: txn.id,
           status: txn.status,
+          amount: txn.amount?.toString() ?? payload.amount,
+          // The agent's commission, paid by the customer on top of the amount.
+          fee: (txn.fee ?? 0n).toString(),
+          currency_code: currencyCode,
           created_at: txn.createdAt,
         },
       }
@@ -119,11 +132,18 @@ export default class CashOutController {
     } catch (error) {
       await IdempotencyService.fail(identity)
       const err = error as any
-      if (err.name === 'InsufficientBalanceException') {
-        return response.paymentRequired({ message: err.message })
+      if (err.name === 'InsufficientBalanceException' || err.name === 'FundsReservedException') {
+        return response.paymentRequired({
+          message: err.message,
+          code: err.name === 'FundsReservedException' ? 'FUNDS_RESERVED' : undefined,
+        })
       }
       if (err.name === 'TransactionLimitExceededException') {
         return response.badRequest({ message: err.message })
+      }
+      // The agent, not the customer, has reached their cash cap: the customer can go elsewhere.
+      if (err.name === 'AgentLimitExceededException') {
+        return response.unprocessableEntity({ message: err.message, code: 'AGENT_LIMIT_EXCEEDED' })
       }
       if (err.name === 'ValidationException') {
         return response.unprocessableEntity({ message: err.message })
@@ -161,7 +181,17 @@ export default class CashOutController {
         err.name === 'AgentNotActiveException' ||
         err.name === 'CashOutOwnershipException'
       ) {
-        return response.forbidden({ message: err.message })
+        return response.forbidden({
+          message: err.message,
+          code: err.name === 'AgentNotActiveException' ? 'AGENT_NOT_ACTIVE' : undefined,
+        })
+      }
+      if (err.name === 'CashOutExpiredException') {
+        return response.gone({ message: err.message, code: 'CASH_OUT_EXPIRED' })
+      }
+      // "must be in … status": the screen is stale (already paid out, cancelled or expired).
+      if (/must be in \w+ status/.test(err.message ?? '')) {
+        return response.conflict({ message: err.message, code: 'E_TRANSACTION_STATE' })
       }
       return response.internalServerError({ message: err.message || 'Confirm failed' })
     }
@@ -192,6 +222,10 @@ export default class CashOutController {
       if (err.name === 'CashOutOwnershipException') {
         return response.forbidden({ message: err.message })
       }
+      // "must be in … status": the screen is stale (already paid out, cancelled or expired).
+      if (/must be in \w+ status/.test(err.message ?? '')) {
+        return response.conflict({ message: err.message, code: 'E_TRANSACTION_STATE' })
+      }
       return response.internalServerError({ message: err.message || 'Pickup confirmation failed' })
     }
   }
@@ -220,6 +254,10 @@ export default class CashOutController {
       const err = error as any
       if (err.name === 'CashOutOwnershipException') {
         return response.forbidden({ message: err.message })
+      }
+      // "must be in … status": the screen is stale (already paid out, cancelled or expired).
+      if (/must be in \w+ status/.test(err.message ?? '')) {
+        return response.conflict({ message: err.message, code: 'E_TRANSACTION_STATE' })
       }
       return response.internalServerError({ message: err.message || 'Cancellation failed' })
     }

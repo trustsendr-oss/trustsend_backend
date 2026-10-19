@@ -22,6 +22,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlineOutlin
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import { Show, useRecordContext, TextField, DateField, Labeled, TopToolbar, useNotify } from 'react-admin'
 import { StatusChip } from '../../components/StatusChip'
+import { KycSubjectField } from './KycSubjectField'
 import { ConfirmActionButton, ReasonActionButton } from '../../components/ActionButtons'
 import { adminActions } from '../../providers/dataProvider'
 import { apiFetchBlob, ApiError } from '../../providers/httpClient'
@@ -310,14 +311,25 @@ function KycShowContent() {
   return (
     <Box sx={{ p: 2 }}>
       <Stack direction="row" spacing={2} sx={{ alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 800, textTransform: 'capitalize' }}>
-          {record.subject_type} #{record.subject_id} — {record.verification_type}
+        <Typography variant="h5" sx={{ fontWeight: 800 }}>
+          {record.subject?.name || `${record.subject_type} #${record.subject_id}`}
+          <Typography
+            component="span"
+            variant="h6"
+            color="text.secondary"
+            sx={{ fontWeight: 600, textTransform: 'capitalize', ml: 1 }}
+          >
+            — {record.verification_type}
+          </Typography>
         </Typography>
         <StatusChip status={record.status} />
       </Stack>
       <Card>
         <CardContent>
           <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 4 }}>
+            <Labeled label="Subject">
+              <KycSubjectField link />
+            </Labeled>
             <Labeled label="KYC ID">
               <TextField source="id" />
             </Labeled>

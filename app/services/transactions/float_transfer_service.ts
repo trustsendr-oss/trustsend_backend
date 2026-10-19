@@ -1,9 +1,13 @@
 import db from '@adonisjs/lucid/services/db'
+import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import type LedgerTransaction from '#models/ledger_transaction'
+import Agent from '#models/agent'
 import Wallet from '#models/wallet'
 import { type Money } from '#services/money/money'
+import { CashOutHoldService } from '#services/transactions/cash_out_hold_service'
 import { LedgerService } from '#services/ledger/ledger_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
+import { AgentFloatService } from '#services/agents/agent_float_service'
 
 export class FloatTransferService {
   /**
@@ -18,10 +22,6 @@ export class FloatTransferService {
     correlationId: string
   }): Promise<LedgerTransaction> {
     return db.transaction(async (trx) => {
-      // Import Agent model to check status
-      const Agent = (await import('#models/agent')).default
-
-      // Load agents and verify status
       const fromAgent = await Agent.findOrFail(request.fromAgentId, { client: trx })
       const toAgent = await Agent.findOrFail(request.toAgentId, { client: trx })
 
@@ -33,43 +33,20 @@ export class FloatTransferService {
         throw new Error(`Recipient agent is not active (status: ${toAgent.status})`)
       }
 
-      // Load both wallets
-      const fromAgentData = await db
-        .query()
-        .from('agents')
-        .where('id', request.fromAgentId)
-        .select('wallet_id')
-        .useTransaction(trx)
-        .first()
+      // Both floats in the transfer's currency; the child's is opened on first receipt.
+      const fromFloat = await AgentFloatService.requireFloatWallet(
+        fromAgent,
+        request.amount.currencyCode,
+        trx
+      )
+      const toFloat = await AgentFloatService.ensureFloatWallet(
+        toAgent,
+        request.amount.currencyCode,
+        trx
+      )
 
-      const toAgentData = await db
-        .query()
-        .from('agents')
-        .where('id', request.toAgentId)
-        .select('wallet_id')
-        .useTransaction(trx)
-        .first()
+      const [fromWallet, toWallet] = await this.lockPair(fromFloat.id, toFloat.id, trx)
 
-      if (!fromAgentData || !toAgentData) {
-        throw new Error('Agent wallet not found')
-      }
-
-      // Lock both wallets in deterministic (ascending id) order to avoid cross-transaction
-      // deadlocks with other operations touching the same two wallets.
-      const walletIds = [fromAgentData.wallet_id, toAgentData.wallet_id].sort((a, b) => a - b)
-      const lockedWallets = await Wallet.query({ client: trx })
-        .whereIn('id', walletIds)
-        .orderBy('id', 'asc')
-        .forUpdate()
-
-      const fromWallet = lockedWallets.find((w) => w.id === fromAgentData.wallet_id)
-      const toWallet = lockedWallets.find((w) => w.id === toAgentData.wallet_id)
-
-      if (!fromWallet || !toWallet) {
-        throw new Error('Agent wallet not found')
-      }
-
-      // Validate both wallets are active
       if (fromWallet.status !== 'active') {
         throw new Error(`Sender wallet is not active (status: ${fromWallet.status})`)
       }
@@ -78,50 +55,26 @@ export class FloatTransferService {
         throw new Error(`Recipient wallet is not active (status: ${toWallet.status})`)
       }
 
-      // Validate same currency
-      if (fromWallet.currencyCode !== toWallet.currencyCode) {
-        throw new Error(
-          `Cannot transfer ${fromWallet.currencyCode} to ${toWallet.currencyCode} wallet`
-        )
-      }
-
       if (fromWallet.balanceCache < request.amount.amount) {
         throw new Error('Insufficient float balance')
       }
 
-      // Create double-entry
       const txn = await LedgerService.postTransaction(
         'agent_float_transfer',
         [
           {
-            accountId:
-              (
-                await db
-                  .query()
-                  .from('ledger_accounts')
-                  .where('owner_id', fromWallet.id)
-                  .select('id')
-                  .first()
-              )?.id || 0,
+            accountId: await AgentFloatService.ledgerAccountId(fromWallet.id, 'agent_wallet', trx),
             direction: 'debit',
             amount: request.amount,
           },
           {
-            accountId:
-              (
-                await db
-                  .query()
-                  .from('ledger_accounts')
-                  .where('owner_id', toWallet.id)
-                  .select('id')
-                  .first()
-              )?.id || 0,
+            accountId: await AgentFloatService.ledgerAccountId(toWallet.id, 'agent_wallet', trx),
             direction: 'credit',
             amount: request.amount,
           },
         ],
-        'system',
-        0,
+        'agent',
+        fromAgent.id,
         {
           correlationId: request.correlationId,
           description:
@@ -137,10 +90,9 @@ export class FloatTransferService {
         }
       )
 
-      // Audit
       await AuditLoggerService.record({
-        actorType: 'system',
-        actorId: 0,
+        actorType: 'agent',
+        actorId: fromAgent.id,
         action: 'transaction.float_transfer.initiated',
         resourceType: 'ledger_transaction',
         resourceId: txn.id,
@@ -149,6 +101,7 @@ export class FloatTransferService {
           from_agent_id: request.fromAgentId,
           to_agent_id: request.toAgentId,
           amount: request.amount.amount.toString(),
+          currency_code: request.amount.currencyCode,
         },
         correlationId: request.correlationId,
         trx,
@@ -171,37 +124,23 @@ export class FloatTransferService {
     correlationId: string
   }): Promise<LedgerTransaction> {
     return db.transaction(async (trx) => {
-      const Agent = (await import('#models/agent')).default
       const agent = await Agent.findOrFail(request.agentId, { client: trx })
 
       if (agent.status !== 'active') {
         throw new Error(`Agent is not active (status: ${agent.status})`)
       }
-      if (!agent.userId) {
-        throw new Error('Agent has no linked personal account to convert funds from')
-      }
-      if (!agent.walletId) {
-        throw new Error('Agent has no float wallet configured')
-      }
 
-      // Lock both wallets in deterministic (ascending id) order — same reasoning as initiate().
-      const personalWalletRow = await Wallet.query({ client: trx })
-        .withScopes((s) => s.primary())
-        .where('user_id', agent.userId)
-        .where('currency_code', request.amount.currencyCode)
-        .first()
-      if (!personalWalletRow) {
-        throw new Error(`No ${request.amount.currencyCode} personal wallet found for this agent`)
-      }
-
-      const walletIds = [personalWalletRow.id, agent.walletId].sort((a, b) => a - b)
-      const lockedWallets = await Wallet.query({ client: trx })
-        .whereIn('id', walletIds)
-        .orderBy('id', 'asc')
-        .forUpdate()
-
-      const personalWallet = lockedWallets.find((w) => w.id === personalWalletRow.id)!
-      const floatWallet = lockedWallets.find((w) => w.id === agent.walletId)!
+      const personalWalletRow = await this.personalWallet(agent, request.amount.currencyCode, trx)
+      const floatRow = await AgentFloatService.ensureFloatWallet(
+        agent,
+        request.amount.currencyCode,
+        trx
+      )
+      const [personalWallet, floatWallet] = await this.lockPair(
+        personalWalletRow.id,
+        floatRow.id,
+        trx
+      )
 
       if (personalWallet.status !== 'active') {
         throw new Error(`Personal wallet is not active (status: ${personalWallet.status})`)
@@ -212,30 +151,25 @@ export class FloatTransferService {
       if (personalWallet.balanceCache < request.amount.amount) {
         throw new Error('Insufficient personal wallet balance')
       }
-
-      const personalAccount = await db
-        .query()
-        .from('ledger_accounts')
-        .where('owner_id', personalWallet.id)
-        .select('id')
-        .useTransaction(trx)
-        .first()
-      const floatAccount = await db
-        .query()
-        .from('ledger_accounts')
-        .where('owner_id', floatWallet.id)
-        .select('id')
-        .useTransaction(trx)
-        .first()
-      if (!personalAccount || !floatAccount) {
-        throw new Error('Ledger account not found for wallet')
-      }
+      await CashOutHoldService.assertAvailable(personalWallet, request.amount.amount, trx)
 
       const txn = await LedgerService.postTransaction(
         'agent_float_conversion',
         [
-          { accountId: personalAccount.id, direction: 'debit', amount: request.amount },
-          { accountId: floatAccount.id, direction: 'credit', amount: request.amount },
+          {
+            accountId: await AgentFloatService.ledgerAccountId(
+              personalWallet.id,
+              'user_wallet',
+              trx
+            ),
+            direction: 'debit',
+            amount: request.amount,
+          },
+          {
+            accountId: await AgentFloatService.ledgerAccountId(floatWallet.id, 'agent_wallet', trx),
+            direction: 'credit',
+            amount: request.amount,
+          },
         ],
         'agent',
         agent.id,
@@ -255,12 +189,145 @@ export class FloatTransferService {
         action: 'agent.float_converted',
         resourceType: 'ledger_transaction',
         resourceId: txn.id,
-        after: { amount: request.amount.amount.toString() },
+        after: {
+          amount: request.amount.amount.toString(),
+          currency_code: request.amount.currencyCode,
+        },
         correlationId: request.correlationId,
         trx,
       })
 
       return txn
     })
+  }
+
+  /**
+   * The reverse of convertFromPersonalWallet(): an agent takes float — commissions earned, or
+   * float they no longer need — back into their own personal wallet, from where it can be spent
+   * or withdrawn like any other money. This is also how a float is brought to zero before
+   * AgentTerminationService will close it.
+   *
+   * Allowed while suspended too: suspension stops an agent serving customers, it does not
+   * confiscate their float, and the personal wallet stays under the platform's usual controls.
+   */
+  static async withdrawToPersonalWallet(request: {
+    agentId: number
+    amount: Money
+    correlationId: string
+  }): Promise<LedgerTransaction> {
+    return db.transaction(async (trx) => {
+      const agent = await Agent.findOrFail(request.agentId, { client: trx })
+
+      if (agent.status !== 'active' && agent.status !== 'suspended') {
+        throw new Error(`Agent cannot withdraw float (status: ${agent.status})`)
+      }
+
+      const personalWalletRow = await this.personalWallet(agent, request.amount.currencyCode, trx)
+      const floatRow = await AgentFloatService.requireFloatWallet(
+        agent,
+        request.amount.currencyCode,
+        trx
+      )
+      const [floatWallet, personalWallet] = await this.lockPair(
+        floatRow.id,
+        personalWalletRow.id,
+        trx
+      )
+
+      if (floatWallet.status !== 'active') {
+        throw new Error(`Float wallet is not active (status: ${floatWallet.status})`)
+      }
+      if (personalWallet.status !== 'active') {
+        throw new Error(`Personal wallet is not active (status: ${personalWallet.status})`)
+      }
+      if (floatWallet.balanceCache < request.amount.amount) {
+        throw new Error('Insufficient float balance')
+      }
+
+      const txn = await LedgerService.postTransaction(
+        'agent_float_withdrawal',
+        [
+          {
+            accountId: await AgentFloatService.ledgerAccountId(floatWallet.id, 'agent_wallet', trx),
+            direction: 'debit',
+            amount: request.amount,
+          },
+          {
+            accountId: await AgentFloatService.ledgerAccountId(
+              personalWallet.id,
+              'user_wallet',
+              trx
+            ),
+            direction: 'credit',
+            amount: request.amount,
+          },
+        ],
+        'agent',
+        agent.id,
+        {
+          correlationId: request.correlationId,
+          description: `Agent ${agent.id} withdrew float to personal wallet`,
+          metadata: { agent_id: agent.id },
+          amount: request.amount,
+          paymentMethod: 'float_transfer',
+          trx,
+        }
+      )
+
+      await AuditLoggerService.record({
+        actorType: 'agent',
+        actorId: agent.id,
+        action: 'agent.float_withdrawn',
+        resourceType: 'ledger_transaction',
+        resourceId: txn.id,
+        after: {
+          amount: request.amount.amount.toString(),
+          currency_code: request.amount.currencyCode,
+        },
+        correlationId: request.correlationId,
+        trx,
+      })
+
+      return txn
+    })
+  }
+
+  /** The agent's own spendable wallet in a currency — never a savings escrow. */
+  private static async personalWallet(
+    agent: Agent,
+    currencyCode: string,
+    trx: TransactionClientContract
+  ): Promise<Wallet> {
+    if (!agent.userId) {
+      throw new Error('Agent has no linked personal account')
+    }
+    const wallet = await Wallet.query({ client: trx })
+      .withScopes((s) => s.primary())
+      .where('user_id', agent.userId)
+      .where('currency_code', currencyCode)
+      .first()
+    if (!wallet) {
+      throw new Error(`No ${currencyCode} personal wallet found for this agent`)
+    }
+    return wallet
+  }
+
+  /**
+   * Locks two wallets in ascending id order — the order every money path uses, so two
+   * transactions touching the same pair can never deadlock — and returns them as asked.
+   */
+  private static async lockPair(
+    firstId: number,
+    secondId: number,
+    trx: TransactionClientContract
+  ): Promise<[Wallet, Wallet]> {
+    const locked = await Wallet.query({ client: trx })
+      .whereIn('id', [firstId, secondId])
+      .orderBy('id', 'asc')
+      .forUpdate()
+    const first = locked.find((w) => w.id === firstId)
+    const second = locked.find((w) => w.id === secondId)
+    if (!first || !second) throw new Error('Wallet not found')
+    return [first, second]
   }
 }

@@ -62,6 +62,39 @@ test.group('Sandbox wallet funding', (group) => {
     assert.equal(history.body().data[0].type, 'sandbox_funding')
   })
 
+  test('filters the transaction history by type, status, currency and search', async ({
+    client,
+    assert,
+  }) => {
+    const { apiKey } = await sandboxBusinessWithKey('filters')
+    const funded = await client
+      .post('/api/v1/business/sandbox/fund')
+      .header('Authorization', `Bearer ${apiKey}`)
+      .json({ currency_code: 'USD', amount: '2000', idempotency_key: randomUUID() })
+    const transactionId = dataOf(funded).transaction_id as string
+
+    const list = (params: Record<string, string>) =>
+      client
+        .get('/api/v1/business/transactions')
+        .qs(params)
+        .header('Authorization', `Bearer ${apiKey}`)
+
+    const matching = await list({
+      type: 'sandbox_funding',
+      currency_code: 'usd',
+      q: transactionId.slice(-6),
+      date_from: new Date().toISOString().slice(0, 10),
+    })
+    assert.equal(matching.status(), 200)
+    assert.equal(matching.body().meta.total, 1)
+    assert.equal(matching.body().data[0].transaction_id, transactionId)
+
+    assert.equal((await list({ type: 'mobile_money_payout' })).body().meta.total, 0)
+    assert.equal((await list({ status: 'failed' })).body().meta.total, 0)
+    assert.equal((await list({ q: 'no-such-transaction' })).body().meta.total, 0)
+    assert.equal((await list({ date_from: 'not-a-date' })).status(), 400)
+  })
+
   test('replaying the same idempotency key does not credit twice', async ({ client, assert }) => {
     const { business, apiKey } = await sandboxBusinessWithKey('replay')
     const body = { currency_code: 'USD', amount: '5000', idempotency_key: randomUUID() }

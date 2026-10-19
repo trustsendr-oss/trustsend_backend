@@ -5,7 +5,7 @@ title: Stablecoins & Crypto
 
 # Stablecoins & Crypto (Web3 Gateway)
 
-L'API Business TrustSend permet d'accepter des **dépôts et d'exécuter des retraits en Stablecoins (USDC, USDT, EURC)** sur les réseaux blockchain de layer 2 et layer 1 (Polygon, Base, Arbitrum, Optimism, Ethereum) via l'infrastructure **Alchemy**.
+L'API Business Reemite permet d'accepter des **dépôts et d'exécuter des retraits en Stablecoins (USDC, USDT, EURC)** sur les réseaux blockchain de layer 2 et layer 1 (Polygon, Base, Arbitrum, Optimism, Ethereum) via l'infrastructure **Alchemy**.
 
 Les dépôts sont automatiquement crédités sur votre portefeuille USD (ou la devise associée) et les retraits sont débités directement de votre solde avec protection par code PIN et clé d'idempotence.
 
@@ -49,7 +49,7 @@ Génère ou récupère l'adresse blockchain dédiée pour recevoir des stablecoi
 
 ```bash
 curl -X POST https://api.trustsend.africa/api/v1/business/crypto/deposits/address \
-  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Authorization: Bearer $REEMITE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "network": "polygon",
@@ -74,7 +74,7 @@ curl -X POST https://api.trustsend.africa/api/v1/business/crypto/deposits/addres
 }
 ```
 
-Dès qu'un paiement est détecté sur cette adresse, Alchemy notifie TrustSend. Votre wallet est crédité automatiquement et un webhook `crypto_deposit.completed` est envoyé à votre serveur.
+Dès qu'un paiement est détecté sur cette adresse, Alchemy notifie Reemite. Votre wallet est crédité automatiquement et un webhook `crypto_deposit.completed` est envoyé à votre serveur.
 
 ---
 
@@ -104,7 +104,7 @@ Effectue un virement de stablecoins depuis votre wallet vers une adresse blockch
 
 ```bash
 curl -X POST https://api.trustsend.africa/api/v1/business/crypto/payouts \
-  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Authorization: Bearer $REEMITE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "amount": "2500",

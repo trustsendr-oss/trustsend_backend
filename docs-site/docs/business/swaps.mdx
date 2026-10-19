@@ -32,7 +32,7 @@ Renvoie les taux du marché international pour les devises disponibles, sans mar
 }
 ```
 
-`source` vaut `market` pour un taux du marché international, ou `manual` lorsque TrustSend a fixé le taux de cette devise.
+`source` vaut `market` pour un taux du marché international, ou `manual` lorsque Reemite a fixé le taux de cette devise.
 
 ## Demander un devis
 
@@ -49,7 +49,7 @@ Renvoie les taux du marché international pour les devises disponibles, sans mar
 
 ```bash
 curl -X POST https://api.trustsend.africa/api/v1/business/swaps/quote \
-  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Authorization: Bearer $REEMITE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "from_currency": "USD", "to_currency": "CDF", "amount": "1000" }'
 ```
@@ -99,7 +99,7 @@ Pour une devise sans décimales, comme `XAF`, `amount_out` est arrondi à l'unit
 
 ```bash
 curl -X POST https://api.trustsend.africa/api/v1/business/swaps \
-  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Authorization: Bearer $REEMITE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "quote_id": "0b8d3f3e-5d0a-4c55-9d67-3f1f8f0b2a41", "idempotency_key": "6f1c1f0e-2b1f-4a53-9a0e-8f3c0a1d9b77" }'
 ```

@@ -4,6 +4,7 @@ import User from '#models/user'
 import Wallet from '#models/wallet'
 import vine from '@vinejs/vine'
 import { CurrencyService } from '#services/money/currency_service'
+import { AgentFloatService } from '#services/agents/agent_float_service'
 
 /**
  * Directory lookups — resolving a code someone gave you into a payee.
@@ -130,6 +131,9 @@ export default class DirectoryController {
         city: agent.city,
         region: agent.region,
         tier: agent.tier,
+        // Charged on top of a withdrawal at this agent (see AgentFloatService), shown before
+        // the customer commits to an amount.
+        cash_out_fee_percent: AgentFloatService.commissionRate(agent),
       },
     })
   }

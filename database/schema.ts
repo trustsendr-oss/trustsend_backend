@@ -8,14 +8,28 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AgentApplicationSchema extends BaseModel {
-  static $columns = ['applicantUserId', 'createdAt', 'id', 'rejectionReason', 'reviewedAt', 'reviewedBy', 'sponsorAgentId', 'status', 'tier', 'updatedAt'] as const
+  static $columns = ['address', 'applicantUserId', 'approvedAgentId', 'businessName', 'city', 'createdAt', 'id', 'motivation', 'phone', 'region', 'rejectionReason', 'reviewedAt', 'reviewedBy', 'sponsorAgentId', 'status', 'tier', 'updatedAt'] as const
   $columns = AgentApplicationSchema.$columns
   @column()
+  declare address: string | null
+  @column()
   declare applicantUserId: number
+  @column()
+  declare approvedAgentId: number | null
+  @column()
+  declare businessName: string | null
+  @column()
+  declare city: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
+  @column()
+  declare motivation: string | null
+  @column()
+  declare phone: string | null
+  @column()
+  declare region: string | null
   @column()
   declare rejectionReason: string | null
   @column.dateTime()
@@ -907,8 +921,12 @@ export class KycDocumentSchema extends BaseModel {
 }
 
 export class KycVerificationSchema extends BaseModel {
-  static $columns = ['createdAt', 'decidedAt', 'decisionReason', 'expiresAt', 'id', 'provider', 'providerReference', 'reviewedBy', 'status', 'subjectId', 'subjectType', 'submittedAt', 'updatedAt', 'verificationType'] as const
+  static $columns = ['businessName', 'businessType', 'createdAt', 'decidedAt', 'decisionReason', 'expiresAt', 'id', 'provider', 'providerReference', 'reviewedBy', 'status', 'subjectId', 'subjectType', 'submittedAt', 'updatedAt', 'verificationType'] as const
   $columns = KycVerificationSchema.$columns
+  @column()
+  declare businessName: string | null
+  @column()
+  declare businessType: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column.dateTime()
@@ -1312,6 +1330,143 @@ export class PlanSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class PushTokenSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'platform', 'token', 'updatedAt', 'userId'] as const
+  $columns = PushTokenSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare platform: string
+  @column()
+  declare token: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
+export class RemittanceQuoteSchema extends BaseModel {
+  static $columns = ['createdAt', 'expiresAt', 'fee', 'fxMargin', 'id', 'midRate', 'payoutAmount', 'payoutCurrency', 'payoutMethod', 'payoutProviderCode', 'rate', 'sendAmount', 'senderUserId', 'sourceCurrency', 'sourceWalletId', 'usedAt'] as const
+  $columns = RemittanceQuoteSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column()
+  declare fee: bigint | number
+  @column()
+  declare fxMargin: bigint | number
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare midRate: string | null
+  @column()
+  declare payoutAmount: bigint | number
+  @column()
+  declare payoutCurrency: string
+  @column()
+  declare payoutMethod: string | null
+  @column()
+  declare payoutProviderCode: string | null
+  @column()
+  declare rate: string | null
+  @column()
+  declare sendAmount: bigint | number
+  @column()
+  declare senderUserId: number
+  @column()
+  declare sourceCurrency: string
+  @column()
+  declare sourceWalletId: number
+  @column.dateTime()
+  declare usedAt: DateTime | null
+}
+
+export class RemittanceSchema extends BaseModel {
+  static $columns = ['beneficiaryCity', 'beneficiaryIdNumber', 'beneficiaryIdType', 'beneficiaryName', 'beneficiaryPhone', 'beneficiaryUserId', 'createdAt', 'dispatchedAt', 'expiresAt', 'failureReason', 'fee', 'fxMargin', 'holdReason', 'id', 'idempotencyKey', 'paidAt', 'paidByAgentId', 'payoutAmount', 'payoutCurrency', 'payoutMethod', 'payoutProviderCode', 'payoutProviderReference', 'payoutProviderTransactionId', 'payoutTransactionId', 'pickupCodeEncrypted', 'pickupCodeHash', 'purpose', 'rate', 'refundTransactionId', 'sendAmount', 'sendTransactionId', 'senderCountry', 'senderName', 'senderUserId', 'sourceCurrency', 'sourceWalletId', 'status', 'updatedAt', 'verificationFailures'] as const
+  $columns = RemittanceSchema.$columns
+  @column()
+  declare beneficiaryCity: string | null
+  @column()
+  declare beneficiaryIdNumber: string | null
+  @column()
+  declare beneficiaryIdType: string | null
+  @column()
+  declare beneficiaryName: string
+  @column()
+  declare beneficiaryPhone: string
+  @column()
+  declare beneficiaryUserId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare dispatchedAt: DateTime | null
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column()
+  declare failureReason: string | null
+  @column()
+  declare fee: bigint | number
+  @column()
+  declare fxMargin: bigint | number
+  @column()
+  declare holdReason: string | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare idempotencyKey: string | null
+  @column.dateTime()
+  declare paidAt: DateTime | null
+  @column()
+  declare paidByAgentId: number | null
+  @column()
+  declare payoutAmount: bigint | number
+  @column()
+  declare payoutCurrency: string
+  @column()
+  declare payoutMethod: string
+  @column()
+  declare payoutProviderCode: string | null
+  @column()
+  declare payoutProviderReference: string | null
+  @column()
+  declare payoutProviderTransactionId: string | null
+  @column()
+  declare payoutTransactionId: string | null
+  @column()
+  declare pickupCodeEncrypted: string | null
+  @column()
+  declare pickupCodeHash: string | null
+  @column()
+  declare purpose: string | null
+  @column()
+  declare rate: string | null
+  @column()
+  declare refundTransactionId: string | null
+  @column()
+  declare sendAmount: bigint | number
+  @column()
+  declare sendTransactionId: string | null
+  @column()
+  declare senderCountry: string
+  @column()
+  declare senderName: string
+  @column()
+  declare senderUserId: number
+  @column()
+  declare sourceCurrency: string
+  @column()
+  declare sourceWalletId: number
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+  @column()
+  declare verificationFailures: number
+}
+
 export class RiskAssessmentSchema extends BaseModel {
   static $columns = ['createdAt', 'decision', 'id', 'ledgerTransactionId', 'provider', 'providerReference', 'riskLevel', 'rulesTriggered', 'score'] as const
   $columns = RiskAssessmentSchema.$columns
@@ -1422,11 +1577,36 @@ export class TellerSessionSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class UserSignupOtpSchema extends BaseModel {
+  static $columns = ['attempts', 'consumedAt', 'createdAt', 'email', 'expiresAt', 'id', 'otpHash', 'updatedAt'] as const
+  $columns = UserSignupOtpSchema.$columns
+  @column()
+  declare attempts: number
+  @column.dateTime()
+  declare consumedAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare email: string
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare otpHash: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class UserSchema extends BaseModel {
-  static $columns = ['assignedLoanOfficerId', 'code', 'createdAt', 'email', 'fullName', 'id', 'loginAttempts', 'loginLockedUntil', 'password', 'phone', 'pinAttempts', 'pinHash', 'pinLockedUntil', 'pinResetExpiresAt', 'pinResetTokenHash', 'updatedAt'] as const
+  static $columns = ['assignedLoanOfficerId', 'avatarMimeType', 'avatarRef', 'code', 'createdAt', 'email', 'fullName', 'id', 'loginAttempts', 'loginLockedUntil', 'password', 'phone', 'pinAttempts', 'pinHash', 'pinLockedUntil', 'pinResetExpiresAt', 'pinResetTokenHash', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column()
   declare assignedLoanOfficerId: number | null
+  @column()
+  declare avatarMimeType: string | null
+  @column()
+  declare avatarRef: string | null
   @column()
   declare code: string | null
   @column.dateTime({ autoCreate: true })
@@ -1523,6 +1703,23 @@ export class WalletSchema extends BaseModel {
   declare updatedAt: DateTime | null
   @column()
   declare userId: number | null
+}
+
+export class WatchlistEntrySchema extends BaseModel {
+  static $columns = ['createdAt', 'fullName', 'id', 'normalizedName', 'reference', 'source'] as const
+  $columns = WatchlistEntrySchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare fullName: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare normalizedName: string
+  @column()
+  declare reference: string | null
+  @column()
+  declare source: string
 }
 
 export class WebhookDeliverySchema extends BaseModel {

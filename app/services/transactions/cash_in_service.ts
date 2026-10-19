@@ -8,6 +8,8 @@ import { LedgerService } from '#services/ledger/ledger_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { IdGenerator } from '#services/security/id_generator'
 import { TellerSessionService } from '#services/counter/teller_session_service'
+import { AgentFloatService } from '#services/agents/agent_float_service'
+import { AgentLimitService } from '#services/agents/agent_limit_service'
 import { v4 as uuidv4 } from 'uuid'
 
 export class CashInOwnershipException extends Error {
@@ -18,8 +20,10 @@ export class CashInOwnershipException extends Error {
 }
 
 export class InsufficientFloatException extends Error {
-  constructor() {
-    super('Agent does not have sufficient float')
+  constructor(currencyCode?: string) {
+    super(
+      currencyCode ? `Agent holds no ${currencyCode} float` : 'Agent does not have sufficient float'
+    )
     this.name = 'InsufficientFloatException'
   }
 }
@@ -38,16 +42,24 @@ export class CashInService {
   }): Promise<LedgerTransaction> {
     return db.transaction(async (trx) => {
       const agent = await Agent.findOrFail(request.agentId, { client: trx })
-      if (!agent.walletId) {
-        throw new Error('Agent has no float wallet configured')
+
+      // The float in the deposit's currency — never agents.wallet_id blindly, which is USD.
+      const agentWallet = await AgentFloatService.floatWallet(
+        agent,
+        request.amount.currencyCode,
+        trx
+      )
+      if (!agentWallet) {
+        throw new InsufficientFloatException(request.amount.currencyCode)
       }
 
       // Fast fail (non-authoritative): the authoritative check + debit happens at confirm(),
       // protected by LedgerService's row lock and negative-balance guard.
-      const agentWallet = await Wallet.findOrFail(agent.walletId, { client: trx })
       if (agentWallet.balanceCache < request.amount.amount) {
         throw new InsufficientFloatException()
       }
+
+      await AgentLimitService.assertWithinLimits(agent.id, request.amount, trx)
 
       const userWallet = await Wallet.findOrFail(request.userWalletId, { client: trx })
       if (!userWallet) {
@@ -79,7 +91,7 @@ export class CashInService {
       txn.tellerSessionId = tellerSessionId
       txn.metadata = {
         agent_id: request.agentId,
-        agent_wallet_id: agent.walletId,
+        agent_wallet_id: agentWallet.id,
         user_wallet_id: request.userWalletId,
         amount: request.amount.amount.toString(),
         currency_code: request.amount.currencyCode,
@@ -127,8 +139,8 @@ export class CashInService {
 
   /**
    * Confirm cash-in after agent verifies they received the cash.
-   * Debits the agent's own float wallet, credits the user net of commission, and credits
-   * the commission to the platform fees account (agent always pays the commission).
+   * Debits the agent's float and credits the customer the full amount — a deposit is free — then
+   * pays the agent their commission out of AGENT_CASH_COMMISSION (see AgentFloatService).
    *
    * @throws CashInOwnershipException if callerAgentId isn't the agent who initiated this cash-in
    */
@@ -179,66 +191,55 @@ export class CashInService {
 
       const agent = await Agent.findOrFail(metadata.agent_id, { client: trx })
 
-      // Commission is a percentage (e.g. 2.50 = 2.5%). Round to nearest smallest-unit.
-      const commissionBps = BigInt(Math.round(agent.commissionRate * 100)) // e.g. 250 for 2.5%
-      const commission = (amount.amount * commissionBps + 5000n) / 10000n
-      const netToUser = amount.amount - commission
-
-      const agentAccount = await db
-        .query()
-        .from('ledger_accounts')
-        .where('owner_id', agentWalletRow.id)
-        .where('owner_type', 'agent_wallet')
-        .select('id')
-        .useTransaction(trx)
-        .first()
-
-      const userAccount = await db
-        .query()
-        .from('ledger_accounts')
-        .where('owner_id', userWalletRow.id)
-        .where('owner_type', 'user_wallet')
-        .select('id')
-        .useTransaction(trx)
-        .first()
-
-      if (!agentAccount || !userAccount) {
-        throw new Error('Ledger accounts not found for wallets')
-      }
-
-      const feesAccount = await LedgerService.getOrCreatePlatformAccount(
-        `PLATFORM_FEES.${currencyCode}`,
-        `TumaPlus Fees (${currencyCode})`,
-        currencyCode,
-        trx,
-        'revenue'
+      const commission = AgentFloatService.commissionOn(
+        amount.amount,
+        AgentFloatService.commissionRate(agent)
       )
+
+      const agentAccount = await AgentFloatService.ledgerAccountId(
+        agentWalletRow.id,
+        'agent_wallet',
+        trx
+      )
+      const userAccount = await AgentFloatService.ledgerAccountId(
+        userWalletRow.id,
+        'user_wallet',
+        trx
+      )
+
+      const entries = [
+        { accountId: agentAccount, direction: 'debit' as const, amount },
+        { accountId: userAccount, direction: 'credit' as const, amount },
+      ]
+      if (commission > 0n) {
+        const expense = await AgentFloatService.commissionExpenseAccount(currencyCode, trx)
+        entries.push(
+          {
+            accountId: expense.id,
+            direction: 'debit',
+            amount: new Money(commission, currencyCode),
+          },
+          {
+            accountId: agentAccount,
+            direction: 'credit',
+            amount: new Money(commission, currencyCode),
+          }
+        )
+      }
 
       const posted = await LedgerService.postTransaction(
         'cash_in',
-        [
-          { accountId: agentAccount.id, direction: 'debit', amount },
-          {
-            accountId: userAccount.id,
-            direction: 'credit',
-            amount: new Money(netToUser, currencyCode),
-          },
-          {
-            accountId: feesAccount.id,
-            direction: 'credit',
-            amount: new Money(commission, currencyCode),
-          },
-        ],
+        entries,
         'agent',
         metadata.agent_id,
         {
           correlationId,
           description: `Cash-in completed for wallet ${metadata.user_wallet_id}`,
-          metadata: { commission: commission.toString(), net_to_user: netToUser.toString() },
+          // No agent_id here: AgentWorkspaceService and AgentLimitService count tracking rows by it.
+          metadata: { agent_commission: commission.toString() },
           amount,
           paymentMethod: 'cash_agent',
           paymentChannel: agent.code,
-          fee: commission,
           relatedTransactionId: txn.id,
           trx,
         }
@@ -246,12 +247,15 @@ export class CashInService {
 
       txn.status = 'completed'
       txn.completedAt = DateTime.now()
-      txn.fee = commission
       // This tracking row (txn.id) is distinct from the actual double-entry transaction
       // postTransaction() just created (posted.id) — the latter is what has ledger entries and
       // is what a dispute reversal must target. See disputes_controller.ts.
       txn.relatedTransactionId = posted.id
-      txn.metadata = { ...metadata, posted_transaction_id: posted.id }
+      txn.metadata = {
+        ...metadata,
+        agent_commission: commission.toString(),
+        posted_transaction_id: posted.id,
+      }
       await txn.useTransaction(trx).save()
 
       await AuditLoggerService.record({
@@ -263,8 +267,7 @@ export class CashInService {
         before: { status: 'pending' },
         after: {
           status: 'completed',
-          commission: commission.toString(),
-          net_to_user: netToUser.toString(),
+          agent_commission: commission.toString(),
         },
         correlationId,
         trx,

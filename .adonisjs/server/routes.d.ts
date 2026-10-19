@@ -6,10 +6,16 @@ export type ScannedRoutes = {
   ALL: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
     'assets.currency_logo': { paramsTuple: [ParamValue]; params: {'file': ParamValue} }
+    'auth.new_account.request_otp': { paramsTuple?: []; params?: {} }
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.refresh': { paramsTuple?: []; params?: {} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'profile.profile.avatar': { paramsTuple?: []; params?: {} }
+    'profile.profile.update_avatar': { paramsTuple?: []; params?: {} }
+    'profile.profile.destroy_avatar': { paramsTuple?: []; params?: {} }
+    'profile.push_tokens.store': { paramsTuple?: []; params?: {} }
+    'profile.push_tokens.destroy': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'profile.pin.set_pin': { paramsTuple?: []; params?: {} }
     'profile.pin.change_pin': { paramsTuple?: []; params?: {} }
@@ -55,6 +61,23 @@ export type ScannedRoutes = {
     'agents.kyc.agent_kyc.get_status': { paramsTuple?: []; params?: {} }
     'agents.float.agent_float.transfer': { paramsTuple?: []; params?: {} }
     'agents.float.agent_float.convert': { paramsTuple?: []; params?: {} }
+    'agents.float.agent_float.withdraw': { paramsTuple?: []; params?: {} }
+    'agent_workspace.agent_workspace.me': { paramsTuple?: []; params?: {} }
+    'agent_workspace.agent_workspace.operations': { paramsTuple?: []; params?: {} }
+    'agent_workspace.agent_workspace.operation': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'agent_workspace.agent_workspace.cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'agent_workspace.agent_workspace.sub_agents': { paramsTuple?: []; params?: {} }
+    'agent_applications.agent_applications.mine': { paramsTuple?: []; params?: {} }
+    'agent_applications.agent_applications.eligibility': { paramsTuple?: []; params?: {} }
+    'agent_applications.agent_applications.store': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.corridor': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.quote': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.index': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.store': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'remittances.remittances.cancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'agent_remittances.agent_remittances.lookup': { paramsTuple?: []; params?: {} }
+    'agent_remittances.agent_remittances.pay': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'agents.agents.index': { paramsTuple?: []; params?: {} }
     'agents.agents.store': { paramsTuple?: []; params?: {} }
     'agents.agents.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -179,6 +202,18 @@ export type ScannedRoutes = {
     'admin.business_staff.admin_business_staff.store': { paramsTuple?: []; params?: {} }
     'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.index': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_remittances.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.release': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.watchlist': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_remittances.add_to_watchlist': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_remittances.remove_from_watchlist': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.agent_applications.admin_agent_applications.index': { paramsTuple?: []; params?: {} }
+    'admin.agent_applications.admin_agent_applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.agent_applications.admin_agent_applications.review': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.agent_applications.admin_agent_applications.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.agent_applications.admin_agent_applications.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
     'admin.financial_products.admin_financial_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -367,6 +402,7 @@ export type ScannedRoutes = {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
     'assets.currency_logo': { paramsTuple: [ParamValue]; params: {'file': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'profile.profile.avatar': { paramsTuple?: []; params?: {} }
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
@@ -385,6 +421,16 @@ export type ScannedRoutes = {
     'cards.cards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cards.cards.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'agents.kyc.agent_kyc.get_status': { paramsTuple?: []; params?: {} }
+    'agent_workspace.agent_workspace.me': { paramsTuple?: []; params?: {} }
+    'agent_workspace.agent_workspace.operations': { paramsTuple?: []; params?: {} }
+    'agent_workspace.agent_workspace.operation': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'agent_workspace.agent_workspace.cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'agent_workspace.agent_workspace.sub_agents': { paramsTuple?: []; params?: {} }
+    'agent_applications.agent_applications.mine': { paramsTuple?: []; params?: {} }
+    'agent_applications.agent_applications.eligibility': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.corridor': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.index': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'agents.agents.index': { paramsTuple?: []; params?: {} }
     'agents.agents.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'kyc.kyc.get_status': { paramsTuple?: []; params?: {} }
@@ -437,6 +483,11 @@ export type ScannedRoutes = {
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
     'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.index': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_remittances.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.watchlist': { paramsTuple?: []; params?: {} }
+    'admin.agent_applications.admin_agent_applications.index': { paramsTuple?: []; params?: {} }
+    'admin.agent_applications.admin_agent_applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
     'admin.financial_products.admin_financial_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.lending.admin_lending.loans': { paramsTuple?: []; params?: {} }
@@ -525,6 +576,7 @@ export type ScannedRoutes = {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
     'assets.currency_logo': { paramsTuple: [ParamValue]; params: {'file': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'profile.profile.avatar': { paramsTuple?: []; params?: {} }
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
@@ -543,6 +595,16 @@ export type ScannedRoutes = {
     'cards.cards.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cards.cards.transactions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'agents.kyc.agent_kyc.get_status': { paramsTuple?: []; params?: {} }
+    'agent_workspace.agent_workspace.me': { paramsTuple?: []; params?: {} }
+    'agent_workspace.agent_workspace.operations': { paramsTuple?: []; params?: {} }
+    'agent_workspace.agent_workspace.operation': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'agent_workspace.agent_workspace.cash_out': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
+    'agent_workspace.agent_workspace.sub_agents': { paramsTuple?: []; params?: {} }
+    'agent_applications.agent_applications.mine': { paramsTuple?: []; params?: {} }
+    'agent_applications.agent_applications.eligibility': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.corridor': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.index': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'agents.agents.index': { paramsTuple?: []; params?: {} }
     'agents.agents.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'kyc.kyc.get_status': { paramsTuple?: []; params?: {} }
@@ -595,6 +657,11 @@ export type ScannedRoutes = {
     'businesses.businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
     'admin.business_staff.admin_business_staff.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.index': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_remittances.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.watchlist': { paramsTuple?: []; params?: {} }
+    'admin.agent_applications.admin_agent_applications.index': { paramsTuple?: []; params?: {} }
+    'admin.agent_applications.admin_agent_applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
     'admin.financial_products.admin_financial_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.lending.admin_lending.loans': { paramsTuple?: []; params?: {} }
@@ -680,9 +747,12 @@ export type ScannedRoutes = {
     'business.dashboard.business_dashboard_imf.arrears': { paramsTuple?: []; params?: {} }
   }
   POST: {
+    'auth.new_account.request_otp': { paramsTuple?: []; params?: {} }
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.refresh': { paramsTuple?: []; params?: {} }
+    'profile.profile.update_avatar': { paramsTuple?: []; params?: {} }
+    'profile.push_tokens.store': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'profile.pin.set_pin': { paramsTuple?: []; params?: {} }
     'profile.pin.change_pin': { paramsTuple?: []; params?: {} }
@@ -705,6 +775,13 @@ export type ScannedRoutes = {
     'agents.kyc.agent_kyc.submit': { paramsTuple?: []; params?: {} }
     'agents.float.agent_float.transfer': { paramsTuple?: []; params?: {} }
     'agents.float.agent_float.convert': { paramsTuple?: []; params?: {} }
+    'agents.float.agent_float.withdraw': { paramsTuple?: []; params?: {} }
+    'agent_applications.agent_applications.store': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.quote': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.store': { paramsTuple?: []; params?: {} }
+    'remittances.remittances.cancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'agent_remittances.agent_remittances.lookup': { paramsTuple?: []; params?: {} }
+    'agent_remittances.agent_remittances.pay': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'agents.agents.store': { paramsTuple?: []; params?: {} }
     'agents.agents.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'agents.agents.activate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -772,6 +849,12 @@ export type ScannedRoutes = {
     'businesses.businesses.issue_api_key': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.assign_plan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.store': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_remittances.release': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_remittances.add_to_watchlist': { paramsTuple?: []; params?: {} }
+    'admin.agent_applications.admin_agent_applications.review': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.agent_applications.admin_agent_applications.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.agent_applications.admin_agent_applications.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -851,6 +934,18 @@ export type ScannedRoutes = {
     'business.dashboard.business_dashboard_imf_migration.validate': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_imf_migration.commit': { paramsTuple?: []; params?: {} }
   }
+  DELETE: {
+    'profile.profile.destroy_avatar': { paramsTuple?: []; params?: {} }
+    'profile.push_tokens.destroy': { paramsTuple?: []; params?: {} }
+    'webhooks.webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'counter.counter_groups.remove_member': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'userId': ParamValue} }
+    'businesses.businesses.revoke_api_key': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'keyId': ParamValue} }
+    'admin.remittances.admin_remittances.remove_from_watchlist': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_products.card_products.destroy_image': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.business_webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.business_webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.business_dashboard_api_keys.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
   PATCH: {
     'notifications.notifications.mark_read': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cards.cards.topup': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -877,15 +972,6 @@ export type ScannedRoutes = {
     'business.dashboard.lending_products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_dashboard_outlets.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_dashboard_staff.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-  }
-  DELETE: {
-    'webhooks.webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'counter.counter_groups.remove_member': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'userId': ParamValue} }
-    'businesses.businesses.revoke_api_key': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'keyId': ParamValue} }
-    'card_products.card_products.destroy_image': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'business.business_webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'business.dashboard.business_webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'business.dashboard.business_dashboard_api_keys.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

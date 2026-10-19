@@ -33,7 +33,17 @@ export default defineConfig({
       Promise.all([
         import('#commands/reconcile_mobile_money'),
         import('#commands/deliver_pending_webhooks'),
-      ]).then(([reconcile, deliver]) => new ListLoader([reconcile.default, deliver.default])),
+        import('#commands/expire_cash_outs'),
+        import('#commands/expire_remittances'),
+      ]).then(
+        ([reconcile, deliver, expireCashOuts, expireRemittances]) =>
+          new ListLoader([
+            reconcile.default,
+            deliver.default,
+            expireCashOuts.default,
+            expireRemittances.default,
+          ])
+      ),
   ],
 
   /*
@@ -114,6 +124,8 @@ export default defineConfig({
   metaFiles: [
     // Wallet logos read from disk at runtime (assets_controller.ts, currency_logo_service.ts)
     { pattern: 'resources/flags/**', reloadServer: false },
+    // App icon embedded in account-holder emails (email_layout.ts, BRAND_ICON_PATH)
+    { pattern: 'resources/brand/**', reloadServer: false },
   ],
 
   hooks: {

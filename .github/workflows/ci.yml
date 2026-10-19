@@ -71,7 +71,7 @@ jobs:
       SMTP_USERNAME: ci
       SMTP_PASSWORD: ci
       MAIL_FROM_ADDRESS: ci@example.com
-      MAIL_FROM_NAME: TrustSend CI
+      MAIL_FROM_NAME: Reemite CI
 
     steps:
       - name: Checkout code

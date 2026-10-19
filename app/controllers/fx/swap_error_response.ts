@@ -17,7 +17,11 @@ export function swapErrorResponse(error: unknown, response: HttpContext['respons
       response.notFound({ message: err.message })
       return true
     case 'InsufficientBalanceException':
-      response.paymentRequired({ message: err.message })
+    case 'FundsReservedException':
+      response.paymentRequired({
+        message: err.message,
+        code: err.name === 'FundsReservedException' ? 'FUNDS_RESERVED' : undefined,
+      })
       return true
     case 'TransactionLimitExceededException':
       response.badRequest({ message: err.message })

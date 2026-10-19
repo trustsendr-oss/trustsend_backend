@@ -1,6 +1,7 @@
 import mail from '@adonisjs/mail/services/main'
 import env from '#start/env'
 import { renderEmailHtml, renderEmailText } from './email_templates.js'
+import { BRAND_ICON_CID, BRAND_ICON_PATH } from './email_layout.js'
 
 /**
  * Brand name used in the message bodies.
@@ -36,12 +37,17 @@ export class NotificationService {
    */
   static async sendEmail(email: EmailNotification): Promise<boolean> {
     try {
+      const html = renderEmailHtml(email.template, email.data, BRAND)
       await mail.send((message) => {
         message
           .to(email.to)
           .subject(email.subject)
-          .html(renderEmailHtml(email.template, email.data, BRAND))
+          .html(html)
           .text(renderEmailText(email.template, email.data, BRAND))
+        // Attached only to messages that show the icon, so the others carry no extra part.
+        if (html.includes(`cid:${BRAND_ICON_CID}`)) {
+          message.embed(BRAND_ICON_PATH, BRAND_ICON_CID)
+        }
       })
 
       return true

@@ -8,6 +8,7 @@ build
 tmp
 storage/kyc_documents/*
 !storage/kyc_documents/.gitkeep
+storage/avatars/*
 docs-site
 admin
 docs

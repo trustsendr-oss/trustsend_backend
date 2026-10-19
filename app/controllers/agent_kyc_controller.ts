@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import vine from '@vinejs/vine'
 import KycVerification from '#models/kyc_verification'
+import { KycNotifier } from '#services/kyc/kyc_notifier'
 import KycDocument from '#models/kyc_document'
 import { AgentIdentityService } from '#services/agents/agent_identity_service'
 import { KycDocumentStorageService } from '#services/security/kyc_document_storage_service'
@@ -72,6 +73,8 @@ export default class AgentKycController {
       doc.mimeType = file.mimeType
       await doc.save()
     }
+
+    await KycNotifier.submitted(kyc)
 
     return response.created({
       data: {

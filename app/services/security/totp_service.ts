@@ -63,7 +63,7 @@ export class TotpService {
     return base32Encode(randomBytes(20))
   }
 
-  static otpauthUrl(accountName: string, secret: string, issuer = 'TrustSend Admin'): string {
+  static otpauthUrl(accountName: string, secret: string, issuer = 'Reemite Admin'): string {
     const label = encodeURIComponent(`${issuer}:${accountName}`)
     const params = new URLSearchParams({
       secret,

@@ -5,6 +5,7 @@ import FxQuote from '#models/fx_quote'
 import Wallet from '#models/wallet'
 import type LedgerTransaction from '#models/ledger_transaction'
 import { Money } from '#services/money/money'
+import { CashOutHoldService } from '#services/transactions/cash_out_hold_service'
 import { CurrencyService } from '#services/money/currency_service'
 import { LedgerService } from '#services/ledger/ledger_service'
 import { LimitService } from '#services/ledger/limit_service'
@@ -107,6 +108,7 @@ export class SwapService {
     if (fromWallet.balanceCache < input.amountIn) {
       throw new InsufficientBalanceException(fromWallet.id, input.amountIn, fromWallet.balanceCache)
     }
+    await CashOutHoldService.assertAvailable(fromWallet, input.amountIn)
 
     await ExchangeRateService.refreshIfStale([fromCode, toCode])
     const pair = await ExchangeRateService.pairRate(fromCode, toCode)
@@ -183,6 +185,7 @@ export class SwapService {
           fromWallet.balanceCache
         )
       }
+      await CashOutHoldService.assertAvailable(fromWallet, quote.amountIn, trx)
       if (fromWallet.perTransactionLimit && quote.amountIn > fromWallet.perTransactionLimit) {
         throw new TransactionLimitExceededException(
           fromWallet.id,

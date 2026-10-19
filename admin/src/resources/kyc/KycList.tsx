@@ -1,8 +1,12 @@
-import { List, Datagrid, TextField, DateField, FunctionField, SelectInput } from 'react-admin'
+import { List, Datagrid, TextField, DateField, SelectInput, SearchInput } from 'react-admin'
 import { StatusField } from '../../components/StatusChip'
+import { KycSubjectField } from './KycSubjectField'
 
 const filters = [
+  // Searched server-side: subject name, e-mail, 9-digit code, or the KYC id.
+  <SearchInput key="q" source="q" alwaysOn placeholder="Name, e-mail, code…" />,
   <SelectInput
+    key="status"
     source="status"
     alwaysOn
     choices={[
@@ -15,6 +19,7 @@ const filters = [
     ]}
   />,
   <SelectInput
+    key="subject_type"
     source="subject_type"
     choices={[
       { id: 'user', name: 'User' },
@@ -29,10 +34,7 @@ export function KycList() {
     <List filters={filters} filterDefaultValues={{ status: 'pending' }} perPage={25}>
       <Datagrid rowClick="show" bulkActionButtons={false}>
         <TextField source="id" />
-        <FunctionField
-          label="Subject"
-          render={(r) => `${r.subject_type} #${r.subject_id}`}
-        />
+        <KycSubjectField label="Subject" />
         <TextField source="verification_type" label="Type" />
         <StatusField source="status" />
         <DateField source="submitted_at" showTime emptyText="—" />

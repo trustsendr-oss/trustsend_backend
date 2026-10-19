@@ -34,7 +34,7 @@ Les deux opérations sont asynchrones : l'API répond immédiatement `202` avec 
 
 ```bash
 curl -X POST https://api.trustsend.africa/api/v1/business/mobile-money/deposits \
-  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Authorization: Bearer $REEMITE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "amount": "50000",
@@ -126,7 +126,7 @@ Les paramètres sont identiques à ceux du dépôt ; `phone_number` désigne le 
   <span className="ts-endpoint__url">{'/api/v1/business/mobile-money/payouts/:id'}</span>
 </div>
 
-Renvoie le statut enregistré par TrustSend.
+Renvoie le statut enregistré par Reemite.
 
 **Réponse `200`**
 
@@ -175,7 +175,7 @@ Interroge le réseau de paiement à l'instant de l'appel. Lorsqu'un statut final
 
 | Champ | Description |
 |---|---|
-| `local_status` | Statut enregistré par TrustSend après la vérification |
+| `local_status` | Statut enregistré par Reemite après la vérification |
 | `live_status` | Statut remonté en temps réel par le réseau de paiement |
 | `provider_transaction_id` | Référence de l'opération côté opérateur, utile en cas de réclamation |
 | `failure_reason` | Motif de l'échec, `null` si l'opération n'a pas échoué |

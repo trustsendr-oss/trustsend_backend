@@ -67,11 +67,10 @@ export class MissingCountException extends Error {
  * ## What reconciliation compares
  *
  * Expected cash is the opening declaration plus the gross of every transaction booked to the
- * shift — never a float-wallet difference. On a cash-out, CashOutService hands the customer the
- * gross in notes but credits the counter's float only the net, the commission going to platform
- * fees; a shift reconciled against the float would therefore report a shortfall equal to the
- * commission on every single one. The gross on the transaction is what actually crossed the
- * counter, so it is what the drawer is measured against.
+ * shift — never a float-wallet difference. The float moves by more than the notes: a network
+ * agent's float also takes their commission (AgentFloatService), and a cash-out credits the
+ * customer's fee along with the amount. The gross on the tracking row is what actually crossed
+ * the counter, so it is what the drawer is measured against.
  *
  * ## Why the numbers are frozen
  *

@@ -5,9 +5,14 @@ import { PinService } from '#services/security/pin_service'
 import { AgentIdentityService } from '#services/agents/agent_identity_service'
 import { IdempotencyService } from '#services/security/idempotency_service'
 import Wallet from '#models/wallet'
+import User from '#models/user'
 import vine from '@vinejs/vine'
 
 const createCashInValidator = vine.create({
+  // The customer being credited, by the 9-digit code they share — the same exact-match identifier
+  // DirectoryController and the institution counters use. Without it the endpoint could only
+  // ever credit the signed-in agent's own wallet.
+  customer_code: vine.string().regex(/^\d{9}$/),
   amount: vine.string().regex(/^[1-9]\d*$/), // no zero, no leading zeros
   currency_code: vine.string().fixedLength(3),
   pin: vine.string().regex(/^\d{4}$/), // PIN required: exactly 4 digits
@@ -19,7 +24,7 @@ const CASH_IN_ENDPOINT = 'POST /api/v1/cash-in'
 export default class CashInController {
   /**
    * POST /api/v1/cash-in
-   * Agent initiates cash-in deposit to user's wallet
+   * Agent initiates a cash deposit into the wallet of the customer named by `customer_code`
    */
   async store({ auth, request, response }: HttpContext) {
     const user = auth.user
@@ -58,9 +63,24 @@ export default class CashInController {
       // check any authenticated user could credit their own wallet with no real deposit.
       const agent = await AgentIdentityService.requireActiveAgentForUser(user.id)
 
+      const customer = await User.findBy('code', payload.customer_code)
+      if (!customer) {
+        await IdempotencyService.fail(identity)
+        return response.notFound({ message: 'No account matches this customer code' })
+      }
+
+      // An agent crediting their own personal wallet from their float moves platform float into
+      // spendable money with no cash deposited by anyone: refused outright.
+      if (customer.id === user.id) {
+        await IdempotencyService.fail(identity)
+        return response.unprocessableEntity({
+          message: 'An agent cannot make a cash deposit into their own account',
+        })
+      }
+
       const userWallet = await Wallet.query()
         .withScopes((s) => s.primary())
-        .where('user_id', user.id)
+        .where('user_id', customer.id)
         .where('currency_code', currencyCode)
         .where('status', 'active')
         .first()
@@ -68,7 +88,7 @@ export default class CashInController {
       if (!userWallet) {
         await IdempotencyService.fail(identity)
         return response.notFound({
-          message: `Active wallet not found for currency ${currencyCode}`,
+          message: `This customer has no active ${currencyCode} wallet`,
         })
       }
 
@@ -97,6 +117,12 @@ export default class CashInController {
           transaction_id: txn.id,
           status: txn.status,
           created_at: txn.createdAt,
+          // Shown back to the agent so they can check the name with the customer at the counter
+          // before confirming the deposit.
+          customer: {
+            code: customer.code,
+            full_name: customer.fullName,
+          },
         },
       }
       await IdempotencyService.complete(identity, 201, body)
@@ -105,10 +131,16 @@ export default class CashInController {
       await IdempotencyService.fail(identity)
       const err = error as any
       if (err.name === 'AgentNotFoundException' || err.name === 'AgentNotActiveException') {
-        return response.forbidden({ message: err.message })
+        return response.forbidden({
+          message: err.message,
+          code: err.name === 'AgentNotActiveException' ? 'AGENT_NOT_ACTIVE' : undefined,
+        })
       }
       if (err.name === 'InsufficientFloatException') {
         return response.paymentRequired({ message: err.message })
+      }
+      if (err.name === 'AgentLimitExceededException') {
+        return response.unprocessableEntity({ message: err.message, code: 'AGENT_LIMIT_EXCEEDED' })
       }
       if (err.name === 'ValidationException') {
         return response.unprocessableEntity({ message: err.message })
@@ -146,7 +178,10 @@ export default class CashInController {
         err.name === 'AgentNotActiveException' ||
         err.name === 'CashInOwnershipException'
       ) {
-        return response.forbidden({ message: err.message })
+        return response.forbidden({
+          message: err.message,
+          code: err.name === 'AgentNotActiveException' ? 'AGENT_NOT_ACTIVE' : undefined,
+        })
       }
       return response.internalServerError({ message: err.message || 'Confirm failed' })
     }
@@ -180,7 +215,10 @@ export default class CashInController {
         err.name === 'AgentNotActiveException' ||
         err.name === 'CashInOwnershipException'
       ) {
-        return response.forbidden({ message: err.message })
+        return response.forbidden({
+          message: err.message,
+          code: err.name === 'AgentNotActiveException' ? 'AGENT_NOT_ACTIVE' : undefined,
+        })
       }
       return response.internalServerError({ message: err.message || 'Reject failed' })
     }

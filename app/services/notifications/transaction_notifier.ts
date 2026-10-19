@@ -28,6 +28,8 @@ export type NotificationRecipient = {
   email: string | null
   /** Display name, for the greeting. Falls back to the address, then to the account code. */
   name: string
+  /** Shareable account code, shown beside the name on the other party's receipt. */
+  code: string | null
 }
 
 /** Currencies with no minor unit — the stored integer is already the displayed amount. */
@@ -85,6 +87,7 @@ export class TransactionNotifier {
             id: user.id,
             email: user.email,
             name: user.fullName || user.email || user.code || `#${user.id}`,
+            code: user.code,
           }
         : null
     }
@@ -97,6 +100,7 @@ export class TransactionNotifier {
             id: agent.id,
             email: agent.email,
             name: agent.businessName || agent.fullName || agent.email,
+            code: agent.code,
           }
         : null
     }
@@ -109,6 +113,7 @@ export class TransactionNotifier {
             id: business.id,
             email: business.email,
             name: business.name || business.email,
+            code: business.code,
           }
         : null
     }
@@ -126,6 +131,7 @@ export class TransactionNotifier {
             id: user.id,
             email: user.email,
             name: user.fullName || user.email || user.code || `#${user.id}`,
+            code: user.code,
           }
         : null
     }
@@ -137,6 +143,7 @@ export class TransactionNotifier {
             id: agent.id,
             email: agent.email,
             name: agent.businessName || agent.fullName || agent.email,
+            code: agent.code,
           }
         : null
     }
@@ -148,6 +155,7 @@ export class TransactionNotifier {
             id: business.id,
             email: business.email,
             name: business.name || business.email,
+            code: business.code,
           }
         : null
     }

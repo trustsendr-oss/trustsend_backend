@@ -106,4 +106,4 @@ Authorization: Bearer <business_dashboard_token>
 Dès que la bascule est terminée :
 1. **Les membres reçoivent leur identifiant/code d'accès TumaPlus**.
 2. **Leur épargne est immédiatement visible et disponible** dans leur wallet numérique.
-3. Ils peuvent **rembourser leur prêt via l'app ou chez n'importe quel agent**, ou **retirer leur argent liquide auprès du réseau d'Agents TumaPlus / TrustSend** via l'opération standard de Cash-Out.
+3. Ils peuvent **rembourser leur prêt via l'app ou chez n'importe quel agent**, ou **retirer leur argent liquide auprès du réseau d'Agents TumaPlus / Reemite** via l'opération standard de Cash-Out.

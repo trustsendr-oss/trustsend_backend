@@ -109,7 +109,11 @@ export default class CryptoPayoutsController {
     } catch (error) {
       await IdempotencyService.fail(identity)
       const err = error as any
-      if (err.name === 'InsufficientCryptoBalanceException' || err.name === 'LimitExceededException') {
+      if (
+        err.name === 'InsufficientCryptoBalanceException' ||
+        err.name === 'FundsReservedException' ||
+        err.name === 'LimitExceededException'
+      ) {
         return response.unprocessableEntity({ message: err.message })
       }
       throw error

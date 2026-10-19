@@ -1,4 +1,5 @@
 import Notification from '#models/notification'
+import { PushService } from '#services/notifications/push_service'
 
 export type NotificationRecipientType = 'user' | 'agent' | 'business'
 
@@ -26,6 +27,9 @@ export class InAppNotificationService {
     notification.data = params.data || null
 
     await notification.save()
+    // Not awaited: callers sit inside money-moving transactions, and an HTTP call to Expo has
+    // no business holding their locks. PushService never throws.
+    void PushService.forNotification(notification)
     return notification
   }
 }

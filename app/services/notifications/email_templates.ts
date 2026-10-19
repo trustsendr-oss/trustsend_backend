@@ -1,15 +1,14 @@
 import {
-  amountBlock,
-  codeBox,
-  detailList,
-  divider,
   emailDocument,
   escapeHtml,
-  fineprint,
-  lead,
   notice,
-  p,
+  otpCode,
+  plainRows,
   plainText,
+  receipt,
+  text,
+  type ReceiptRow,
+  type ReceiptStatus,
 } from './email_layout.js'
 
 /**
@@ -18,8 +17,7 @@ import {
  * short transactional messages. Add a case here for each `template` value passed to sendEmail().
  *
  * Every message is composed from the blocks in email_layout.ts and wrapped in the same document,
- * so the visual world matches the institution dashboard and a client cannot receive two mails
- * that look like they came from two companies.
+ * so a client cannot receive two mails that look like they came from two companies.
  *
  * All templates are in French, like the applications they serve: an account holder who reads
  * "Transfert envoyé" in the app should not receive "Transfer sent" by e-mail. Template KEYS stay
@@ -27,7 +25,7 @@ import {
  */
 
 interface EmailContent {
-  /** Heading inside the card. Says what happened, not what the product is called. */
+  /** The heading. Says what happened, not what the product is called. */
   title: string
   /** The grey line the inbox shows beside the subject. */
   preheader: string
@@ -36,6 +34,7 @@ interface EmailContent {
   body: string
   /** Plain-text alternative; see plainText() for why it is worth sending. */
   text: string
+  footerNote?: string
 }
 
 /**
@@ -54,297 +53,412 @@ function disputeStatusLabel(status: unknown): string {
   return labels[String(status)] ?? String(status ?? '')
 }
 
-/** Closing line on every message about a movement, where a reference is the thing support asks for. */
-const movementFooter = (brand: string) =>
-  `Vous recevez ce message parce qu'une opération a eu lieu sur votre compte ${brand}. En cas de doute, contactez le support en citant la référence ci-dessus.`
+/** "Marie Dupont · 610468306": the name to recognise, the code to tell two Maries apart. */
+function party(name: unknown, code: unknown): string | null {
+  const parts = [name, code].map((value) => String(value ?? '').trim()).filter(Boolean)
+  return parts.length > 0 ? parts.join(' · ') : null
+}
+
+/** "5 000 BIF" or nothing — a zero or absent fee is not worth a row. */
+function feeRow(fee: unknown): string | null {
+  const value = String(fee ?? '').trim()
+  return value && !/^0([,.]0+)?(\s|$)/.test(value) ? value : null
+}
+
+const STATUS_TEXT: Record<ReceiptStatus, string> = {
+  completed: 'Effectué',
+  pending: 'En attente',
+  failed: 'Échoué',
+}
+
+/**
+ * Every movement e-mail has the same anatomy: greeting, one sentence that says what happened,
+ * the receipt, an optional notice (what happened to the money when it failed, what happens next
+ * when it is pending), and a closing line pointing support at the reference.
+ */
+function movement(
+  brand: string,
+  data: Record<string, any>,
+  options: {
+    title: string
+    preheader: string
+    sentence: string
+    caption: string
+    direction?: 'in' | 'out'
+    status: ReceiptStatus
+    rows: ReceiptRow[]
+    notice?: { tone: 'success' | 'warning' | 'danger' | 'info'; text: string }
+  }
+): EmailContent {
+  const rows: ReceiptRow[] = [...options.rows, ['Référence', data.reference], ['Date', data.date]]
+  // The HTML receipt shows the status as a badge under the amount; plain text needs it spelled out.
+  const textRows: ReceiptRow[] = [...rows, ['Statut', STATUS_TEXT[options.status]]]
+  const support = `Une question sur cette opération ? Contactez le support ${brand} en indiquant la référence ${data.reference ?? ''}.`
+
+  return {
+    title: options.title,
+    preheader: options.preheader,
+    greeting: data.name,
+    body:
+      text(escapeHtml(options.sentence)) +
+      receipt({
+        caption: options.caption,
+        amount: String(data.amount ?? ''),
+        direction: options.direction,
+        status: options.status,
+        rows,
+      }) +
+      (options.notice ? notice(options.notice.tone, escapeHtml(options.notice.text)) : '') +
+      text(escapeHtml(support), { muted: true, last: true }),
+    text: plainText([
+      data.name ? `Bonjour ${data.name},` : null,
+      '',
+      options.sentence,
+      '',
+      `${options.caption} : ${data.amount ?? ''}`,
+      ...plainRows(textRows),
+      options.notice ? '' : null,
+      options.notice?.text ?? null,
+      '',
+      support,
+    ]),
+    footerNote: `Vous recevez ce message parce qu'une opération a eu lieu sur votre compte ${brand}.`,
+  }
+}
 
 function buildEmail(template: string, data: Record<string, any>, brand: string): EmailContent {
-  const MOVEMENT_FOOTER = movementFooter(brand)
   switch (template) {
-    case 'pin_reset_requested':
-      return {
-        title: 'Réinitialisation de votre code de paiement',
-        preheader: `Code de vérification valable ${data.expires_in_minutes} minutes.`,
-        body:
-          p(`Vous avez demandé à réinitialiser votre code de paiement ${escapeHtml(brand)}.`) +
-          codeBox(data.token, `Valable ${data.expires_in_minutes} minutes`) +
-          fineprint(
-            "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre code reste inchangé."
-          ),
-        text: plainText([
-          `Vous avez demandé à réinitialiser votre code de paiement ${brand}.`,
-          '',
-          `Code de vérification : ${data.token}`,
-          `Valable ${data.expires_in_minutes} minutes.`,
-          '',
-          "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre code reste inchangé.",
-        ]),
-      }
+    /* ------------------------------ Codes ------------------------------- */
 
-    case 'business_signup_otp':
+    case 'user_signup_otp':
+    case 'business_signup_otp': {
+      const business = template === 'business_signup_otp'
+      const what = business
+        ? `la création de votre compte entreprise ${escapeHtml(brand)}`
+        : `la création de votre compte`
       return {
-        title: 'Vérifiez votre adresse e-mail',
-        preheader: `Votre code expire dans ${data.expires_in_minutes} minutes.`,
+        title: 'Confirmez votre adresse e-mail',
+        preheader: `Votre code ${brand} : ${data.otp}. Il expire dans ${data.expires_in_minutes} minutes.`,
         body:
-          p(
-            `Voici votre code de vérification pour la création d'un compte entreprise ${escapeHtml(brand)}.`
+          text(
+            business
+              ? `Saisissez ce code pour confirmer votre adresse et terminer ${what}.`
+              : `Saisissez ce code dans l'application ${escapeHtml(brand)} pour terminer ${what}.`
           ) +
-          codeBox(data.otp, `Expire dans ${data.expires_in_minutes} minutes`) +
-          fineprint(
-            "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message."
-          ),
+          otpCode(data.otp) +
+          text(`Il expire dans ${escapeHtml(data.expires_in_minutes)} minutes.`, { muted: true }) +
+          text("Vous n'avez rien demandé ? Ignorez ce message : aucun compte ne sera créé.", {
+            muted: true,
+            last: true,
+          }),
         text: plainText([
+          'Confirmez votre adresse e-mail',
+          '',
           `Code de vérification ${brand} : ${data.otp}`,
-          `Ce code expire dans ${data.expires_in_minutes} minutes.`,
-          '',
-          "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+          `Il expire dans ${data.expires_in_minutes} minutes.`,
+          "Vous n'avez rien demandé ? Ignorez ce message : aucun compte ne sera créé.",
         ]),
-      }
-
-    case 'transfer_completed':
-      return {
-        title: 'Transfert effectué',
-        preheader: `${data.amount} ${data.currency} à ${data.recipient}.`,
-        body:
-          lead(
-            `Votre transfert de ${escapeHtml(data.amount)} ${escapeHtml(data.currency)} à ${escapeHtml(data.recipient)} a bien été effectué.`
-          ) +
-          detailList([
-            ['Référence', String(data.uuid ?? '')],
-            ['Date', String(data.timestamp ?? '')],
-          ]),
-        text: plainText([
-          `Votre transfert de ${data.amount} ${data.currency} à ${data.recipient} a bien été effectué.`,
-          `Référence : ${data.uuid}`,
-          `Date : ${data.timestamp}`,
-        ]),
-      }
-
-    case 'kyc_status_changed': {
-      // The tone follows the outcome: an approval reassures, a refusal must be findable at a
-      // glance among a dozen other notifications.
-      const status = String(data.status ?? '')
-      const tone = status === 'approved' ? 'success' : status === 'rejected' ? 'danger' : 'info'
-      return {
-        title: "Vérification d'identité",
-        preheader: String(data.message ?? ''),
-        body: notice(tone, escapeHtml(data.message)),
-        text: String(data.message ?? ''),
       }
     }
 
-    case 'agent_cash_in_request':
+    case 'user_pin_reset_requested':
+    case 'pin_reset_requested': {
+      const where =
+        template === 'user_pin_reset_requested'
+          ? `dans l'application ${brand}`
+          : 'sur votre espace entreprise'
       return {
-        title: 'Nouvelle demande de dépôt',
-        preheader: `${data.amount} ${data.currency} de la part de ${data.customerName}.`,
+        title: 'Réinitialisez votre code de paiement',
+        preheader: `Code de vérification valable ${data.expires_in_minutes} minutes.`,
         body:
-          amountBlock(`${data.amount} ${data.currency}`, 'Montant demandé') +
-          p(`Demande enregistrée par ${escapeHtml(data.customerName)}.`) +
-          detailList([['Opération n°', String(data.transactionId ?? '')]]),
+          text(
+            `Copiez ce code de vérification ${escapeHtml(where)}, puis choisissez votre nouveau code de paiement.`
+          ) +
+          otpCode(data.token, { token: true }) +
+          text(`Il expire dans ${escapeHtml(data.expires_in_minutes)} minutes.`, { muted: true }) +
+          text(
+            "Vous n'avez rien demandé ? Ignorez ce message : votre code de paiement reste inchangé.",
+            { muted: true, last: true }
+          ),
         text: plainText([
-          `Nouvelle demande de dépôt : ${data.amount} ${data.currency} de la part de ${data.customerName}.`,
-          `Opération n° ${data.transactionId}`,
+          'Réinitialisez votre code de paiement',
+          '',
+          `Copiez ce code de vérification ${where}, puis choisissez votre nouveau code de paiement :`,
+          '',
+          String(data.token),
+          '',
+          `Il expire dans ${data.expires_in_minutes} minutes.`,
+          "Vous n'avez rien demandé ? Ignorez ce message : votre code de paiement reste inchangé.",
         ]),
       }
+    }
+
+    /* ---------------------------- Vérification --------------------------- */
+
+    // Sent by KycNotifier at each step.
+    case 'kyc_status_changed': {
+      const status = String(data.status ?? '')
+      const label = String(data.label ?? 'vérification')
+      const reason = data.reason ? String(data.reason) : null
+
+      if (status === 'approved') {
+        return {
+          title: 'Votre identité est vérifiée',
+          preheader: `Votre vérification (${label}) a été validée.`,
+          greeting: data.name,
+          body:
+            text(
+              `Votre vérification (${escapeHtml(label)}) a été validée. Votre compte ${escapeHtml(brand)} est vérifié.`
+            ) +
+            text("Aucune autre action n'est nécessaire de votre part.", {
+              muted: true,
+              last: true,
+            }),
+          text: plainText([
+            data.name ? `Bonjour ${data.name},` : null,
+            '',
+            `Votre vérification (${label}) a été validée. Votre compte ${brand} est vérifié.`,
+            "Aucune autre action n'est nécessaire de votre part.",
+          ]),
+        }
+      }
+
+      if (status === 'rejected') {
+        return {
+          title: 'Vérification refusée',
+          preheader: reason ? `Motif : ${reason}` : `Votre vérification (${label}) a été refusée.`,
+          greeting: data.name,
+          body:
+            text(`Votre vérification (${escapeHtml(label)}) a été refusée.`) +
+            (reason ? notice('danger', `Motif : ${escapeHtml(reason)}`) : '') +
+            text(
+              `Ouvrez l'application ${escapeHtml(brand)}, rubrique Profil › Identité, pour envoyer de nouveaux documents.`,
+              { muted: true, last: true }
+            ),
+          text: plainText([
+            data.name ? `Bonjour ${data.name},` : null,
+            '',
+            `Votre vérification (${label}) a été refusée.`,
+            reason ? `Motif : ${reason}` : null,
+            '',
+            `Ouvrez l'application ${brand}, rubrique Profil › Identité, pour envoyer de nouveaux documents.`,
+          ]),
+        }
+      }
+
+      return {
+        title: 'Documents reçus',
+        preheader: `Votre vérification (${label}) est en cours d'examen.`,
+        greeting: data.name,
+        body:
+          text(
+            `Nous avons bien reçu vos documents (${escapeHtml(label)}). Ils sont en cours d'examen : vous serez prévenu dès qu'une décision sera prise.`
+          ) +
+          text("Vous n'êtes pas à l'origine de cet envoi ? Contactez le support.", {
+            muted: true,
+            last: true,
+          }),
+        text: plainText([
+          data.name ? `Bonjour ${data.name},` : null,
+          '',
+          `Nous avons bien reçu vos documents (${label}). Ils sont en cours d'examen : vous serez prévenu dès qu'une décision sera prise.`,
+          "Vous n'êtes pas à l'origine de cet envoi ? Contactez le support.",
+        ]),
+      }
+    }
 
     case 'dispute_resolved':
       return {
         title: 'Votre réclamation a été traitée',
         preheader: `Dossier n° ${data.disputeId} — ${disputeStatusLabel(data.status)}.`,
+        greeting: data.name,
         body:
-          lead(
+          text(
             `Votre réclamation a été traitée : ${escapeHtml(disputeStatusLabel(data.status))}.`
           ) +
-          detailList([['Dossier n°', String(data.disputeId ?? '')]]) +
-          p(escapeHtml(data.resolutionNotes)),
+          (data.resolutionNotes ? notice('info', escapeHtml(data.resolutionNotes)) : '') +
+          text(`Dossier n° ${escapeHtml(data.disputeId)}`, { muted: true, last: true }),
         text: plainText([
           `Votre réclamation (dossier n° ${data.disputeId}) a été traitée : ${disputeStatusLabel(data.status)}.`,
-          String(data.resolutionNotes ?? ''),
+          data.resolutionNotes ? String(data.resolutionNotes) : null,
         ]),
       }
 
     /* ---------------------- Mouvements sur le compte ---------------------- */
 
     case 'transfer_sent':
-      return {
+      return movement(brand, data, {
         title: 'Transfert envoyé',
-        preheader: `${data.amount} à ${data.counterparty}.`,
-        greeting: data.name,
-        body:
-          amountBlock(String(data.amount ?? ''), `Envoyé à ${escapeHtml(data.counterparty)}`) +
-          detailList([
-            ['Référence', String(data.reference ?? '')],
-            ['Date', String(data.date ?? '')],
-          ]) +
-          divider() +
-          fineprint(MOVEMENT_FOOTER),
-        text: plainText([
-          `Bonjour ${data.name},`,
-          '',
-          `Votre transfert de ${data.amount} à ${data.counterparty} a bien été effectué.`,
-          `Référence : ${data.reference}`,
-          `Date : ${data.date}`,
-        ]),
-      }
+        preheader: `${data.amount} envoyés à ${data.counterparty}.`,
+        sentence: `Votre transfert à ${data.counterparty ?? 'votre destinataire'} a bien été effectué. La somme est déjà disponible sur son compte.`,
+        caption: 'Montant envoyé',
+        direction: 'out',
+        status: 'completed',
+        rows: [
+          ['Bénéficiaire', party(data.counterparty, data.counterparty_code)],
+          ['Débité de', data.account],
+          ['Frais', 'Gratuit'],
+        ],
+      })
 
     case 'transfer_received':
-      return {
+      return movement(brand, data, {
         title: 'Vous avez reçu un transfert',
-        preheader: `${data.amount} de la part de ${data.counterparty}.`,
-        greeting: data.name,
-        body:
-          amountBlock(String(data.amount ?? ''), `Reçu de ${escapeHtml(data.counterparty)}`) +
-          notice('success', 'La somme est déjà disponible sur votre compte.') +
-          detailList([
-            ['Référence', String(data.reference ?? '')],
-            ['Date', String(data.date ?? '')],
-          ]) +
-          divider() +
-          fineprint(MOVEMENT_FOOTER),
-        text: plainText([
-          `Bonjour ${data.name},`,
-          '',
-          `Vous avez reçu ${data.amount} de la part de ${data.counterparty}.`,
-          'La somme est déjà disponible sur votre compte.',
-          `Référence : ${data.reference}`,
-          `Date : ${data.date}`,
-        ]),
-      }
+        preheader: `${data.amount} reçus de ${data.counterparty}.`,
+        sentence: `${data.counterparty ?? 'Un expéditeur'} vous a envoyé de l'argent. La somme est déjà disponible sur votre compte.`,
+        caption: 'Montant reçu',
+        direction: 'in',
+        status: 'completed',
+        rows: [
+          ['Expéditeur', party(data.counterparty, data.counterparty_code)],
+          ['Crédité sur', data.account],
+        ],
+      })
+
+    // Legacy key, no caller left; kept so an old queued event still renders as a receipt.
+    case 'transfer_completed':
+      return movement(brand, data, {
+        title: 'Transfert effectué',
+        preheader: `${data.amount} — ${data.recipient ?? ''}`,
+        sentence: 'Votre transfert a bien été effectué.',
+        caption: 'Montant',
+        status: 'completed',
+        rows: [['Bénéficiaire', data.recipient]],
+      })
 
     case 'deposit_completed':
-      return {
+      return movement(brand, data, {
         title: 'Recharge créditée',
-        preheader: `${data.amount} crédités sur votre compte.`,
-        greeting: data.name,
-        body:
-          amountBlock(String(data.amount ?? ''), 'Crédité sur votre compte') +
-          detailList([
-            ['Référence', String(data.reference ?? '')],
-            ['Date', String(data.date ?? '')],
-          ]) +
-          divider() +
-          fineprint(MOVEMENT_FOOTER),
-        text: plainText([
-          `Bonjour ${data.name},`,
-          '',
-          `Votre recharge de ${data.amount} a été créditée sur votre compte.`,
-          `Référence : ${data.reference}`,
-          `Date : ${data.date}`,
-        ]),
-      }
+        preheader: `${data.amount} crédités depuis ${data.channel ?? 'mobile money'}.`,
+        sentence: `Votre recharge depuis ${data.channel ?? 'mobile money'} a bien été créditée sur votre compte.`,
+        caption: 'Montant rechargé',
+        direction: 'in',
+        status: 'completed',
+        rows: [
+          ['Opérateur', data.channel],
+          ['Numéro débité', data.phone],
+          ['Frais', feeRow(data.fee)],
+          // The fee is taken from the top-up: what lands on the account is the net.
+          ['Montant crédité', feeRow(data.fee) ? data.net : null],
+          ['Crédité sur', data.account],
+          ['Réf. opérateur', data.provider_reference],
+        ],
+      })
 
     case 'deposit_failed':
-      return {
+      return movement(brand, data, {
         title: "Votre recharge n'a pas abouti",
-        preheader: 'Aucun montant n’a été débité.',
-        greeting: data.name,
-        body:
-          amountBlock(String(data.amount ?? ''), 'Recharge tentée') +
-          // Stated before the reason: "nothing was taken" is what the recipient needs first.
-          notice('warning', "Aucun montant n'a été débité.") +
-          (data.reason ? p(`Motif : ${escapeHtml(data.reason)}`) : '') +
-          detailList([
-            ['Référence', String(data.reference ?? '')],
-            ['Date', String(data.date ?? '')],
-          ]) +
-          divider() +
-          fineprint(MOVEMENT_FOOTER),
-        text: plainText([
-          `Bonjour ${data.name},`,
-          '',
-          `Votre recharge de ${data.amount} n'a pas abouti. Aucun montant n'a été débité.`,
-          data.reason ? `Motif : ${data.reason}` : null,
-          `Référence : ${data.reference}`,
-          `Date : ${data.date}`,
-        ]),
-      }
+        preheader: "Aucun montant n'a été débité.",
+        sentence: `Votre recharge depuis ${data.channel ?? 'mobile money'} n'a pas abouti.`,
+        caption: 'Montant demandé',
+        status: 'failed',
+        rows: [
+          ['Opérateur', data.channel],
+          ['Numéro', data.phone],
+          ['Motif', data.reason],
+        ],
+        notice: {
+          tone: 'info',
+          text: "Aucun montant n'a été débité de votre compte. Vous pouvez réessayer depuis l'application.",
+        },
+      })
 
     case 'payout_completed':
-      return {
+      return movement(brand, data, {
         title: 'Envoi remis',
-        preheader: `${data.amount} remis à ${data.counterparty}.`,
-        greeting: data.name,
-        body:
-          amountBlock(String(data.amount ?? ''), `Remis à ${escapeHtml(data.counterparty)}`) +
-          detailList([
-            ['Référence', String(data.reference ?? '')],
-            ['Date', String(data.date ?? '')],
-          ]) +
-          divider() +
-          fineprint(MOVEMENT_FOOTER),
-        text: plainText([
-          `Bonjour ${data.name},`,
-          '',
-          `Votre envoi de ${data.amount} vers ${data.counterparty} a bien été remis.`,
-          `Référence : ${data.reference}`,
-          `Date : ${data.date}`,
-        ]),
-      }
+        preheader: `${data.amount} remis au ${data.phone ?? data.counterparty}.`,
+        sentence: `Votre envoi vers ${data.channel ?? 'mobile money'} a bien été remis au bénéficiaire.`,
+        caption: 'Montant envoyé',
+        direction: 'out',
+        status: 'completed',
+        rows: [
+          ['Numéro bénéficiaire', data.phone ?? data.counterparty],
+          ['Opérateur', data.channel],
+          ['Débité de', data.account],
+          ['Frais', feeRow(data.fee)],
+          // The fee is taken from the amount sent: the beneficiary receives the net.
+          ['Montant remis', feeRow(data.fee) ? data.net : null],
+          ['Réf. opérateur', data.provider_reference],
+        ],
+      })
 
     case 'payout_failed':
-      return {
+      return movement(brand, data, {
         title: "Votre envoi n'a pas abouti",
         preheader: 'Le montant a été recrédité sur votre compte.',
-        greeting: data.name,
-        body:
-          amountBlock(String(data.amount ?? ''), `Envoi vers ${escapeHtml(data.counterparty)}`) +
-          notice('warning', 'Le montant a été recrédité sur votre compte.') +
-          (data.reason ? p(`Motif : ${escapeHtml(data.reason)}`) : '') +
-          detailList([
-            ['Référence', String(data.reference ?? '')],
-            ['Date', String(data.date ?? '')],
-          ]) +
-          divider() +
-          fineprint(MOVEMENT_FOOTER),
-        text: plainText([
-          `Bonjour ${data.name},`,
-          '',
-          `Votre envoi de ${data.amount} vers ${data.counterparty} n'a pas abouti. Le montant a été recrédité sur votre compte.`,
-          data.reason ? `Motif : ${data.reason}` : null,
-          `Référence : ${data.reference}`,
-          `Date : ${data.date}`,
-        ]),
-      }
+        sentence: `Votre envoi vers ${data.phone ?? data.counterparty ?? 'le numéro indiqué'} n'a pas pu être remis.`,
+        caption: "Montant de l'envoi",
+        status: 'failed',
+        rows: [
+          ['Numéro bénéficiaire', data.phone ?? data.counterparty],
+          ['Opérateur', data.channel],
+          ['Motif', data.reason],
+        ],
+        notice: { tone: 'success', text: 'Le montant a été recrédité sur votre compte.' },
+      })
 
     case 'cash_in_pending':
-      return {
+      return movement(brand, data, {
         title: 'Dépôt en attente de confirmation',
-        preheader: `${data.amount} enregistrés par un agent.`,
-        greeting: data.name,
-        body:
-          amountBlock(String(data.amount ?? ''), 'Déposé par un agent') +
-          notice('info', "Il sera crédité dès que l'agent l'aura confirmé.") +
-          detailList([['Référence', String(data.reference ?? '')]]) +
-          divider() +
-          fineprint(MOVEMENT_FOOTER),
-        text: plainText([
-          `Bonjour ${data.name},`,
-          '',
-          `Un agent a enregistré un dépôt de ${data.amount} à votre nom.`,
-          "Il sera crédité dès que l'agent l'aura confirmé.",
-          `Référence : ${data.reference}`,
-        ]),
-      }
+        preheader: `${data.amount} enregistrés par ${data.agent ?? 'un agent'}.`,
+        sentence: `${data.agent ?? 'Un agent'} a enregistré un dépôt d'espèces à votre nom.`,
+        caption: 'Montant déposé',
+        direction: 'in',
+        status: 'pending',
+        rows: [
+          ['Agent', data.agent],
+          ['À créditer sur', data.account],
+        ],
+        notice: {
+          tone: 'warning',
+          text: "La somme sera créditée dès que l'agent aura confirmé le dépôt. Ne remettez pas d'espèces sans reçu.",
+        },
+      })
 
     case 'cash_out_requested':
-      return {
+      return movement(brand, data, {
         title: 'Demande de retrait',
-        preheader: `${data.amount} à remettre au client.`,
-        greeting: data.name,
-        body:
-          amountBlock(String(data.amount ?? ''), 'Montant à remettre') +
-          p('Le client se présentera pour retirer la somme.') +
-          detailList([['Référence', String(data.reference ?? '')]]) +
-          divider() +
-          fineprint(MOVEMENT_FOOTER),
-        text: plainText([
-          `Bonjour ${data.name},`,
-          '',
-          `Une demande de retrait de ${data.amount} vous a été adressée.`,
-          'Le client se présentera pour retirer la somme.',
-          `Référence : ${data.reference}`,
-        ]),
-      }
+        preheader: `${data.amount} à remettre à ${data.counterparty ?? 'un client'}.`,
+        sentence: `${data.counterparty ?? 'Un client'} demande un retrait d'espèces à votre guichet.`,
+        caption: 'Montant à remettre',
+        status: 'pending',
+        rows: [['Client', party(data.counterparty, data.counterparty_code)]],
+        notice: {
+          tone: 'info',
+          text: "Vérifiez l'identité du client et confirmez le retrait dans l'application au moment de remettre les espèces.",
+        },
+      })
+
+    case 'cash_out_completed':
+      return movement(brand, data, {
+        title: 'Retrait effectué',
+        preheader: `${data.amount} remis en espèces par ${data.counterparty}.`,
+        sentence: `${data.counterparty ?? "L'agent"} vous a remis votre retrait en espèces.`,
+        caption: 'Montant retiré',
+        direction: 'out',
+        status: 'completed',
+        rows: [
+          ['Agent', data.counterparty],
+          ['Débité de', data.account],
+          ['Frais', feeRow(data.fee)],
+          ['Total débité', feeRow(data.fee) ? data.total : null],
+        ],
+      })
+
+    // Legacy key, no caller left (see NotificationService.notifyAgentCashInRequest).
+    case 'agent_cash_in_request':
+      return movement(
+        brand,
+        { ...data, amount: `${data.amount} ${data.currency}`, reference: data.transactionId },
+        {
+          title: 'Nouvelle demande de dépôt',
+          preheader: `${data.amount} ${data.currency} de la part de ${data.customerName}.`,
+          sentence: `${data.customerName ?? 'Un client'} a enregistré une demande de dépôt.`,
+          caption: 'Montant demandé',
+          status: 'pending',
+          rows: [['Client', data.customerName]],
+        }
+      )
 
     default:
       // An unknown template still has to deliver its payload rather than an empty shell: the
@@ -352,7 +466,10 @@ function buildEmail(template: string, data: Record<string, any>, brand: string):
       return {
         title: 'Notification',
         preheader: `Notification ${brand}`,
-        body: p(`<pre style="white-space:pre-wrap;margin:0;">${escapeHtml(JSON.stringify(data, null, 2))}</pre>`),
+        body: text(
+          `<pre style="white-space:pre-wrap;margin:0;">${escapeHtml(JSON.stringify(data, null, 2))}</pre>`,
+          { last: true }
+        ),
         text: JSON.stringify(data, null, 2),
       }
   }
@@ -370,6 +487,7 @@ export function renderEmailHtml(
     preheader: content.preheader,
     greeting: content.greeting,
     body: content.body,
+    footerNote: content.footerNote,
   })
 }
 
@@ -385,7 +503,9 @@ export function renderEmailText(
  * cannot be added without showing up there. */
 export const EMAIL_TEMPLATES = [
   'pin_reset_requested',
+  'user_pin_reset_requested',
   'business_signup_otp',
+  'user_signup_otp',
   'transfer_completed',
   'kyc_status_changed',
   'agent_cash_in_request',
@@ -398,4 +518,5 @@ export const EMAIL_TEMPLATES = [
   'payout_failed',
   'cash_in_pending',
   'cash_out_requested',
+  'cash_out_completed',
 ] as const

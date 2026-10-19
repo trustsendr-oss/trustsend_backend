@@ -4,6 +4,7 @@ import Card from '#models/card'
 import CardCustomer from '#models/card_customer'
 import Wallet from '#models/wallet'
 import { Money } from '#services/money/money'
+import { CashOutHoldService } from '#services/transactions/cash_out_hold_service'
 import { LedgerService } from '#services/ledger/ledger_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { InAppNotificationService } from '#services/notifications/in_app_notification_service'
@@ -198,6 +199,8 @@ export class CardService {
     if (wallet.balanceCache < totalDue) {
       throw new InsufficientWalletBalanceException()
     }
+    // Checked before the provider call: once Payscribe has funded the card, it is too late.
+    await CashOutHoldService.assertAvailable(wallet, totalDue)
 
     const providerCustomerId = await this.ensureProviderCustomer(request.owner)
     const reference = randomUUID()
@@ -413,6 +416,7 @@ export class CardService {
     if (wallet.balanceCache < request.amount.amount) {
       throw new InsufficientWalletBalanceException()
     }
+    await CashOutHoldService.assertAvailable(wallet, request.amount.amount)
 
     // Avant l'appel au fournisseur, jamais après : une carte rechargée chez
     // Payscribe puis refusée ici laisserait de l'argent réel sur une carte

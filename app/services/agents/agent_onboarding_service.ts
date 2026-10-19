@@ -5,6 +5,17 @@ import Wallet from '#models/wallet'
 import LedgerAccount from '#models/ledger_account'
 import AgentStatusHistory from '#models/agent_status_history'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
+import { IdGenerator } from '#services/security/id_generator'
+
+/**
+ * An agent code is exactly 9 digits. It is painted on the shopfront and typed by customers on a
+ * phone keypad, and the only routes that consume it — GET /directory/agents and POST /cash-out —
+ * accept nothing else: an agent created with any other code exists but can never be reached.
+ * The agents_code_nine_digits CHECK constraint enforces the same rule at the database level.
+ */
+export const AGENT_CODE_PATTERN = /^\d{9}$/
+
+const MAX_CODE_ATTEMPTS = 5
 
 // Strict hierarchy: a parent may only sponsor a STRICTLY lower tier (master > distributor >
 // super_agent > agent). Ranked instead of a single "agent can't have children" check — the old
@@ -30,7 +41,8 @@ export class AgentOnboardingService {
     userId?: number
     /** Owning institution. Omitted for TumaPlus's own network, which is every agent today. */
     businessId?: number
-    code: string
+    /** 9 digits (AGENT_CODE_PATTERN). Omitted: a unique one is generated. */
+    code?: string
     fullName: string
     email: string
     phone: string
@@ -48,6 +60,11 @@ export class AgentOnboardingService {
     perTransactionLimit?: bigint
     correlationId: string
   }): Promise<Agent> {
+    if (request.code !== undefined && !AGENT_CODE_PATTERN.test(request.code)) {
+      throw new Error('An agent code must be exactly 9 digits')
+    }
+    const code = request.code ?? (await this.generateUniqueCode())
+
     // Mirrors the DB's tier_parent_hierarchy CHECK constraint (18_add_commission_rate_constraint.ts)
     // with a friendly error instead of a raw Postgres constraint violation: master is always
     // top-level; agent/super_agent always need a sponsor; distributor can go either way.
@@ -111,7 +128,7 @@ export class AgentOnboardingService {
       const agent = new Agent()
       agent.userId = request.userId ?? null
       agent.businessId = request.businessId ?? null
-      agent.code = request.code
+      agent.code = code
       agent.fullName = request.fullName
       agent.email = request.email
       agent.phone = request.phone
@@ -133,7 +150,7 @@ export class AgentOnboardingService {
 
       // Create ledger account for agent wallet (USD by default)
       const account = new LedgerAccount()
-      account.code = `AGENT_WALLET.${request.code}`
+      account.code = `AGENT_WALLET.${code}`
       account.name = `Wallet for agent ${request.fullName}`
       account.accountType = 'asset'
       account.ownerType = 'agent_wallet'
@@ -194,6 +211,18 @@ export class AgentOnboardingService {
 
       return agent
     })
+  }
+
+  /**
+   * A 9-digit code no agent carries yet. CSPRNG-backed (IdGenerator.generateNumericCode): the
+   * code is looked up by strangers, so it must not be guessable from the previous one.
+   */
+  static async generateUniqueCode(): Promise<string> {
+    for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
+      const candidate = IdGenerator.generateNumericCode()
+      if (!(await Agent.findBy('code', candidate))) return candidate
+    }
+    throw new Error('Unable to generate a unique agent code after several attempts')
   }
 
   /**

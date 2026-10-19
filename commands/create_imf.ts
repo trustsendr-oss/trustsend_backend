@@ -181,7 +181,6 @@ export default class CreateImf extends BaseCommand {
 
       const agent = await AgentOnboardingService.create({
         businessId: business.id,
-        code: IdGenerator.generateNumericCode(),
         fullName: label,
         email: outletEmail,
         phone: this.phone.trim(),

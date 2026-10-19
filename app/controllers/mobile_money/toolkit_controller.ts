@@ -44,19 +44,12 @@ export default class MobileMoneyToolkitController {
         data: methods.map((method) => ({
           provider: method.provider,
           display_name: method.displayName,
-          // Operator logo and country flag, both straight from PawaPay — a picker can render
-          // logo + name + flag without shipping its own asset set.
           logo: method.logo,
           country: method.country,
           country_name: method.countryName,
-          // The client prepends this to the local number to build `phone_number` — PawaPay
-          // wants a full E.164 MSISDN, country code included.
           phone_prefix: method.phonePrefix,
           currency_symbol: method.currencySymbol,
-          // Only ever set for DEPOSIT — a payout asks nothing of the recipient.
           authorization: method.authorization,
-          // PawaPay's own country flag URL — lets a picker render the operator's flag without
-          // shipping its own country→icon mapping. null when active-conf carries none.
           flag: method.flag,
           status: method.status,
           min_amount: method.minAmount.toString(),

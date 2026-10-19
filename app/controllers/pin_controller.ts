@@ -125,7 +125,7 @@ export default class PinController {
       // so they are the same value, and this one is non-null by construction.
       to: email,
       subject: 'Réinitialisation de votre code de paiement',
-      template: 'pin_reset_requested',
+      template: 'user_pin_reset_requested',
       data: { token, expires_in_minutes: 30 },
     })
 

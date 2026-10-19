@@ -8,6 +8,7 @@ export interface ApiDefinition {
   }
   auth: {
     newAccount: {
+      requestOtp: typeof routes['auth.new_account.request_otp']
       store: typeof routes['auth.new_account.store']
     }
     accessTokens: {
@@ -18,6 +19,13 @@ export interface ApiDefinition {
   profile: {
     profile: {
       show: typeof routes['profile.profile.show']
+      avatar: typeof routes['profile.profile.avatar']
+      updateAvatar: typeof routes['profile.profile.update_avatar']
+      destroyAvatar: typeof routes['profile.profile.destroy_avatar']
+    }
+    pushTokens: {
+      store: typeof routes['profile.push_tokens.store']
+      destroy: typeof routes['profile.push_tokens.destroy']
     }
     accessTokens: {
       destroy: typeof routes['profile.access_tokens.destroy']
@@ -136,6 +144,7 @@ export interface ApiDefinition {
       agentFloat: {
         transfer: typeof routes['agents.float.agent_float.transfer']
         convert: typeof routes['agents.float.agent_float.convert']
+        withdraw: typeof routes['agents.float.agent_float.withdraw']
       }
     }
     agents: {
@@ -147,6 +156,38 @@ export interface ApiDefinition {
       activate: typeof routes['agents.agents.activate']
       suspend: typeof routes['agents.agents.suspend']
       deactivate: typeof routes['agents.agents.deactivate']
+    }
+  }
+  agentWorkspace: {
+    agentWorkspace: {
+      me: typeof routes['agent_workspace.agent_workspace.me']
+      operations: typeof routes['agent_workspace.agent_workspace.operations']
+      operation: typeof routes['agent_workspace.agent_workspace.operation']
+      cashOut: typeof routes['agent_workspace.agent_workspace.cash_out']
+      subAgents: typeof routes['agent_workspace.agent_workspace.sub_agents']
+    }
+  }
+  agentApplications: {
+    agentApplications: {
+      mine: typeof routes['agent_applications.agent_applications.mine']
+      eligibility: typeof routes['agent_applications.agent_applications.eligibility']
+      store: typeof routes['agent_applications.agent_applications.store']
+    }
+  }
+  remittances: {
+    remittances: {
+      corridor: typeof routes['remittances.remittances.corridor']
+      quote: typeof routes['remittances.remittances.quote']
+      index: typeof routes['remittances.remittances.index']
+      store: typeof routes['remittances.remittances.store']
+      show: typeof routes['remittances.remittances.show']
+      cancel: typeof routes['remittances.remittances.cancel']
+    }
+  }
+  agentRemittances: {
+    agentRemittances: {
+      lookup: typeof routes['agent_remittances.agent_remittances.lookup']
+      pay: typeof routes['agent_remittances.agent_remittances.pay']
     }
   }
   kyc: {
@@ -553,6 +594,26 @@ export interface ApiDefinition {
         store: typeof routes['admin.business_staff.admin_business_staff.store']
         show: typeof routes['admin.business_staff.admin_business_staff.show']
         update: typeof routes['admin.business_staff.admin_business_staff.update']
+      }
+    }
+    remittances: {
+      adminRemittances: {
+        index: typeof routes['admin.remittances.admin_remittances.index']
+        show: typeof routes['admin.remittances.admin_remittances.show']
+        release: typeof routes['admin.remittances.admin_remittances.release']
+        reject: typeof routes['admin.remittances.admin_remittances.reject']
+        watchlist: typeof routes['admin.remittances.admin_remittances.watchlist']
+        addToWatchlist: typeof routes['admin.remittances.admin_remittances.add_to_watchlist']
+        removeFromWatchlist: typeof routes['admin.remittances.admin_remittances.remove_from_watchlist']
+      }
+    }
+    agentApplications: {
+      adminAgentApplications: {
+        index: typeof routes['admin.agent_applications.admin_agent_applications.index']
+        show: typeof routes['admin.agent_applications.admin_agent_applications.show']
+        review: typeof routes['admin.agent_applications.admin_agent_applications.review']
+        approve: typeof routes['admin.agent_applications.admin_agent_applications.approve']
+        reject: typeof routes['admin.agent_applications.admin_agent_applications.reject']
       }
     }
     financialProducts: {

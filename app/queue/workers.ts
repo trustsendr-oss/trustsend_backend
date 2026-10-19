@@ -18,6 +18,12 @@ import { redisConnection, redisOptions } from '#queue/connection'
 /** How often the outbox is drained. Short enough that a receipt feels immediate. */
 const OUTBOX_RELAY_INTERVAL_MS = 15_000
 
+/** How often lapsed cash-out reservations are closed. See expire_cash_outs_job.ts. */
+const CASH_OUT_EXPIRY_INTERVAL_MS = 60_000
+
+/** How often uncollected international transfers are refunded. See expire_remittances_job.ts. */
+const REMITTANCE_EXPIRY_INTERVAL_MS = 60 * 60_000
+
 /**
  * Fails loudly when Redis is unreachable.
  *
@@ -85,6 +91,60 @@ export async function registerWorkers() {
   )
 
   console.log(`✓ Outbox relay scheduled every ${OUTBOX_RELAY_INTERVAL_MS / 1000}s`)
+
+  // Cash-out expiry — closes withdrawals reserved at an agent but never paid out.
+  const cashOutExpiryWorker = new Worker(
+    'cash_out_expiry',
+    async () => {
+      const { handleExpireCashOuts } = await import('#jobs/expire_cash_outs_job')
+      return handleExpireCashOuts()
+    },
+    { connection: redisOptions, concurrency: 1 }
+  )
+  workers.push(cashOutExpiryWorker)
+
+  cashOutExpiryWorker.on('failed', (job, error) => {
+    console.error(`[queue] cash_out_expiry job ${job?.id} failed:`, error)
+  })
+
+  const cashOutExpiryQueue = new Queue('cash_out_expiry', { connection: redisOptions })
+  await cashOutExpiryQueue.upsertJobScheduler(
+    'cash-out-expiry-tick',
+    { every: CASH_OUT_EXPIRY_INTERVAL_MS },
+    {
+      name: 'expire',
+      opts: { removeOnComplete: true, removeOnFail: 50 },
+    }
+  )
+
+  console.log(`✓ Cash-out expiry scheduled every ${CASH_OUT_EXPIRY_INTERVAL_MS / 1000}s`)
+
+  // Remittance expiry — refunds transfers nobody collected in time.
+  const remittanceExpiryWorker = new Worker(
+    'remittance_expiry',
+    async () => {
+      const { handleExpireRemittances } = await import('#jobs/expire_remittances_job')
+      return handleExpireRemittances()
+    },
+    { connection: redisOptions, concurrency: 1 }
+  )
+  workers.push(remittanceExpiryWorker)
+
+  remittanceExpiryWorker.on('failed', (job, error) => {
+    console.error(`[queue] remittance_expiry job ${job?.id} failed:`, error)
+  })
+
+  const remittanceExpiryQueue = new Queue('remittance_expiry', { connection: redisOptions })
+  await remittanceExpiryQueue.upsertJobScheduler(
+    'remittance-expiry-tick',
+    { every: REMITTANCE_EXPIRY_INTERVAL_MS },
+    {
+      name: 'expire',
+      opts: { removeOnComplete: true, removeOnFail: 50 },
+    }
+  )
+
+  console.log(`✓ Remittance expiry scheduled every ${REMITTANCE_EXPIRY_INTERVAL_MS / 60_000} min`)
 
   // TODO: Add workers as they're implemented (Phase 3+)
   // - ledger_reconciliation_job

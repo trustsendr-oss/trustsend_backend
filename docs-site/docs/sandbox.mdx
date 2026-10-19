@@ -6,7 +6,7 @@ slug: /sandbox
 
 # Sandbox
 
-La sandbox est un environnement complet de l'API TrustSend, séparé de la production, pour développer et tester votre intégration. Les mêmes endpoints y répondent de la même façon, mais **aucun argent réel ne circule** : les opérations mobile money et cartes passent par les environnements de test des opérateurs.
+La sandbox est un environnement complet de l'API Reemite, séparé de la production, pour développer et tester votre intégration. Les mêmes endpoints y répondent de la même façon, mais **aucun argent réel ne circule** : les opérations mobile money et cartes passent par les environnements de test des opérateurs.
 
 <div className="ts-endpoint">
   <span className="ts-endpoint__label">URL</span>
@@ -19,7 +19,7 @@ La sandbox est un environnement complet de l'API TrustSend, séparé de la produ
 |---|---|---|
 | URL de base | `https://sandbox-api.trustsend.africa/api/v1` | `https://api.trustsend.africa/api/v1` |
 | Préfixe des clés API | `ts_sandbox_` | `ts_live_` |
-| Activation du compte | Immédiate, sans vérification | Après vérification (KYB) et validation par TrustSend |
+| Activation du compte | Immédiate, sans vérification | Après vérification (KYB) et validation par Reemite |
 | Fonctionnalités | Toutes, quelle que soit l'offre | Selon votre offre |
 | Argent | Fictif | Réel |
 | Créditer un wallet | [Endpoint de test](#créditer-un-wallet) | Par un dépôt réel |
@@ -51,7 +51,7 @@ Cet endpoint n'existe qu'en sandbox : en production, il répond `404`.
 
 ```bash
 curl -X POST https://sandbox-api.trustsend.africa/api/v1/business/sandbox/fund \
-  -H "Authorization: Bearer $TRUSTSEND_SANDBOX_API_KEY" \
+  -H "Authorization: Bearer $REEMITE_SANDBOX_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "currency_code": "USD", "amount": "150000", "idempotency_key": "4f6b1c2e-8a8d-4c1e-9d0a-2b7e5f3c9a11" }'
 ```

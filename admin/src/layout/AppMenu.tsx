@@ -3,6 +3,9 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import DashboardIcon from '@mui/icons-material/SpaceDashboardOutlined'
 import AgentsIcon from '@mui/icons-material/BadgeOutlined'
+import AgentApplicationsIcon from '@mui/icons-material/HowToRegOutlined'
+import RemittancesIcon from '@mui/icons-material/PublicOutlined'
+import WatchlistIcon from '@mui/icons-material/PolicyOutlined'
 import BusinessesIcon from '@mui/icons-material/StorefrontOutlined'
 import BusinessStaffIcon from '@mui/icons-material/SupportAgentOutlined'
 import FinancialProductsIcon from '@mui/icons-material/SavingsOutlined'
@@ -38,17 +41,20 @@ export function AppMenu() {
 
       <SectionLabel>Network</SectionLabel>
       <Menu.ResourceItem name="agents" />
+      <Menu.ResourceItem name="agent_applications" />
       <Menu.ResourceItem name="businesses" />
       <Menu.ResourceItem name="business_staff" />
       <Menu.ResourceItem name="users" />
 
       <SectionLabel>Compliance</SectionLabel>
       <Menu.ResourceItem name="kyc" />
+      <Menu.ResourceItem name="watchlist" />
       <Menu.ResourceItem name="disputes" />
       <Menu.ResourceItem name="audit_logs" />
 
       <SectionLabel>Finance</SectionLabel>
       <Menu.ResourceItem name="transactions" />
+      <Menu.ResourceItem name="remittances" />
       <Menu.ResourceItem name="cards" />
       <Menu.ResourceItem name="loans" />
       <Menu.ResourceItem name="savings_accounts" />
@@ -68,6 +74,9 @@ export function AppMenu() {
 
 export const resourceIcons = {
   agents: AgentsIcon,
+  agent_applications: AgentApplicationsIcon,
+  remittances: RemittancesIcon,
+  watchlist: WatchlistIcon,
   businesses: BusinessesIcon,
   business_staff: BusinessStaffIcon,
   financial_products: FinancialProductsIcon,

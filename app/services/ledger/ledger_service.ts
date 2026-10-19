@@ -1,6 +1,10 @@
 import { DateTime } from 'luxon'
 import db from '@adonisjs/lucid/services/db'
 import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
+import {
+  CashOutHoldService,
+  FundsReservedException,
+} from '#services/transactions/cash_out_hold_service'
 import LedgerTransaction from '#models/ledger_transaction'
 import LedgerEntry from '#models/ledger_entry'
 import LedgerAccount from '#models/ledger_account'
@@ -161,6 +165,27 @@ export class LedgerService {
             // Prevent negative balances (application-level check)
             if (wallet.balanceCache < 0n) {
               throw new Error(`Wallet ${walletId} balance would go negative`)
+            }
+
+            // Backstop for cash-out holds: a customer-initiated debit may not dip into money
+            // already reserved for a withdrawal an agent is about to pay out. The services check
+            // this up front with a friendlier error; this catches any path that forgets to.
+            // cash_out itself is exempt — it is the reservation being honoured.
+            if (
+              entry.direction === 'debit' &&
+              account[0].owner_type === 'user_wallet' &&
+              initiatedByType === 'user' &&
+              type !== 'cash_out' &&
+              !options.reversalOfTransactionId
+            ) {
+              const reserved = await CashOutHoldService.reservedFor(walletId, trx)
+              if (wallet.balanceCache < reserved) {
+                throw new FundsReservedException(
+                  walletId,
+                  entry.amount.amount,
+                  wallet.balanceCache + entry.amount.amount - reserved
+                )
+              }
             }
 
             await wallet.useTransaction(trx).save()

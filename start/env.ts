@@ -92,6 +92,9 @@ const env = await Env.create(new URL('../', import.meta.url), {
   SMTP_PASSWORD: Env.schema.secret(),
   MAIL_FROM_ADDRESS: Env.schema.string(),
   MAIL_FROM_NAME: Env.schema.string(),
+
+  // Optional: only needed once "Enhanced push security" is enabled on the Expo project.
+  EXPO_ACCESS_TOKEN: Env.schema.string.optional(),
 })
 
 // A sandbox hands out auto-approved accounts to anyone who signs up — pointed at a production

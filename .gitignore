@@ -7,6 +7,7 @@ tmp/*
 # Encrypted KYC document blobs — never committed, even encrypted
 storage/kyc_documents/*
 !storage/kyc_documents/.gitkeep
+storage/avatars/*
 
 # Secrets
 .env

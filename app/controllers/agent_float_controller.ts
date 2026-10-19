@@ -24,6 +24,7 @@ const floatConvertValidator = vine.create({
 
 const FLOAT_TRANSFER_ENDPOINT = 'POST /api/v1/agents/float-transfer'
 const FLOAT_CONVERT_ENDPOINT = 'POST /api/v1/agents/float-convert'
+const FLOAT_WITHDRAW_ENDPOINT = 'POST /api/v1/agents/float-withdraw'
 
 /**
  * Self-service float operations for the authenticated agent (resolved via AgentIdentityService,
@@ -104,7 +105,13 @@ export default class AgentFloatController {
       await IdempotencyService.fail(identity)
       const err = error as any
       if (err.name === 'AgentNotFoundException' || err.name === 'AgentNotActiveException') {
-        return response.forbidden({ message: err.message })
+        return response.forbidden({
+          message: err.message,
+          code: err.name === 'AgentNotActiveException' ? 'AGENT_NOT_ACTIVE' : undefined,
+        })
+      }
+      if (err.name === 'NoFloatInCurrencyException') {
+        return response.unprocessableEntity({ message: err.message, code: 'NO_FLOAT_IN_CURRENCY' })
       }
       return response.badRequest({ message: err.message || 'Float transfer failed' })
     }
@@ -168,9 +175,81 @@ export default class AgentFloatController {
       await IdempotencyService.fail(identity)
       const err = error as any
       if (err.name === 'AgentNotFoundException' || err.name === 'AgentNotActiveException') {
-        return response.forbidden({ message: err.message })
+        return response.forbidden({
+          message: err.message,
+          code: err.name === 'AgentNotActiveException' ? 'AGENT_NOT_ACTIVE' : undefined,
+        })
       }
       return response.badRequest({ message: err.message || 'Float conversion failed' })
+    }
+  }
+
+  /**
+   * POST /api/v1/agents/float-withdraw — agent moves float back into their own personal wallet
+   * (commissions earned, float no longer needed, or emptying it before termination). Open to a
+   * suspended agent too; see FloatTransferService.withdrawToPersonalWallet().
+   */
+  async withdraw({ auth, request, correlationId, response }: HttpContext) {
+    const user = auth.user
+    if (!user) return response.unauthorized({ message: 'Unauthenticated' })
+
+    // Same body as float-convert: an amount, a currency, the PIN and an idempotency key.
+    const payload = await request.validateUsing(floatConvertValidator)
+    const currencyCode = payload.currency_code || 'USD'
+
+    const identity = {
+      key: payload.idempotency_key,
+      actorType: 'user' as const,
+      actorId: user.id,
+      endpoint: FLOAT_WITHDRAW_ENDPOINT,
+    }
+
+    try {
+      const outcome = await IdempotencyService.begin({
+        ...identity,
+        requestHash: IdempotencyService.hashPayload(payload),
+      })
+      if (outcome.replay) return response.status(outcome.status).send(outcome.body)
+    } catch (error) {
+      const err = error as any
+      if (err.name === 'IdempotencyConflictException')
+        return response.conflict({ message: err.message })
+      throw error
+    }
+
+    try {
+      const agent = await AgentIdentityService.requireAgentForUser(user.id)
+
+      const pinVerification = await PinService.verifyPin(user, payload.pin)
+      if (!pinVerification.valid) {
+        await IdempotencyService.fail(identity)
+        return response.unauthorized({
+          message: pinVerification.message,
+          code: pinVerification.code,
+        })
+      }
+
+      const txn = await FloatTransferService.withdrawToPersonalWallet({
+        agentId: agent.id,
+        amount: new Money(BigInt(payload.amount), currencyCode),
+        correlationId,
+      })
+
+      const body = {
+        data: { transaction_id: txn.id, status: txn.status, created_at: txn.createdAt },
+      }
+      await IdempotencyService.complete(identity, 201, body)
+      return response.created(body)
+    } catch (error) {
+      await IdempotencyService.fail(identity)
+      const err = error as any
+      if (err.name === 'AgentNotFoundException') {
+        return response.forbidden({ message: err.message })
+      }
+      if (err.name === 'NoFloatInCurrencyException') {
+        return response.unprocessableEntity({ message: err.message, code: 'NO_FLOAT_IN_CURRENCY' })
+      }
+      return response.badRequest({ message: err.message || 'Float withdrawal failed' })
     }
   }
 }

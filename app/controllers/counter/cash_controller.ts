@@ -335,8 +335,14 @@ export default class CounterCashController {
       case 'InsufficientFloatException':
       case 'InsufficientBalanceException':
         return response.paymentRequired({ message: err.message })
+      case 'FundsReservedException':
+        return response.paymentRequired({ message: err.message, code: 'FUNDS_RESERVED' })
+      case 'CashOutExpiredException':
+        return response.gone({ message: err.message, code: 'CASH_OUT_EXPIRED' })
       case 'TransactionLimitExceededException':
         return response.unprocessableEntity({ message: err.message })
+      case 'AgentLimitExceededException':
+        return response.unprocessableEntity({ message: err.message, code: 'AGENT_LIMIT_EXCEEDED' })
       default:
         // The services signal a wrong state with a plain Error ("must be in … status"): that is
         // the caller acting on a stale screen, not a server fault.

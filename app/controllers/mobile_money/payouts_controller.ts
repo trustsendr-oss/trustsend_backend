@@ -135,8 +135,11 @@ export default class MobileMoneyPayoutsController {
     } catch (error) {
       await IdempotencyService.fail(identity)
       const err = error as any
-      if (err.name === 'InsufficientBalanceException') {
-        return response.paymentRequired({ message: err.message })
+      if (err.name === 'InsufficientBalanceException' || err.name === 'FundsReservedException') {
+        return response.paymentRequired({
+          message: err.message,
+          code: err.name === 'FundsReservedException' ? 'FUNDS_RESERVED' : undefined,
+        })
       }
       if (err.name === 'TransactionLimitExceededException') {
         return response.badRequest({ message: err.message })

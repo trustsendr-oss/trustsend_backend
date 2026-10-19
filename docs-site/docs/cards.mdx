@@ -27,7 +27,7 @@ title: Cartes virtuelles
 
 ```bash
 curl -X POST https://api.trustsend.africa/api/v1/business/cards \
-  -H "Authorization: Bearer $TRUSTSEND_API_KEY" \
+  -H "Authorization: Bearer $REEMITE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "wallet_id": 30,
@@ -63,7 +63,7 @@ curl -X POST https://api.trustsend.africa/api/v1/business/cards \
 `details` contient les données complètes de la carte. Il vaut `null` lorsque ces données ne sont pas disponibles pour le compte.
 
 :::warning Données sensibles
-Le numéro, le code de sécurité et la date d'expiration sont transmis à la volée et ne sont jamais conservés par TrustSend. Ne les journalisez pas et ne les stockez pas sans être conforme à la norme PCI DSS.
+Le numéro, le code de sécurité et la date d'expiration sont transmis à la volée et ne sont jamais conservés par Reemite. Ne les journalisez pas et ne les stockez pas sans être conforme à la norme PCI DSS.
 :::
 
 **Erreurs**
