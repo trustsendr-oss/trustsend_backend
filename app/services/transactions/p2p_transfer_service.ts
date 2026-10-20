@@ -2,7 +2,8 @@ import db from '@adonisjs/lucid/services/db'
 import LedgerTransaction from '#models/ledger_transaction'
 import LedgerAccount from '#models/ledger_account'
 import OutboxEvent from '#models/outbox_event'
-import { type Money } from '#services/money/money'
+import { Money } from '#services/money/money'
+import { FeeScheduleService } from '#services/ledger/fee_schedule_service'
 import { CashOutHoldService } from '#services/transactions/cash_out_hold_service'
 import { LedgerService } from '#services/ledger/ledger_service'
 import { LimitService } from '#services/ledger/limit_service'
@@ -55,7 +56,15 @@ interface P2pTransferResponse {
     amount: bigint
     currencyCode: string
   }
+  /** Paid by the sender on top of `amount`, in minor units. */
+  fee: bigint
   createdAt: any
+}
+
+/** `percent` % of `amount`, rounded half up to the smallest unit. */
+function feeOn(amount: bigint, percent: number): bigint {
+  const bps = BigInt(Math.round(percent * 100)) // 1 % → 100
+  return (amount * bps + 5000n) / 10000n
 }
 
 /**
@@ -66,6 +75,9 @@ interface P2pTransferResponse {
  * - Verify wallet existence and ownership
  * - Check transaction and daily limits
  * - Verify sufficient balance (pessimistic locking)
+ * - Charge the transfer fee (fee_schedules `p2p_transfer`): the sender pays it on top of the
+ *   amount, the recipient receives the full amount. This fee is what pays agents for the free
+ *   cash in / cash out (AgentCommissionService).
  * - Create double-entry ledger entries (debits sender, credits recipient)
  * - Create outbox event for any post-transaction webhook/notification
  * - Audit the transaction
@@ -109,17 +121,23 @@ export class P2pTransferService {
         )
       }
 
-      // 2. Verify sender has sufficient balance
+      // 2. Verify sender has sufficient balance for the amount AND the fee on top of it.
       // Note: senderWallet is a raw db.query() row (snake_case columns), not a Lucid model.
-      if (senderWallet.balance_cache < request.amount.amount) {
+      const currencyCode = request.amount.currencyCode
+      const fee = feeOn(
+        request.amount.amount,
+        await FeeScheduleService.getFeePercent('p2p_transfer')
+      )
+      const total = request.amount.amount + fee
+      if (senderWallet.balance_cache < total) {
         throw new InsufficientBalanceException(
           request.senderWalletId,
-          request.amount.amount,
+          total,
           senderWallet.balance_cache
         )
       }
       // Money reserved for a cash withdrawal is still in balance_cache but no longer spendable.
-      await CashOutHoldService.assertAvailable(senderWallet, request.amount.amount, trx)
+      await CashOutHoldService.assertAvailable(senderWallet, total, trx)
 
       // 3. Verify transaction limit (per_transaction_limit)
       if (
@@ -168,20 +186,36 @@ export class P2pTransferService {
       }
 
       // 5. Create the double-entry transaction via LedgerService
+      const entries: Array<{ accountId: number; direction: 'debit' | 'credit'; amount: Money }> = [
+        {
+          accountId: senderAccount.id,
+          direction: 'debit',
+          amount: new Money(total, currencyCode),
+        },
+        {
+          accountId: recipientAccount.id,
+          direction: 'credit',
+          amount: request.amount,
+        },
+      ]
+      if (fee > 0n) {
+        const feesAccount = await LedgerService.getOrCreatePlatformAccount(
+          `P2P_FEES.${currencyCode}`,
+          `Person-to-person transfer fees (${currencyCode})`,
+          currencyCode,
+          trx,
+          'revenue'
+        )
+        entries.push({
+          accountId: feesAccount.id,
+          direction: 'credit',
+          amount: new Money(fee, currencyCode),
+        })
+      }
+
       const txn = await LedgerService.postTransaction(
         'p2p_transfer',
-        [
-          {
-            accountId: senderAccount.id,
-            direction: 'debit',
-            amount: request.amount,
-          },
-          {
-            accountId: recipientAccount.id,
-            direction: 'credit',
-            amount: request.amount,
-          },
-        ],
+        entries,
         request.initiatedByType,
         request.initiatedById,
         {
@@ -194,6 +228,7 @@ export class P2pTransferService {
             recipient_wallet_id: request.recipientWalletId,
           },
           amount: request.amount,
+          fee,
           paymentMethod: 'wallet',
           trx,
         }
@@ -213,6 +248,7 @@ export class P2pTransferService {
           amount: request.amount.amount.toString(), // serialize bigint to string
           currencyCode: request.amount.currencyCode,
         },
+        fee: fee.toString(),
         correlation_id: request.correlationId,
       }
       outboxEvent.status = 'pending'
@@ -232,6 +268,7 @@ export class P2pTransferService {
           sender_wallet_id: request.senderWalletId,
           recipient_wallet_id: request.recipientWalletId,
           amount: request.amount.amount.toString(),
+          fee: fee.toString(),
           status: txn.status,
         },
         correlationId: request.correlationId,
@@ -247,6 +284,7 @@ export class P2pTransferService {
           amount: request.amount.amount,
           currencyCode: request.amount.currencyCode,
         },
+        fee,
         createdAt: txn.createdAt,
       }
     })

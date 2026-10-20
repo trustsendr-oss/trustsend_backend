@@ -68,10 +68,9 @@ export class CashOutService {
       }
 
       const agent = await Agent.findOrFail(request.agentId, { client: trx })
-      const fee = AgentFloatService.commissionOn(
-        request.amount.amount,
-        AgentFloatService.commissionRate(agent)
-      )
+      // Free for the customer: the agent is paid on their daily cash volume instead
+      // (AgentCommissionService). Kept as a variable so the reservation still records a fee of 0.
+      const fee = 0n
       const total = request.amount.amount + fee
 
       if (userWallet.balanceCache < total) {

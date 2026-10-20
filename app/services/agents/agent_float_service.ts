@@ -4,6 +4,7 @@ import type Agent from '#models/agent'
 import Wallet from '#models/wallet'
 import LedgerAccount from '#models/ledger_account'
 import { LedgerService } from '#services/ledger/ledger_service'
+import { FeeScheduleService } from '#services/ledger/fee_schedule_service'
 
 export class NoFloatInCurrencyException extends Error {
   constructor(public currencyCode: string) {
@@ -22,10 +23,13 @@ export class NoFloatInCurrencyException extends Error {
  *
  * ## Commission on cash
  *
- * A deposit is free for the customer: they are credited the full amount, and TumaPlus pays the
- * agent `commission_rate` % of it out of AGENT_CASH_COMMISSION (an expense). A withdrawal costs
- * the customer `commission_rate` % on top of the amount, credited to the agent's float with the
- * amount itself. Either way the agent's float ends up ahead by the commission, never behind.
+ * Cash in and cash out are free for the customer. The agent is not paid per operation but once
+ * a day, `agent_cash_volume_commission` % of the cash volume they handled, out of
+ * AGENT_CASH_COMMISSION (an expense) — see AgentCommissionService. The money behind it comes
+ * from the fee on person-to-person transfers (P2pTransferService).
+ *
+ * Withdrawals reserved before this model still carry the fee fixed at the time (`fee` in their
+ * metadata), honoured when they are paid out.
  *
  * An institution's counter earns nothing from TumaPlus and charges nothing through it: it is the
  * institution's own window (see institution_outlet_service.ts), not an agent TumaPlus pays.
@@ -114,9 +118,13 @@ export class AgentFloatService {
     return account.id
   }
 
-  /** The agent's cash commission rate in percent; 0 for an institution's counter. */
-  static commissionRate(agent: Agent): number {
-    return agent.businessId ? 0 : Number(agent.commissionRate)
+  /**
+   * What the agent earns on each day's cash volume, in percent; 0 for an institution's counter.
+   * One platform rate for every agent (fee_schedules), replacing the per-agent `commission_rate`.
+   */
+  static async volumeCommissionPercent(agent: Agent): Promise<number> {
+    if (agent.businessId) return 0
+    return FeeScheduleService.getFeePercent('agent_cash_volume_commission')
   }
 
   /** `rate` % of `amount`, rounded half up to the smallest unit. */

@@ -135,6 +135,7 @@ export default class P2pTransfersController {
             amount: result.amount.amount.toString(), // serialize bigint
             currency_code: result.amount.currencyCode,
           },
+          fee: result.fee.toString(),
           created_at: result.createdAt,
         },
       }

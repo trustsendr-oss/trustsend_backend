@@ -46,6 +46,31 @@ export class AgentApplicationSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class AgentCommissionPayoutSchema extends BaseModel {
+  static $columns = ['agentId', 'businessDay', 'commission', 'createdAt', 'currencyCode', 'excludedVolume', 'id', 'ledgerTransactionId', 'ratePercent', 'volume'] as const
+  $columns = AgentCommissionPayoutSchema.$columns
+  @column()
+  declare agentId: number
+  @column.date()
+  declare businessDay: DateTime
+  @column()
+  declare commission: bigint | number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare currencyCode: string
+  @column()
+  declare excludedVolume: bigint | number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare ledgerTransactionId: string | null
+  @column()
+  declare ratePercent: string
+  @column()
+  declare volume: bigint | number
+}
+
 export class AgentDeviceSchema extends BaseModel {
   static $columns = ['agentId', 'createdAt', 'deviceFingerprint', 'id', 'lastUsedAt', 'registeredAt', 'status', 'updatedAt'] as const
   $columns = AgentDeviceSchema.$columns

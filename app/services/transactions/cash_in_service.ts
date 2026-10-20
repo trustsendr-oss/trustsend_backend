@@ -191,11 +191,6 @@ export class CashInService {
 
       const agent = await Agent.findOrFail(metadata.agent_id, { client: trx })
 
-      const commission = AgentFloatService.commissionOn(
-        amount.amount,
-        AgentFloatService.commissionRate(agent)
-      )
-
       const agentAccount = await AgentFloatService.ledgerAccountId(
         agentWalletRow.id,
         'agent_wallet',
@@ -207,25 +202,12 @@ export class CashInService {
         trx
       )
 
+      // No commission here: the agent is paid once a day on their cash volume
+      // (AgentCommissionService), and the deposit is free for the customer.
       const entries = [
         { accountId: agentAccount, direction: 'debit' as const, amount },
         { accountId: userAccount, direction: 'credit' as const, amount },
       ]
-      if (commission > 0n) {
-        const expense = await AgentFloatService.commissionExpenseAccount(currencyCode, trx)
-        entries.push(
-          {
-            accountId: expense.id,
-            direction: 'debit',
-            amount: new Money(commission, currencyCode),
-          },
-          {
-            accountId: agentAccount,
-            direction: 'credit',
-            amount: new Money(commission, currencyCode),
-          }
-        )
-      }
 
       const posted = await LedgerService.postTransaction(
         'cash_in',
@@ -236,7 +218,6 @@ export class CashInService {
           correlationId,
           description: `Cash-in completed for wallet ${metadata.user_wallet_id}`,
           // No agent_id here: AgentWorkspaceService and AgentLimitService count tracking rows by it.
-          metadata: { agent_commission: commission.toString() },
           amount,
           paymentMethod: 'cash_agent',
           paymentChannel: agent.code,
@@ -253,7 +234,6 @@ export class CashInService {
       txn.relatedTransactionId = posted.id
       txn.metadata = {
         ...metadata,
-        agent_commission: commission.toString(),
         posted_transaction_id: posted.id,
       }
       await txn.useTransaction(trx).save()
@@ -265,10 +245,7 @@ export class CashInService {
         resourceType: 'ledger_transaction',
         resourceId: txn.id,
         before: { status: 'pending' },
-        after: {
-          status: 'completed',
-          agent_commission: commission.toString(),
-        },
+        after: { status: 'completed' },
         correlationId,
         trx,
       })

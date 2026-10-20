@@ -297,7 +297,8 @@ function buildEmail(template: string, data: Record<string, any>, brand: string):
         rows: [
           ['Bénéficiaire', party(data.counterparty, data.counterparty_code)],
           ['Débité de', data.account],
-          ['Frais', 'Gratuit'],
+          ['Frais', feeRow(data.fee) ?? 'Gratuit'],
+          ['Total débité', feeRow(data.fee) ? data.total : null],
         ],
       })
 

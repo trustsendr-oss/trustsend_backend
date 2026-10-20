@@ -10,6 +10,8 @@ import Wallet from '#models/wallet'
 import { AgentOnboardingService } from '#services/agents/agent_onboarding_service'
 import { AgentLifecycleService } from '#services/agents/agent_lifecycle_service'
 import { AgentFloatService } from '#services/agents/agent_float_service'
+import { AgentCommissionService } from '#services/agents/agent_commission_service'
+import { P2pTransferService } from '#services/transactions/p2p_transfer_service'
 import { UserOnboardingService } from '#services/users/user_onboarding_service'
 import { CashInService } from '#services/transactions/cash_in_service'
 import { CashOutService } from '#services/transactions/cash_out_service'
@@ -20,8 +22,8 @@ import { Money } from '#services/money/money'
 /**
  * An agent's float and what they earn on it.
  *
- * - a deposit is free for the customer and earns the agent their commission, paid by TumaPlus;
- * - a withdrawal costs the customer the commission on top, and it lands on the agent's float;
+ * - deposits and withdrawals are free for the customer and move only the amount;
+ * - the agent is paid once a day, a percentage of their cash volume, round trips excluded;
  * - the agent's cash limits are enforced;
  * - the float exists per currency, and can be taken back to the personal wallet;
  * - termination checks every float, not only the USD one.
@@ -105,24 +107,35 @@ test.group('Agent float and commission', (group) => {
   const suffixOf = () => `${Date.now()}`.slice(-8)
   const balanceOf = async (walletId: number) => (await Wallet.findOrFail(walletId)).balanceCache
 
-  test('a deposit is free for the customer and earns the agent commission', async ({ assert }) => {
-    const suffix = suffixOf()
-    const { agent, wallet } = await setUp(suffix)
-
+  const depositTo = async (
+    agent: Agent,
+    walletId: number,
+    amount: bigint,
+    suffix: string
+  ): Promise<void> => {
     const txn = await CashInService.initiate({
       agentId: agent.id,
-      userWalletId: wallet.id,
-      amount: new Money(100_00n, 'USD'),
+      userWalletId: walletId,
+      amount: new Money(amount, 'USD'),
       correlationId: `af-${suffix}`,
     })
     await CashInService.confirm(txn.id, `af-${suffix}`, agent.id)
+  }
+
+  test('a deposit is free for the customer and pays no commission on the spot', async ({
+    assert,
+  }) => {
+    const suffix = suffixOf()
+    const { agent, wallet } = await setUp(suffix)
+
+    await depositTo(agent, wallet.id, 100_00n, suffix)
 
     assert.equal(await balanceOf(wallet.id), 100_00n, 'the customer gets the full amount')
-    // 1000 − 100 handed to the customer + 2.50 commission.
-    assert.equal(await balanceOf(agent.walletId!), 902_50n)
+    // 1000 − 100 handed to the customer; the commission comes with the daily payout.
+    assert.equal(await balanceOf(agent.walletId!), 900_00n)
   })
 
-  test('a withdrawal fee is paid by the customer to the agent', async ({ client, assert }) => {
+  test('a withdrawal is free for the customer', async ({ client, assert }) => {
     const suffix = suffixOf()
     const { agent, customer, wallet } = await setUp(suffix)
     await db.from('wallets').where('id', wallet.id).update({ balance_cache: 200_00n })
@@ -135,7 +148,7 @@ test.group('Agent float and commission', (group) => {
       idempotency_key: randomUUID(),
     })
     created.assertStatus(201)
-    assert.equal((created.body() as any).data.fee, '250')
+    assert.equal((created.body() as any).data.fee, '0')
 
     await CashOutService.confirm(
       (created.body() as any).data.transaction_id,
@@ -143,12 +156,79 @@ test.group('Agent float and commission', (group) => {
       agent.id
     )
 
-    assert.equal(await balanceOf(wallet.id), 200_00n - 102_50n)
-    // The agent handed out 100 and was credited 100 + 2.50: never out of pocket.
-    assert.equal(await balanceOf(agent.walletId!), 1_102_50n)
+    assert.equal(await balanceOf(wallet.id), 100_00n)
+    // The agent handed out 100 and was credited 100.
+    assert.equal(await balanceOf(agent.walletId!), 1_100_00n)
 
     const lookup = await client.get(`/api/v1/directory/agents?code=${agent.code}`).loginAs(customer)
-    assert.equal((lookup.body() as any).data.cash_out_fee_percent, 2.5)
+    assert.equal((lookup.body() as any).data.cash_out_fee_percent, 0)
+  })
+
+  test('the agent is paid once a day on their cash volume', async ({ assert }) => {
+    const suffix = suffixOf()
+    const { agent, wallet } = await setUp(suffix)
+
+    await depositTo(agent, wallet.id, 100_00n, suffix)
+    await depositTo(agent, wallet.id, 300_00n, `${suffix}b`)
+
+    const rate = await AgentFloatService.volumeCommissionPercent(agent)
+    const expected = AgentFloatService.commissionOn(400_00n, rate)
+    const results = await AgentCommissionService.payDay(DateTime.now())
+    const mine = results.find((r) => r.agentId === agent.id)
+
+    assert.equal(mine?.volume, 400_00n)
+    assert.equal(mine?.commission, expected)
+    // 1000 − 400 handed out, + the day's commission.
+    assert.equal(await balanceOf(agent.walletId!), 600_00n + expected)
+
+    // A second run the same day pays nothing more.
+    const again = await AgentCommissionService.payDay(DateTime.now())
+    assert.isUndefined(again.find((r) => r.agentId === agent.id))
+    assert.equal(await balanceOf(agent.walletId!), 600_00n + expected)
+  })
+
+  test('a deposit sent straight back to the agent is not volume', async ({ assert }) => {
+    const suffix = suffixOf()
+    const { agent, personal, customer, wallet } = await setUp(suffix)
+
+    await depositTo(agent, wallet.id, 100_00n, suffix)
+    // The accomplice returns the money to the agent's own account.
+    await P2pTransferService.initiate({
+      senderWalletId: wallet.id,
+      recipientWalletId: personal.id,
+      amount: new Money(90_00n, 'USD'),
+      correlationId: `af-${suffix}`,
+      initiatedByType: 'user',
+      initiatedById: customer.id,
+    })
+
+    const results = await AgentCommissionService.payDay(DateTime.now())
+    const mine = results.find((r) => r.agentId === agent.id)
+
+    assert.equal(mine?.volume, 0n)
+    assert.equal(mine?.excluded, 100_00n)
+    assert.equal(mine?.commission, 0n)
+    assert.equal(await balanceOf(agent.walletId!), 900_00n, 'no commission on a round trip')
+  })
+
+  test('a person-to-person transfer costs the sender the fee on top', async ({ assert }) => {
+    const suffix = suffixOf()
+    const { personal, customer, wallet } = await setUp(suffix)
+    await db.from('wallets').where('id', wallet.id).update({ balance_cache: 200_00n })
+
+    const result = await P2pTransferService.initiate({
+      senderWalletId: wallet.id,
+      recipientWalletId: personal.id,
+      amount: new Money(100_00n, 'USD'),
+      correlationId: `af-${suffix}`,
+      initiatedByType: 'user',
+      initiatedById: customer.id,
+    })
+
+    // fee_schedules p2p_transfer = 1 %: the recipient gets 100, the sender pays 101.
+    assert.equal(result.fee, 1_00n)
+    assert.equal(await balanceOf(wallet.id), 99_00n)
+    assert.equal(await balanceOf(personal.id), 100_00n)
   })
 
   test('the agent cash limits are enforced', async ({ assert }) => {

@@ -143,8 +143,8 @@ test.group('Agent cash', (group) => {
       correlationId: `ac-${suffix}`,
     })
 
-    // The hold covers the cash and the agent's 2.5 % fee the customer pays on top: 80 + 2.
-    assert.equal(await CashOutHoldService.availableBalance(await wallet.refresh()), 18_00n)
+    // Withdrawals are free for the customer: the hold covers the cash alone.
+    assert.equal(await CashOutHoldService.availableBalance(await wallet.refresh()), 20_00n)
 
     await assert.rejects(
       () =>
@@ -267,7 +267,8 @@ test.group('Agent cash', (group) => {
     const detail = await client.get(`/api/v1/agent/operations/${txn.id}`).loginAs(agentUser)
     detail.assertStatus(200)
     assert.equal((detail.body() as any).data.type, 'cash_out')
-    assert.equal((detail.body() as any).data.fee, '100')
+    // Free for the customer: the agent is paid on their daily volume instead.
+    assert.equal((detail.body() as any).data.fee, '0')
     assert.isString((detail.body() as any).data.uuid)
     const foreignDetail = await client
       .get(`/api/v1/agent/operations/${txn.id}`)

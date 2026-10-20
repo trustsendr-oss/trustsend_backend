@@ -23,6 +23,7 @@ const CASH_OUT_EXPIRY_INTERVAL_MS = 60_000
 
 /** How often uncollected international transfers are refunded. See expire_remittances_job.ts. */
 const REMITTANCE_EXPIRY_INTERVAL_MS = 60 * 60_000
+const AGENT_COMMISSION_INTERVAL_MS = 60 * 60 * 1000
 
 /**
  * Fails loudly when Redis is unreachable.
@@ -145,6 +146,35 @@ export async function registerWorkers() {
   )
 
   console.log(`✓ Remittance expiry scheduled every ${REMITTANCE_EXPIRY_INTERVAL_MS / 60_000} min`)
+
+  // Agent commissions — pays each agent once a day on the cash volume they handled.
+  const agentCommissionWorker = new Worker(
+    'agent_commission',
+    async () => {
+      const { handleAgentCommissions } = await import('#jobs/agent_commission_job')
+      return handleAgentCommissions()
+    },
+    { connection: redisOptions, concurrency: 1 }
+  )
+  workers.push(agentCommissionWorker)
+
+  agentCommissionWorker.on('failed', (job, error) => {
+    console.error(`[queue] agent_commission job ${job?.id} failed:`, error)
+  })
+
+  const agentCommissionQueue = new Queue('agent_commission', { connection: redisOptions })
+  // Hourly, not daily: each run pays only the days that are due and skips those already paid,
+  // so a worker that was down at the usual hour catches up on its next tick.
+  await agentCommissionQueue.upsertJobScheduler(
+    'agent-commission-tick',
+    { every: AGENT_COMMISSION_INTERVAL_MS },
+    {
+      name: 'pay',
+      opts: { removeOnComplete: true, removeOnFail: 50 },
+    }
+  )
+
+  console.log(`✓ Agent commissions scheduled every ${AGENT_COMMISSION_INTERVAL_MS / 60_000} min`)
 
   // TODO: Add workers as they're implemented (Phase 3+)
   // - ledger_reconciliation_job

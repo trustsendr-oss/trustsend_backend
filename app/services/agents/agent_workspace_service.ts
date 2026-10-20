@@ -93,11 +93,12 @@ export class AgentWorkspaceService {
   }
 
   static async profile(agent: Agent) {
-    const [kycStatus, floatWallets, parent, commissions] = await Promise.all([
+    const [kycStatus, floatWallets, parent, commissions, volumeRate] = await Promise.all([
       this.latestKycStatus(agent.id),
       AgentFloatService.allFloatWallets(agent),
       agent.parentAgentId ? Agent.find(agent.parentAgentId) : Promise.resolve(null),
       this.commissionsThisMonth(agent),
+      AgentFloatService.volumeCommissionPercent(agent),
     ])
     const serializeFloat = (wallet: Wallet) => ({
       wallet_id: wallet.id,
@@ -118,7 +119,8 @@ export class AgentWorkspaceService {
       status: agent.status,
       city: agent.city,
       region: agent.region,
-      commission_rate: AgentFloatService.commissionRate(agent),
+      // Percent of each day's cash volume (deposits + withdrawals), paid the next day.
+      commission_rate: volumeRate,
       suspension_reason: agent.status === 'suspended' ? agent.suspensionReason : null,
       limits: {
         daily: agent.dailyLimit?.toString() ?? null,
@@ -177,9 +179,10 @@ export class AgentWorkspaceService {
   }
 
   /**
-   * What the agent earned since the start of the month, per currency: the commission on each
-   * completed deposit and withdrawal (stamped on the tracking row at confirmation) and on each
-   * remittance paid out (the `fee` of the payout transaction).
+   * What the agent earned since the start of the month, per currency: the daily volume
+   * commissions (agent_commission_payouts), the per-operation commission on deposits and
+   * withdrawals confirmed before that model (stamped on the tracking row), and the commission on
+   * each remittance paid out (the `fee` of the payout transaction).
    */
   static async commissionsThisMonth(
     agent: Agent
@@ -210,9 +213,23 @@ export class AgentWorkspaceService {
         )
       )
 
-    return rows.map((row: any) => ({
-      currency_code: row.currency_code,
-      amount: BigInt(row.total ?? 0).toString(),
+    // Daily volume commissions (AgentCommissionService), on top of the per-operation ones above:
+    // operations taken before the switch still carry `agent_commission`, new ones carry none.
+    const daily = await db
+      .from('agent_commission_payouts')
+      .where('agent_id', agent.id)
+      .where('business_day', '>=', DateTime.now().startOf('month').toISODate()!)
+      .groupBy('currency_code')
+      .select('currency_code')
+      .sum({ total: 'commission' })
+
+    const totals = new Map<string, bigint>()
+    for (const row of [...rows, ...daily] as any[]) {
+      totals.set(row.currency_code, (totals.get(row.currency_code) ?? 0n) + BigInt(row.total ?? 0))
+    }
+    return [...totals].map(([currency_code, total]) => ({
+      currency_code,
+      amount: total.toString(),
     }))
   }
 

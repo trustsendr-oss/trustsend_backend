@@ -224,6 +224,8 @@ async function handleP2pTransferCompleted(event: OutboxEvent): Promise<void> {
       amount,
       counterparty: recipient?.name ?? 'un destinataire',
       counterparty_code: recipient?.code,
+      fee: payload.fee ? formatAmount(payload.fee, currency) : null,
+      total: payload.fee ? formatSum(payload.amount?.amount, payload.fee, currency) : null,
       account,
       reference,
       date,
