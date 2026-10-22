@@ -15,6 +15,10 @@ export interface ApiDefinition {
       store: typeof routes['auth.access_tokens.store']
       refresh: typeof routes['auth.access_tokens.refresh']
     }
+    deviceSessions: {
+      pinLogin: typeof routes['auth.device_sessions.pin_login']
+      revoke: typeof routes['auth.device_sessions.revoke']
+    }
   }
   profile: {
     profile: {
@@ -26,6 +30,9 @@ export interface ApiDefinition {
     pushTokens: {
       store: typeof routes['profile.push_tokens.store']
       destroy: typeof routes['profile.push_tokens.destroy']
+    }
+    deviceSessions: {
+      store: typeof routes['profile.device_sessions.store']
     }
     accessTokens: {
       destroy: typeof routes['profile.access_tokens.destroy']
@@ -52,7 +59,11 @@ export interface ApiDefinition {
     directory: {
       lookupRecipient: typeof routes['directory.directory.lookup_recipient']
       lookupAgent: typeof routes['directory.directory.lookup_agent']
+      lookupMerchant: typeof routes['directory.directory.lookup_merchant']
     }
+  }
+  merchantPayments: {
+    store: typeof routes['merchant_payments.store']
   }
   currencies: {
     index: typeof routes['currencies.index']
@@ -375,6 +386,9 @@ export interface ApiDefinition {
     businessTransactions: {
       index: typeof routes['business.business_transactions.index']
     }
+    businessMerchantPayments: {
+      index: typeof routes['business.business_merchant_payments.index']
+    }
     businessWebhooks: {
       index: typeof routes['business.business_webhooks.index']
       store: typeof routes['business.business_webhooks.store']
@@ -470,6 +484,9 @@ export interface ApiDefinition {
       }
       businessTransactions: {
         index: typeof routes['business.dashboard.business_transactions.index']
+      }
+      businessMerchantPayments: {
+        index: typeof routes['business.dashboard.business_merchant_payments.index']
       }
       businessWebhooks: {
         index: typeof routes['business.dashboard.business_webhooks.index']

@@ -10,11 +10,14 @@ export type ScannedRoutes = {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.refresh': { paramsTuple?: []; params?: {} }
+    'auth.device_sessions.pin_login': { paramsTuple?: []; params?: {} }
+    'auth.device_sessions.revoke': { paramsTuple?: []; params?: {} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'profile.profile.avatar': { paramsTuple?: []; params?: {} }
     'profile.profile.update_avatar': { paramsTuple?: []; params?: {} }
     'profile.profile.destroy_avatar': { paramsTuple?: []; params?: {} }
     'profile.push_tokens.store': { paramsTuple?: []; params?: {} }
+    'profile.device_sessions.store': { paramsTuple?: []; params?: {} }
     'profile.push_tokens.destroy': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'profile.pin.set_pin': { paramsTuple?: []; params?: {} }
@@ -26,6 +29,8 @@ export type ScannedRoutes = {
     'notifications.notifications.mark_all_read': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
+    'directory.directory.lookup_merchant': { paramsTuple?: []; params?: {} }
+    'merchant_payments.store': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
     'exchange_rates.index': { paramsTuple?: []; params?: {} }
     'pricing.index': { paramsTuple?: []; params?: {} }
@@ -291,6 +296,7 @@ export type ScannedRoutes = {
     'business.business_swaps.quote': { paramsTuple?: []; params?: {} }
     'business.business_swaps.store': { paramsTuple?: []; params?: {} }
     'business.business_transactions.index': { paramsTuple?: []; params?: {} }
+    'business.business_merchant_payments.index': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.index': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.store': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -351,6 +357,7 @@ export type ScannedRoutes = {
     'business.dashboard.business_swaps.quote': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_swaps.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_transactions.index': { paramsTuple?: []; params?: {} }
+    'business.dashboard.business_merchant_payments.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -406,6 +413,7 @@ export type ScannedRoutes = {
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
+    'directory.directory.lookup_merchant': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
     'exchange_rates.index': { paramsTuple?: []; params?: {} }
     'pricing.index': { paramsTuple?: []; params?: {} }
@@ -526,6 +534,7 @@ export type ScannedRoutes = {
     'business.business_wallet.index': { paramsTuple?: []; params?: {} }
     'business.business_wallet.show': { paramsTuple: [ParamValue]; params: {'currency': ParamValue} }
     'business.business_transactions.index': { paramsTuple?: []; params?: {} }
+    'business.business_merchant_payments.index': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.index': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.get_deliveries': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
@@ -548,6 +557,7 @@ export type ScannedRoutes = {
     'business.dashboard.business_wallet.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_wallet.show': { paramsTuple: [ParamValue]; params: {'currency': ParamValue} }
     'business.dashboard.business_transactions.index': { paramsTuple?: []; params?: {} }
+    'business.dashboard.business_merchant_payments.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.get_deliveries': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
@@ -580,6 +590,7 @@ export type ScannedRoutes = {
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
+    'directory.directory.lookup_merchant': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
     'exchange_rates.index': { paramsTuple?: []; params?: {} }
     'pricing.index': { paramsTuple?: []; params?: {} }
@@ -700,6 +711,7 @@ export type ScannedRoutes = {
     'business.business_wallet.index': { paramsTuple?: []; params?: {} }
     'business.business_wallet.show': { paramsTuple: [ParamValue]; params: {'currency': ParamValue} }
     'business.business_transactions.index': { paramsTuple?: []; params?: {} }
+    'business.business_merchant_payments.index': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.index': { paramsTuple?: []; params?: {} }
     'business.business_webhooks.get_deliveries': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
@@ -722,6 +734,7 @@ export type ScannedRoutes = {
     'business.dashboard.business_wallet.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_wallet.show': { paramsTuple: [ParamValue]; params: {'currency': ParamValue} }
     'business.dashboard.business_transactions.index': { paramsTuple?: []; params?: {} }
+    'business.dashboard.business_merchant_payments.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.index': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.get_deliveries': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
@@ -751,14 +764,18 @@ export type ScannedRoutes = {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.refresh': { paramsTuple?: []; params?: {} }
+    'auth.device_sessions.pin_login': { paramsTuple?: []; params?: {} }
+    'auth.device_sessions.revoke': { paramsTuple?: []; params?: {} }
     'profile.profile.update_avatar': { paramsTuple?: []; params?: {} }
     'profile.push_tokens.store': { paramsTuple?: []; params?: {} }
+    'profile.device_sessions.store': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'profile.pin.set_pin': { paramsTuple?: []; params?: {} }
     'profile.pin.change_pin': { paramsTuple?: []; params?: {} }
     'profile.pin_reset.pin.request_reset': { paramsTuple?: []; params?: {} }
     'profile.pin_reset.pin.confirm_reset': { paramsTuple?: []; params?: {} }
     'notifications.notifications.mark_all_read': { paramsTuple?: []; params?: {} }
+    'merchant_payments.store': { paramsTuple?: []; params?: {} }
     'swaps.swaps.quote': { paramsTuple?: []; params?: {} }
     'swaps.swaps.store': { paramsTuple?: []; params?: {} }
     'wallets.wallets.store': { paramsTuple?: []; params?: {} }

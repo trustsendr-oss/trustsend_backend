@@ -29,7 +29,14 @@ const quoteValidator = vine.create({
 
 const sendValidator = vine.create({
   quote_id: vine.string().maxLength(40),
-  sender_country: vine.string().regex(/^[A-Za-z]{2}$/),
+  /**
+   * Ignored: the sender's country now comes from their verified identity (RemittanceService
+   * .senderCountry). Still accepted so app versions that send it keep working.
+   */
+  sender_country: vine
+    .string()
+    .regex(/^[A-Za-z]{2}$/)
+    .optional(),
   payout_method: vine.enum(['cash_pickup', 'wallet', 'mobile_money']),
   beneficiary_name: vine.string().trim().minLength(3).maxLength(120),
   beneficiary_phone: vine.string().trim().minLength(9).maxLength(20),
@@ -132,7 +139,6 @@ export default class RemittancesController {
         user,
         {
           quoteId: payload.quote_id,
-          senderCountry: payload.sender_country,
           payoutMethod: payload.payout_method,
           beneficiaryName: payload.beneficiary_name,
           beneficiaryPhone: payload.beneficiary_phone,

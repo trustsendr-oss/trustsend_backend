@@ -346,6 +346,11 @@ function KycShowContent() {
                 <TextField source="business_type" emptyText="—" />
               </Labeled>
             )}
+            {record.subject_type !== 'business' && (
+              <Labeled label="Country of residence (declared — check against the documents)">
+                <TextField source="country_code" emptyText="—" />
+              </Labeled>
+            )}
             <Labeled label="Submitted">
               <DateField source="submitted_at" showTime emptyText="—" />
             </Labeled>

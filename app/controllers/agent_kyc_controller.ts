@@ -11,6 +11,11 @@ import { collectAndValidateKycDocuments } from '#services/security/kyc_submissio
 const submitAgentKycValidator = vine.create({
   verification_type: vine.enum(['identity', 'address', 'liveness', 'document', 'pep_screening']),
   provider: vine.string().optional(),
+  /** Country of residence, ISO 3166-1 alpha-2 — see kyc_controller.ts. */
+  country_code: vine
+    .string()
+    .regex(/^[A-Za-z]{2}$/)
+    .optional(),
 })
 
 /**
@@ -59,6 +64,7 @@ export default class AgentKycController {
     kyc.subjectId = agent.id
     kyc.verificationType = payload.verification_type
     kyc.provider = payload.provider || null
+    kyc.countryCode = payload.country_code?.toUpperCase() ?? null
     kyc.status = 'pending'
     kyc.submittedAt = DateTime.now()
 

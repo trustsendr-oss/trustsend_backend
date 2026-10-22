@@ -23,6 +23,13 @@ const mailConfig = defineConfig({
       host: env.get('SMTP_HOST'),
       port: env.get('SMTP_PORT'),
       secure: env.get('SMTP_PORT') === 465,
+      // Bounded: without these an unreachable server held a send for up to ten minutes, and the
+      // outbox relay — which handles events one at a time — waited with it. The greeting gets
+      // Nodemailer's own 30 s: some servers greet late on purpose (Mailpit in Docker waits 10 s
+      // on a reverse DNS lookup), and a 10 s limit gave up a fraction of a second too early.
+      connectionTimeout: 10_000,
+      greetingTimeout: 30_000,
+      socketTimeout: 30_000,
       auth: {
         type: 'login',
         user: env.get('SMTP_USERNAME'),

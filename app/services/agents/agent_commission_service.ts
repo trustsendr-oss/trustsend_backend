@@ -33,8 +33,12 @@ type CashRow = {
 export type DayResult = {
   agentId: number
   currency: string
+  /** Deposits + withdrawals counted. */
   volume: bigint
+  /** Round trips left out of `volume`. */
   excluded: bigint
+  /** International transfers paid out in cash. */
+  remittanceVolume: bigint
   commission: bigint
 }
 
@@ -55,6 +59,13 @@ export type DayResult = {
  *   account (the user linked to the agent);
  * - a withdrawal by a customer the same agent credited by deposit in the preceding
  *   ROUND_TRIP_WINDOW_HOURS (deposit then withdraw at the same counter moves no money).
+ *
+ * ## International transfers
+ *
+ * Cash payouts of international transfers count too, at their own rate
+ * (`remittance_agent_commission`), funded by the transfer fee the sender paid. Payouts made
+ * before this rule carry their commission in `fee` (paid at the counter) and are not counted
+ * again.
  *
  * Running it is idempotent: agent_commission_payouts has one row per agent, day and currency,
  * written in the same database transaction as the ledger entries.
@@ -80,7 +91,8 @@ export class AgentCommissionService {
   /** Pays every agent for one business day. */
   static async payDay(day: DateTime): Promise<DayResult[]> {
     const rate = await FeeScheduleService.getFeePercent('agent_cash_volume_commission')
-    if (rate <= 0) return []
+    const remittanceRate = await FeeScheduleService.getFeePercent('remittance_agent_commission')
+    if (rate <= 0 && remittanceRate <= 0) return []
 
     const start = day.setZone(COMMISSION_TIME_ZONE).startOf('day')
     const end = start.plus({ days: 1 })
@@ -105,36 +117,70 @@ export class AgentCommissionService {
       )
     const rows: CashRow[] = rawRows.map((row: any) => ({ ...row, amount: String(row.amount) }))
 
-    if (rows.length === 0) return []
+    const rawRemittanceRows = await db
+      .from('ledger_transactions')
+      .where('type', 'remittance_payout')
+      .where('status', 'completed')
+      .where('initiated_by_type', 'agent')
+      .where('created_at', '>=', start.toJSDate())
+      .where('created_at', '<', end.toJSDate())
+      // Paid at the counter under the previous rule: already commissioned.
+      .where((q) => q.whereNull('fee').orWhere('fee', 0))
+      .select('initiated_by_id as agent_id', 'amount', 'currency_code')
+    const remittanceRows: Array<{ agent_id: number; amount: string; currency_code: string }> =
+      rawRemittanceRows.map((row: any) => ({ ...row, amount: String(row.amount) }))
 
-    const agentList = await Agent.query().whereIn('id', [...new Set(rows.map((r) => r.agent_id))])
+    if (rows.length === 0 && remittanceRows.length === 0) return []
+
+    const agentIds = [...new Set([...rows, ...remittanceRows].map((r) => r.agent_id))]
+    const agentList = await Agent.query().whereIn('id', agentIds)
     const agents = new Map(agentList.map((a) => [a.id, a]))
 
     // Group per agent and currency, splitting counted volume from round trips.
     const groups = new Map<string, DayResult>()
-    for (const row of rows) {
-      const agent = agents.get(row.agent_id)
-      // An institution's counter is the institution's own window: TumaPlus pays it nothing.
-      if (!agent || agent.businessId) continue
-
-      const key = `${row.agent_id}|${row.currency_code}`
+    const groupFor = (agentId: number, currency: string): DayResult => {
+      const key = `${agentId}|${currency}`
       const group = groups.get(key) ?? {
-        agentId: row.agent_id,
-        currency: row.currency_code,
+        agentId,
+        currency,
         volume: 0n,
         excluded: 0n,
+        remittanceVolume: 0n,
         commission: 0n,
       }
+      groups.set(key, group)
+      return group
+    }
+
+    for (const row of rows) {
+      const agent = agents.get(row.agent_id)
+      // An institution's counter is the institution's own window: TumaPlus pays it nothing for
+      // cash it handles for the institution.
+      if (!agent || agent.businessId) continue
+      const group = groupFor(row.agent_id, row.currency_code)
       const amount = BigInt(row.amount)
       if (await this.isRoundTrip(row, agent)) group.excluded += amount
       else group.volume += amount
-      groups.set(key, group)
+    }
+
+    // International transfers are TumaPlus's own corridor: every paying counter is commissioned,
+    // as it was at the counter before.
+    for (const row of remittanceRows) {
+      if (!agents.has(row.agent_id)) continue
+      groupFor(row.agent_id, row.currency_code).remittanceVolume += BigInt(row.amount)
     }
 
     const results: DayResult[] = []
     for (const group of groups.values()) {
-      group.commission = AgentFloatService.commissionOn(group.volume, rate)
-      const paid = await this.settle(agents.get(group.agentId)!, businessDay, rate, group)
+      group.commission =
+        AgentFloatService.commissionOn(group.volume, rate) +
+        AgentFloatService.commissionOn(group.remittanceVolume, remittanceRate)
+      const paid = await this.settle(
+        agents.get(group.agentId)!,
+        businessDay,
+        { cash: rate, remittance: remittanceRate },
+        group
+      )
       if (paid) results.push(group)
     }
     return results
@@ -186,7 +232,7 @@ export class AgentCommissionService {
   private static async settle(
     agent: Agent,
     businessDay: string,
-    rate: number,
+    rates: { cash: number; remittance: number },
     group: DayResult
   ): Promise<boolean> {
     const paid = await db.transaction(async (trx) => {
@@ -198,7 +244,9 @@ export class AgentCommissionService {
           currency_code: group.currency,
           volume: group.volume.toString(),
           excluded_volume: group.excluded.toString(),
-          rate_percent: rate,
+          rate_percent: rates.cash,
+          remittance_volume: group.remittanceVolume.toString(),
+          remittance_rate_percent: rates.remittance,
           commission: group.commission.toString(),
           created_at: new Date(),
         })
@@ -233,7 +281,9 @@ export class AgentCommissionService {
             business_day: businessDay,
             volume: group.volume.toString(),
             excluded_volume: group.excluded.toString(),
-            rate_percent: rate,
+            rate_percent: rates.cash,
+            remittance_volume: group.remittanceVolume.toString(),
+            remittance_rate_percent: rates.remittance,
           },
           amount: commission,
           paymentMethod: 'commission',
@@ -255,13 +305,26 @@ export class AgentCommissionService {
         recipientId: agent.id,
         type: 'agent.commission_paid',
         title: 'Commission versée',
-        message: `${formatAmount(group.commission, group.currency)} de commission pour le ${day}, sur ${formatAmount(group.volume, group.currency)} de dépôts et retraits.`,
+        message:
+          `${formatAmount(group.commission, group.currency)} de commission pour le ${day}, sur ` +
+          [
+            group.volume > 0n
+              ? `${formatAmount(group.volume, group.currency)} de dépôts et retraits`
+              : null,
+            group.remittanceVolume > 0n
+              ? `${formatAmount(group.remittanceVolume, group.currency)} de transferts internationaux payés`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(' et ') +
+          '.',
         data: {
           business_day: businessDay,
           currency_code: group.currency,
           commission: group.commission.toString(),
           volume: group.volume.toString(),
           excluded_volume: group.excluded.toString(),
+          remittance_volume: group.remittanceVolume.toString(),
         },
       })
     }

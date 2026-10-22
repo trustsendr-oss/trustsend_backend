@@ -29,6 +29,10 @@ const WebhooksController = () => import('#controllers/webhooks_controller')
 const WalletsController = () => import('#controllers/wallets_controller')
 const TransactionsController = () => import('#controllers/transactions_controller')
 const DirectoryController = () => import('#controllers/directory_controller')
+const MerchantPaymentsController = () =>
+  import('#controllers/merchants/merchant_payments_controller')
+const BusinessMerchantPaymentsController = () =>
+  import('#controllers/business/merchant_payments_controller')
 const PinController = () => import('#controllers/pin_controller')
 const MobileMoneyDepositsController = () => import('#controllers/mobile_money/deposits_controller')
 const MobileMoneyPayoutsController = () => import('#controllers/mobile_money/payouts_controller')
@@ -55,6 +59,7 @@ const BusinessCardsController = () => import('#controllers/business/cards_contro
 const BusinessSandboxController = () => import('#controllers/business/sandbox_controller')
 const InternalAuthController = () => import('#controllers/internal_auth_controller')
 const PushTokensController = () => import('#controllers/push_tokens_controller')
+const DeviceSessionsController = () => import('#controllers/device_sessions_controller')
 const InternalUsersController = () => import('#controllers/internal_users_controller')
 const BusinessDashboardAuthController = () =>
   import('#controllers/business_dashboard/auth_controller')
@@ -145,6 +150,12 @@ router
           .post('login', [controllers.AccessTokens, 'store'])
           .use(middleware.throttle({ maxRequests: 10, windowMinutes: 15, name: 'user-login' }))
         router.post('refresh', [controllers.AccessTokens, 'refresh']).use(middleware.auth())
+        // PIN sign-in on an enrolled device — see device_sessions_controller.ts. Throttled like
+        // login: PinService locks the PIN after 3 misses, this caps hammering across accounts.
+        router
+          .post('pin-login', [DeviceSessionsController, 'pinLogin'])
+          .use(middleware.throttle({ maxRequests: 10, windowMinutes: 15, name: 'user-pin-login' }))
+        router.post('device-sessions/revoke', [DeviceSessionsController, 'revoke'])
       })
       .prefix('auth')
       .as('auth')
@@ -156,6 +167,7 @@ router
         router.post('avatar', [controllers.Profile, 'updateAvatar'])
         router.delete('avatar', [controllers.Profile, 'destroyAvatar'])
         router.post('push-tokens', [PushTokensController, 'store'])
+        router.post('device-sessions', [DeviceSessionsController, 'store'])
         router.delete('push-tokens', [PushTokensController, 'destroy'])
         router.post('logout', [controllers.AccessTokens, 'destroy'])
         router.post('pin', [PinController, 'setPin'])
@@ -211,9 +223,20 @@ router
         router
           .get('agents', [DirectoryController, 'lookupAgent'])
           .use(middleware.throttle({ maxRequests: 30, windowMinutes: 15, name: 'directory-agent' }))
+        router
+          .get('merchants', [DirectoryController, 'lookupMerchant'])
+          .use(
+            middleware.throttle({ maxRequests: 30, windowMinutes: 15, name: 'directory-merchant' })
+          )
       })
       .prefix('directory')
       .as('directory')
+      .use(middleware.auth())
+
+    // Merchant payments — a customer pays a business by its payment code or QR.
+    router
+      .post('merchant-payments', [MerchantPaymentsController, 'store'])
+      .as('merchant_payments.store')
       .use(middleware.auth())
 
     // Currencies a wallet can be opened in — public reference data (no balances, no user data)
@@ -936,6 +959,7 @@ router
           .post('swaps', [BusinessSwapsController, 'store'])
           .use(middleware.businessPlan('wallet.multi_currency'))
         router.get('transactions', [BusinessTransactionsController, 'index'])
+        router.get('merchant-payments', [BusinessMerchantPaymentsController, 'index'])
         router
           .get('webhooks', [BusinessWebhooksController, 'index'])
           .use(middleware.businessPlan('webhooks'))
@@ -1160,6 +1184,7 @@ router
           .post('swaps', [BusinessSwapsController, 'store'])
           .use(middleware.businessPlan('wallet.multi_currency'))
         router.get('transactions', [BusinessTransactionsController, 'index'])
+        router.get('merchant-payments', [BusinessMerchantPaymentsController, 'index'])
         router
           .get('webhooks', [BusinessWebhooksController, 'index'])
           .use(middleware.businessPlan('webhooks'))

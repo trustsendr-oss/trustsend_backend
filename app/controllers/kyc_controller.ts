@@ -16,6 +16,11 @@ import vine from '@vinejs/vine'
 const initiateKycValidator = vine.create({
   verification_type: vine.enum(['identity', 'address', 'liveness', 'document', 'pep_screening']),
   provider: vine.string().optional(),
+  /** Country of residence, ISO 3166-1 alpha-2. Required with an identity verification. */
+  country_code: vine
+    .string()
+    .regex(/^[A-Za-z]{2}$/)
+    .optional(),
 })
 
 const VALID_KYC_STATUSES = [
@@ -117,6 +122,8 @@ export default class KycController {
         provider: kyc.provider,
         business_name: kyc.businessName,
         business_type: kyc.businessType,
+        // Declared by the holder; the reviewer checks it against the documents.
+        country_code: kyc.countryCode,
         status: kyc.status,
         submitted_at: kyc.submittedAt,
         decided_at: kyc.decidedAt,
@@ -143,6 +150,15 @@ export default class KycController {
 
     const payload = await request.validateUsing(initiateKycValidator)
 
+    // The identity verification is what fixes the holder's country of residence, which
+    // international transfers rely on: it cannot be submitted without one.
+    if (payload.verification_type === 'identity' && !payload.country_code) {
+      return response.unprocessableEntity({
+        code: 'COUNTRY_REQUIRED',
+        message: 'Your country of residence is required with an identity verification',
+      })
+    }
+
     const collected = await collectAndValidateKycDocuments(request, payload.verification_type)
     if (!collected.ok) {
       return response.status(collected.status).send({ message: collected.message })
@@ -154,6 +170,7 @@ export default class KycController {
       kyc.subjectId = user.id
       kyc.verificationType = payload.verification_type
       kyc.provider = payload.provider || null
+      kyc.countryCode = payload.country_code?.toUpperCase() ?? null
       kyc.status = 'pending'
       kyc.submittedAt = DateTime.now()
 
@@ -269,6 +286,15 @@ export default class KycController {
 
     const documents = await KycDocument.query().where('kyc_verification_id', kyc.id)
 
+    // The country comes from the most recent verification that gave one (the identity one),
+    // which is not necessarily the latest submission (an address proof carries none).
+    const withCountry = await KycVerification.query()
+      .where('subject_type', 'user')
+      .where('subject_id', user.id)
+      .whereNotNull('country_code')
+      .orderBy('created_at', 'desc')
+      .first()
+
     return response.ok({
       data: {
         kyc_id: kyc.id,
@@ -280,6 +306,9 @@ export default class KycController {
         decided_at: kyc.decidedAt,
         decision_reason: kyc.decisionReason,
         created_at: kyc.createdAt,
+        country_code: withCountry?.countryCode ?? null,
+        /** True once the verification carrying the country has been approved. */
+        country_verified: withCountry?.status === 'approved',
       },
     })
   }

@@ -47,7 +47,7 @@ export class AgentApplicationSchema extends BaseModel {
 }
 
 export class AgentCommissionPayoutSchema extends BaseModel {
-  static $columns = ['agentId', 'businessDay', 'commission', 'createdAt', 'currencyCode', 'excludedVolume', 'id', 'ledgerTransactionId', 'ratePercent', 'volume'] as const
+  static $columns = ['agentId', 'businessDay', 'commission', 'createdAt', 'currencyCode', 'excludedVolume', 'id', 'ledgerTransactionId', 'ratePercent', 'remittanceRatePercent', 'remittanceVolume', 'volume'] as const
   $columns = AgentCommissionPayoutSchema.$columns
   @column()
   declare agentId: number
@@ -67,6 +67,10 @@ export class AgentCommissionPayoutSchema extends BaseModel {
   declare ledgerTransactionId: string | null
   @column()
   declare ratePercent: string
+  @column()
+  declare remittanceRatePercent: string
+  @column()
+  declare remittanceVolume: bigint | number
   @column()
   declare volume: bigint | number
 }
@@ -423,7 +427,7 @@ export class BusinessVaultSchema extends BaseModel {
 }
 
 export class BusinessSchema extends BaseModel {
-  static $columns = ['approvedAt', 'approvedBy', 'code', 'createdAt', 'email', 'id', 'kind', 'loginAttempts', 'loginLockedUntil', 'name', 'password', 'phone', 'pinAttempts', 'pinHash', 'pinLockedUntil', 'pinResetExpiresAt', 'pinResetTokenHash', 'planId', 'planNextMaintenanceBillingAt', 'planPaymentStatus', 'planSubscribedAt', 'status', 'suspendedAt', 'suspensionReason', 'terminatedAt', 'terminationReason', 'updatedAt', 'walletId', 'webhookUrl'] as const
+  static $columns = ['approvedAt', 'approvedBy', 'code', 'createdAt', 'email', 'id', 'kind', 'loginAttempts', 'loginLockedUntil', 'name', 'password', 'paymentCode', 'phone', 'pinAttempts', 'pinHash', 'pinLockedUntil', 'pinResetExpiresAt', 'pinResetTokenHash', 'planId', 'planNextMaintenanceBillingAt', 'planPaymentStatus', 'planSubscribedAt', 'status', 'suspendedAt', 'suspensionReason', 'terminatedAt', 'terminationReason', 'updatedAt', 'walletId', 'webhookUrl'] as const
   $columns = BusinessSchema.$columns
   @column.dateTime()
   declare approvedAt: DateTime | null
@@ -447,6 +451,8 @@ export class BusinessSchema extends BaseModel {
   declare name: string
   @column({ serializeAs: null })
   declare password: string | null
+  @column()
+  declare paymentCode: string | null
   @column()
   declare phone: string
   @column()
@@ -634,6 +640,27 @@ export class CurrencySchema extends BaseModel {
   declare symbol: string | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+}
+
+export class DeviceSessionSchema extends BaseModel {
+  static $columns = ['createdAt', 'expiresAt', 'id', 'lastUsedAt', 'platform', 'tokenHash', 'updatedAt', 'userId'] as const
+  $columns = DeviceSessionSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime()
+  declare lastUsedAt: DateTime | null
+  @column()
+  declare platform: string | null
+  @column()
+  declare tokenHash: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
 }
 
 export class DisputeMessageSchema extends BaseModel {
@@ -946,12 +973,14 @@ export class KycDocumentSchema extends BaseModel {
 }
 
 export class KycVerificationSchema extends BaseModel {
-  static $columns = ['businessName', 'businessType', 'createdAt', 'decidedAt', 'decisionReason', 'expiresAt', 'id', 'provider', 'providerReference', 'reviewedBy', 'status', 'subjectId', 'subjectType', 'submittedAt', 'updatedAt', 'verificationType'] as const
+  static $columns = ['businessName', 'businessType', 'countryCode', 'createdAt', 'decidedAt', 'decisionReason', 'expiresAt', 'id', 'provider', 'providerReference', 'reviewedBy', 'status', 'subjectId', 'subjectType', 'submittedAt', 'updatedAt', 'verificationType'] as const
   $columns = KycVerificationSchema.$columns
   @column()
   declare businessName: string | null
   @column()
   declare businessType: string | null
+  @column()
+  declare countryCode: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column.dateTime()
@@ -1306,7 +1335,7 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class OutboxEventSchema extends BaseModel {
-  static $columns = ['aggregateId', 'aggregateType', 'attempts', 'createdAt', 'eventType', 'id', 'payload', 'publishedAt', 'status'] as const
+  static $columns = ['aggregateId', 'aggregateType', 'attempts', 'createdAt', 'eventType', 'id', 'payload', 'processingStartedAt', 'publishedAt', 'status'] as const
   $columns = OutboxEventSchema.$columns
   @column()
   declare aggregateId: string
@@ -1322,6 +1351,8 @@ export class OutboxEventSchema extends BaseModel {
   declare id: number
   @column()
   declare payload: any
+  @column.dateTime()
+  declare processingStartedAt: DateTime | null
   @column.dateTime()
   declare publishedAt: DateTime | null
   @column()

@@ -52,6 +52,7 @@ export const controllers = {
     Transactions: () => import('#controllers/business/transactions_controller'),
     Wallet: () => import('#controllers/business/wallet_controller'),
     Webhooks: () => import('#controllers/business/webhooks_controller'),
+    MerchantPayments: () => import('#controllers/business/merchant_payments_controller'),
   },
   Businesses: () => import('#controllers/businesses_controller'),
   CardProducts: () => import('#controllers/card_products_controller'),
@@ -124,4 +125,8 @@ export const controllers = {
   Users: () => import('#controllers/users_controller'),
   Wallets: () => import('#controllers/wallets_controller'),
   Webhooks: () => import('#controllers/webhooks_controller'),
+  merchants: {
+    MerchantPayments: () => import('#controllers/merchants/merchant_payments_controller'),
+  },
+  DeviceSessions: () => import('#controllers/device_sessions_controller'),
 }

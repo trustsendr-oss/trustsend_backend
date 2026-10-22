@@ -11,6 +11,7 @@ const createWebhookValidator = vine.create({
       'mobile_money_deposit.failed',
       'mobile_money_payout.completed',
       'mobile_money_payout.failed',
+      'merchant_payment.completed',
     ])
   ),
 })

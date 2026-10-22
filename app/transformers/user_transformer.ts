@@ -21,6 +21,9 @@ export default class UserTransformer extends BaseTransformer<User> {
       avatarUrl: this.resource.avatarRef
         ? `/api/v1/account/avatar?v=${this.resource.avatarRef.slice(0, 8)}`
         : null,
+      // Every money movement requires a PIN; without this flag the app only learns one is missing
+      // when a payment fails with "PIN not set". The hash itself never leaves the server.
+      pinSet: !!this.resource.pinHash,
     }
   }
 }

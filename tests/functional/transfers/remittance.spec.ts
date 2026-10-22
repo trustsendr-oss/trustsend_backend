@@ -3,6 +3,9 @@ import db from '@adonisjs/lucid/services/db'
 import { randomUUID } from 'node:crypto'
 import { DateTime } from 'luxon'
 import InternalUser from '#models/internal_user'
+import { AgentCommissionService } from '#services/agents/agent_commission_service'
+import { AgentFloatService } from '#services/agents/agent_float_service'
+import { FeeScheduleService } from '#services/ledger/fee_schedule_service'
 import KycVerification from '#models/kyc_verification'
 import Remittance from '#models/remittance'
 import User from '#models/user'
@@ -44,7 +47,13 @@ test.group('Remittances', (group) => {
   const suffixOf = () => `${Date.now() + counter++}`.slice(-8)
   const asAdmin = (req: any) => req.withGuard('internal').loginAs(admin)
 
-  async function sender(suffix: string, currency = 'BIF', balance = 5_000_000_00n, kyc = true) {
+  async function sender(
+    suffix: string,
+    currency = 'BIF',
+    balance = 5_000_000_00n,
+    kyc = true,
+    country: string | null = 'BI'
+  ) {
     const user = await User.create({
       fullName: `Sender ${suffix}`,
       code: `4${suffix}`,
@@ -63,6 +72,7 @@ test.group('Remittances', (group) => {
       verification.subjectType = 'user'
       verification.subjectId = user.id
       verification.verificationType = 'identity'
+      verification.countryCode = country
       verification.status = 'approved'
       verification.submittedAt = DateTime.now()
       verification.decidedAt = DateTime.now()
@@ -166,7 +176,14 @@ test.group('Remittances', (group) => {
     const floatWalletAfter = await Wallet.findOrFail(agent.walletId!)
     const floatAfter = floatWalletAfter.balanceCache
     const payout = BigInt(quote.payout_amount)
-    assert.isTrue(floatAfter - floatBefore >= payout, 'float credited payout + commission')
+    // The cash handed out comes back to the float; the commission waits for the daily payout.
+    assert.equal(floatAfter - floatBefore, payout)
+
+    const rate = await FeeScheduleService.getFeePercent('remittance_agent_commission')
+    const results = await AgentCommissionService.payDay(DateTime.now())
+    const mine = results.find((r) => r.agentId === agent.id && r.currency === 'USD')
+    assert.equal(mine?.remittanceVolume, payout)
+    assert.equal(mine?.commission, AgentFloatService.commissionOn(payout, rate))
 
     const again = await pay('0812345678')
     again.assertStatus(409)
@@ -181,7 +198,15 @@ test.group('Remittances', (group) => {
     sent.assertStatus(403)
     assert.equal((sent.body() as any).code, 'KYC_REQUIRED')
 
-    const { user } = await sender(suffixOf())
+    // A verified identity without a country of residence cannot send abroad.
+    const noCountry = await sender(suffixOf(), 'BIF', 5_000_000_00n, true, null)
+    const missing = await sendCash(noCountry.user, client)
+    missing.sent.assertStatus(403)
+    assert.equal((missing.sent.body() as any).code, 'KYC_COUNTRY_MISSING')
+
+    // The country comes from the verified identity: a DRC resident is refused even if the
+    // request claims another country.
+    const { user } = await sender(suffixOf(), 'BIF', 5_000_000_00n, true, 'CD')
     const quote = await client.post('/api/v1/remittances/quote').loginAs(user).json({
       source_currency: 'BIF',
       payout_currency: 'USD',
@@ -193,7 +218,7 @@ test.group('Remittances', (group) => {
       .loginAs(user)
       .json({
         quote_id: (quote.body() as any).data.quote_id,
-        sender_country: 'CD',
+        sender_country: 'BE',
         payout_method: 'cash_pickup',
         beneficiary_name: 'Mapendo Kahindo',
         beneficiary_phone: '0812345678',
@@ -400,7 +425,6 @@ test.group('Remittances', (group) => {
       user,
       {
         quoteId: quote.id,
-        senderCountry: 'BI',
         payoutMethod: 'mobile_money',
         beneficiaryName: 'Mapendo Kahindo',
         beneficiaryPhone: '0812345678',

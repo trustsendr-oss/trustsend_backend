@@ -4,12 +4,18 @@ import PushToken from '#models/push_token'
 import type Notification from '#models/notification'
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send'
+const EXPO_RECEIPTS_URL = 'https://exp.host/--/api/v2/push/getReceipts'
+/** Expo has a delivery receipt for a ticket a few seconds after sending. */
+const RECEIPT_DELAY_MS = 15_000
 /** Expo accepts at most 100 messages per request. */
 const BATCH_SIZE = 100
 const REQUEST_TIMEOUT_MS = 10_000
 
 type ExpoTicket =
   { status: 'ok'; id: string } | { status: 'error'; message: string; details?: { error?: string } }
+
+type ExpoReceipt =
+  { status: 'ok' } | { status: 'error'; message: string; details?: { error?: string } }
 
 /**
  * Push notifications through Expo's push service, mirroring the in-app notifications.
@@ -94,21 +100,65 @@ export class PushService {
         continue
       }
 
-      // Tickets come back in the order the messages were sent. A device that uninstalled the
-      // app or revoked the permission is reported here: its token is dropped so it stops
-      // costing a request on every notification.
-      const { data } = (await response.json()) as { data?: ExpoTicket[] }
-      const stale = (data ?? [])
-        .map((ticket, index) =>
-          ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered'
-            ? batch[index]
-            : null
-        )
-        .filter((token): token is string => token !== null)
+      // Tickets come back in the order the messages were sent. A ticket only says Expo took
+      // the message; whether the device got it is in the receipt, checked a little later.
+      const body = (await response.json()) as { data?: ExpoTicket[] }
+      const tickets = body.data ?? []
+      const stale: string[] = []
+      const pending = new Map<string, string>()
+      tickets.forEach((ticket, index) => {
+        if (ticket.status === 'ok') {
+          pending.set(ticket.id, batch[index])
+        } else {
+          if (ticket.details?.error === 'DeviceNotRegistered') stale.push(batch[index])
+          console.error(`Expo push refused: ${ticket.details?.error ?? ''} ${ticket.message}`)
+        }
+      })
 
-      if (stale.length > 0) {
-        await PushToken.query().whereIn('token', stale).delete()
+      if (stale.length > 0) await this.forget(stale)
+      if (pending.size > 0) {
+        setTimeout(() => void this.checkReceipts(pending), RECEIPT_DELAY_MS).unref()
       }
     }
+  }
+
+  /**
+   * Reads the delivery receipts of sent pushes. A device that uninstalled the app shows up here
+   * (FCM/APNs answer only after Expo hands the message over), not in the ticket: its token is
+   * dropped so it stops costing a request on every notification. Other failures — invalid push
+   * credentials on the Expo project, an oversized message — are logged, being configuration
+   * problems someone has to fix.
+   */
+  private static async checkReceipts(pending: Map<string, string>): Promise<void> {
+    try {
+      const response = await fetch(EXPO_RECEIPTS_URL, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [...pending.keys()] }),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      })
+      if (!response.ok) return
+
+      const { data } = (await response.json()) as { data?: Record<string, ExpoReceipt> }
+      const stale: string[] = []
+      for (const [id, receipt] of Object.entries(data ?? {})) {
+        if (receipt.status !== 'error') continue
+        if (receipt.details?.error === 'DeviceNotRegistered') {
+          const token = pending.get(id)
+          if (token) stale.push(token)
+        } else {
+          console.error(
+            `Expo push not delivered: ${receipt.details?.error ?? ''} ${receipt.message}`
+          )
+        }
+      }
+      if (stale.length > 0) await this.forget(stale)
+    } catch (error) {
+      console.error('Expo push receipts could not be read:', error)
+    }
+  }
+
+  private static async forget(tokens: string[]): Promise<void> {
+    await PushToken.query().whereIn('token', tokens).delete()
   }
 }

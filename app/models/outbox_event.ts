@@ -30,4 +30,8 @@ export default class OutboxEvent extends BaseModel {
 
   @column.dateTime()
   declare publishedAt: DateTime | null
+
+  /** When the relay took it; see outbox_relay_job.ts for the recovery of stuck events. */
+  @column.dateTime()
+  declare processingStartedAt: DateTime | null
 }

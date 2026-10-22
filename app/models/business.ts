@@ -38,6 +38,13 @@ export default class Business extends compose(
   @column()
   declare code: string
 
+  /**
+   * Six-digit code a customer types (or scans, as a QR) to pay this merchant. Null for
+   * institutions, which are not paid this way. See MerchantPaymentService.
+   */
+  @column()
+  declare paymentCode: string | null
+
   @column()
   declare name: string
 

@@ -150,7 +150,7 @@ async function walletAccountId(
  * - send:   sender wallet S  →  REMITTANCE_FEES.S (fee)  +  [FX_POSITION.S → FX_POSITION.P]
  *           →  REMITTANCE_PAYABLE.P (what the beneficiary is owed)  +  FX_REVENUE.P (margin)
  * - payout: REMITTANCE_PAYABLE.P  →  agent float P (cash handed out)
- *           REMITTANCE_AGENT_COMMISSION.P (expense)  →  agent float P (commission)
+ *           (the agent's commission comes with their daily payout: AgentCommissionService)
  *           or REMITTANCE_PAYABLE.P  →  beneficiary wallet P
  * - refund: the send, reversed at the original rate — the sender gets back every unit paid.
  *
@@ -174,6 +174,29 @@ export class RemittanceService {
         403
       )
     }
+  }
+
+  /**
+   * The sender's country of residence, from their approved identity verification — never from the
+   * request: a declared country would let a DRC resident enter the DRC-only payout corridor (and
+   * its screening) by simply claiming to be abroad.
+   */
+  static async senderCountry(userId: number): Promise<string> {
+    const verified = await KycVerification.query()
+      .where('subject_type', 'user')
+      .where('subject_id', userId)
+      .where('status', 'approved')
+      .whereNotNull('country_code')
+      .orderBy('decided_at', 'desc')
+      .first()
+    if (!verified?.countryCode) {
+      throw new RemittanceException(
+        'Your country of residence must be part of your verified identity to send money abroad',
+        'KYC_COUNTRY_MISSING',
+        403
+      )
+    }
+    return verified.countryCode.toUpperCase()
   }
 
   static assertPayoutCurrency(method: RemittancePayoutMethod, currency: string) {
@@ -340,7 +363,6 @@ export class RemittanceService {
     user: User,
     input: {
       quoteId: string
-      senderCountry: string
       payoutMethod: RemittancePayoutMethod
       beneficiaryName: string
       beneficiaryPhone: string
@@ -364,7 +386,7 @@ export class RemittanceService {
 
     await this.assertKycApproved(user.id)
 
-    const senderCountry = input.senderCountry.toUpperCase()
+    const senderCountry = await this.senderCountry(user.id)
     if (senderCountry === PAYOUT_COUNTRY) {
       throw new RemittanceException(
         'Transfers within the DRC use a regular Reemite transfer',
@@ -683,11 +705,8 @@ export class RemittanceService {
         trx
       )
 
-      const commission = percentOf(
-        remittance.payoutAmount,
-        await FeeScheduleService.getFeePercent('remittance_agent_commission'),
-        false
-      )
+      // No commission at the counter: the amount paid out counts in the agent's daily payout
+      // (AgentCommissionService), at the `remittance_agent_commission` rate.
       const currency = remittance.payoutCurrency
       const payable = await platform(
         'REMITTANCE_PAYABLE',
@@ -707,23 +726,9 @@ export class RemittanceService {
         {
           accountId: floatAccount,
           direction: 'credit',
-          amount: new Money(remittance.payoutAmount + commission, currency),
+          amount: new Money(remittance.payoutAmount, currency),
         },
       ]
-      if (commission > 0n) {
-        const expense = await platform(
-          'REMITTANCE_AGENT_COMMISSION',
-          'Remittance agent commissions',
-          currency,
-          trx,
-          'expense'
-        )
-        entries.push({
-          accountId: expense.id,
-          direction: 'debit',
-          amount: new Money(commission, currency),
-        })
-      }
 
       const txn = await LedgerService.postTransaction(
         'remittance_payout',
@@ -737,12 +742,10 @@ export class RemittanceService {
             remittance_id: remittance.id,
             amount: remittance.payoutAmount.toString(),
             currency_code: currency,
-            commission: commission.toString(),
           },
           amount: new Money(remittance.payoutAmount, currency),
           paymentMethod: 'cash_agent',
           paymentChannel: agent.code,
-          fee: commission,
           trx,
         }
       )
@@ -762,7 +765,7 @@ export class RemittanceService {
         resourceType: 'remittance',
         resourceId: remittance.id,
         before: { status: 'awaiting_payout' },
-        after: { status: 'paid', id_type: input.idType, commission: commission.toString() },
+        after: { status: 'paid', id_type: input.idType },
         correlationId: input.correlationId,
         trx,
       })

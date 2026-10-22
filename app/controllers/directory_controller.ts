@@ -5,6 +5,7 @@ import Wallet from '#models/wallet'
 import vine from '@vinejs/vine'
 import { CurrencyService } from '#services/money/currency_service'
 import { FeeScheduleService } from '#services/ledger/fee_schedule_service'
+import { MerchantPaymentService } from '#services/merchants/merchant_payment_service'
 
 /**
  * Directory lookups — resolving a code someone gave you into a payee.
@@ -29,6 +30,10 @@ const lookupRecipientValidator = vine.create({
   // Which of the recipient's wallets to credit. Defaults to USD, matching the wallet every
   // account is created with (see UserOnboardingService.createDefaultWallet).
   currency_code: vine.string().fixedLength(3).optional(),
+})
+
+const lookupMerchantValidator = vine.create({
+  code: vine.string().regex(/^\d{6}$/),
 })
 
 const lookupAgentValidator = vine.create({
@@ -137,6 +142,40 @@ export default class DirectoryController {
         // Withdrawals are free for the customer (see AgentFloatService); the field stays so the
         // apps keep showing the fee line, now at zero.
         cash_out_fee_percent: 0,
+      },
+    })
+  }
+
+  /**
+   * GET /api/v1/directory/merchants?code=123456
+   * Resolves a merchant's payment code (typed, or read from its QR) before the customer pays:
+   * who they are paying, and in which currencies. Only active merchants resolve — a business
+   * still under review is reported as not found, never as payable.
+   */
+  async lookupMerchant({ auth, request, response }: HttpContext) {
+    if (!auth.user) {
+      return response.unauthorized({ message: 'Unauthenticated' })
+    }
+
+    const { code } = await request.validateUsing(lookupMerchantValidator)
+    const merchant = await MerchantPaymentService.findPayable(code)
+    if (!merchant) {
+      return response.notFound({
+        code: 'MERCHANT_NOT_FOUND',
+        message: 'No merchant matches this code',
+      })
+    }
+
+    return response.ok({
+      data: {
+        id: merchant.id,
+        name: merchant.name,
+        payment_code: merchant.paymentCode,
+        // Only approved merchants resolve: the app shows them as verified.
+        verified: true,
+        currencies: await MerchantPaymentService.acceptedCurrencies(merchant),
+        // Free for the customer; the merchant pays the merchant_payment fee out of each payment.
+        customer_fee_percent: 0,
       },
     })
   }

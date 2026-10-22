@@ -42,6 +42,18 @@ const routes = {
     tokens: [{"old":"/api/v1/auth/refresh","type":0,"val":"api","end":""},{"old":"/api/v1/auth/refresh","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/refresh","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/refresh","type":0,"val":"refresh","end":""}],
     types: placeholder as Registry['auth.access_tokens.refresh']['types'],
   },
+  'auth.device_sessions.pin_login': {
+    methods: ["POST"],
+    pattern: '/api/v1/auth/pin-login',
+    tokens: [{"old":"/api/v1/auth/pin-login","type":0,"val":"api","end":""},{"old":"/api/v1/auth/pin-login","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/pin-login","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/pin-login","type":0,"val":"pin-login","end":""}],
+    types: placeholder as Registry['auth.device_sessions.pin_login']['types'],
+  },
+  'auth.device_sessions.revoke': {
+    methods: ["POST"],
+    pattern: '/api/v1/auth/device-sessions/revoke',
+    tokens: [{"old":"/api/v1/auth/device-sessions/revoke","type":0,"val":"api","end":""},{"old":"/api/v1/auth/device-sessions/revoke","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/device-sessions/revoke","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/device-sessions/revoke","type":0,"val":"device-sessions","end":""},{"old":"/api/v1/auth/device-sessions/revoke","type":0,"val":"revoke","end":""}],
+    types: placeholder as Registry['auth.device_sessions.revoke']['types'],
+  },
   'profile.profile.show': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/account/profile',
@@ -71,6 +83,12 @@ const routes = {
     pattern: '/api/v1/account/push-tokens',
     tokens: [{"old":"/api/v1/account/push-tokens","type":0,"val":"api","end":""},{"old":"/api/v1/account/push-tokens","type":0,"val":"v1","end":""},{"old":"/api/v1/account/push-tokens","type":0,"val":"account","end":""},{"old":"/api/v1/account/push-tokens","type":0,"val":"push-tokens","end":""}],
     types: placeholder as Registry['profile.push_tokens.store']['types'],
+  },
+  'profile.device_sessions.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/account/device-sessions',
+    tokens: [{"old":"/api/v1/account/device-sessions","type":0,"val":"api","end":""},{"old":"/api/v1/account/device-sessions","type":0,"val":"v1","end":""},{"old":"/api/v1/account/device-sessions","type":0,"val":"account","end":""},{"old":"/api/v1/account/device-sessions","type":0,"val":"device-sessions","end":""}],
+    types: placeholder as Registry['profile.device_sessions.store']['types'],
   },
   'profile.push_tokens.destroy': {
     methods: ["DELETE"],
@@ -137,6 +155,18 @@ const routes = {
     pattern: '/api/v1/directory/agents',
     tokens: [{"old":"/api/v1/directory/agents","type":0,"val":"api","end":""},{"old":"/api/v1/directory/agents","type":0,"val":"v1","end":""},{"old":"/api/v1/directory/agents","type":0,"val":"directory","end":""},{"old":"/api/v1/directory/agents","type":0,"val":"agents","end":""}],
     types: placeholder as Registry['directory.directory.lookup_agent']['types'],
+  },
+  'directory.directory.lookup_merchant': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/directory/merchants',
+    tokens: [{"old":"/api/v1/directory/merchants","type":0,"val":"api","end":""},{"old":"/api/v1/directory/merchants","type":0,"val":"v1","end":""},{"old":"/api/v1/directory/merchants","type":0,"val":"directory","end":""},{"old":"/api/v1/directory/merchants","type":0,"val":"merchants","end":""}],
+    types: placeholder as Registry['directory.directory.lookup_merchant']['types'],
+  },
+  'merchant_payments.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/merchant-payments',
+    tokens: [{"old":"/api/v1/merchant-payments","type":0,"val":"api","end":""},{"old":"/api/v1/merchant-payments","type":0,"val":"v1","end":""},{"old":"/api/v1/merchant-payments","type":0,"val":"merchant-payments","end":""}],
+    types: placeholder as Registry['merchant_payments.store']['types'],
   },
   'currencies.index': {
     methods: ["GET","HEAD"],
@@ -1728,6 +1758,12 @@ const routes = {
     tokens: [{"old":"/api/v1/business/transactions","type":0,"val":"api","end":""},{"old":"/api/v1/business/transactions","type":0,"val":"v1","end":""},{"old":"/api/v1/business/transactions","type":0,"val":"business","end":""},{"old":"/api/v1/business/transactions","type":0,"val":"transactions","end":""}],
     types: placeholder as Registry['business.business_transactions.index']['types'],
   },
+  'business.business_merchant_payments.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/business/merchant-payments',
+    tokens: [{"old":"/api/v1/business/merchant-payments","type":0,"val":"api","end":""},{"old":"/api/v1/business/merchant-payments","type":0,"val":"v1","end":""},{"old":"/api/v1/business/merchant-payments","type":0,"val":"business","end":""},{"old":"/api/v1/business/merchant-payments","type":0,"val":"merchant-payments","end":""}],
+    types: placeholder as Registry['business.business_merchant_payments.index']['types'],
+  },
   'business.business_webhooks.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/business/webhooks',
@@ -2087,6 +2123,12 @@ const routes = {
     pattern: '/api/v1/business/dashboard/transactions',
     tokens: [{"old":"/api/v1/business/dashboard/transactions","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/transactions","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/transactions","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/transactions","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/transactions","type":0,"val":"transactions","end":""}],
     types: placeholder as Registry['business.dashboard.business_transactions.index']['types'],
+  },
+  'business.dashboard.business_merchant_payments.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/business/dashboard/merchant-payments',
+    tokens: [{"old":"/api/v1/business/dashboard/merchant-payments","type":0,"val":"api","end":""},{"old":"/api/v1/business/dashboard/merchant-payments","type":0,"val":"v1","end":""},{"old":"/api/v1/business/dashboard/merchant-payments","type":0,"val":"business","end":""},{"old":"/api/v1/business/dashboard/merchant-payments","type":0,"val":"dashboard","end":""},{"old":"/api/v1/business/dashboard/merchant-payments","type":0,"val":"merchant-payments","end":""}],
+    types: placeholder as Registry['business.dashboard.business_merchant_payments.index']['types'],
   },
   'business.dashboard.business_webhooks.index': {
     methods: ["GET","HEAD"],

@@ -37,6 +37,13 @@ export default class KycVerification extends BaseModel {
   @column()
   declare decisionReason: string | null
 
+  /**
+   * Country of residence (ISO 3166-1 alpha-2), given by the holder with their identity documents
+   * and checked by the reviewer. International transfers read the sender's country from here.
+   */
+  @column()
+  declare countryCode: string | null
+
   @column()
   declare reviewedBy: number | null
 

@@ -13,6 +13,8 @@ export default class BusinessDashboardProfileController {
       data: {
         id: business.id,
         code: business.code,
+        // What customers type, or scan as a QR, to pay this business; null for institutions.
+        payment_code: business.paymentCode,
         name: business.name,
         email: business.email,
         phone: business.phone,

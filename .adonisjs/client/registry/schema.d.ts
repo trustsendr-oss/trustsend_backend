@@ -79,6 +79,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/access_tokens_controller').default['refresh']>>>
     }
   }
+  'auth.device_sessions.pin_login': {
+    methods: ["POST"]
+    pattern: '/api/v1/auth/pin-login'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/device_sessions_controller').default['pinLogin']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/device_sessions_controller').default['pinLogin']>>>
+    }
+  }
+  'auth.device_sessions.revoke': {
+    methods: ["POST"]
+    pattern: '/api/v1/auth/device-sessions/revoke'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/device_sessions_controller').default['revoke']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/device_sessions_controller').default['revoke']>>>
+    }
+  }
   'profile.profile.show': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/account/profile'
@@ -137,6 +161,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/push_tokens_controller').default['store']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/push_tokens_controller').default['store']>>>
+    }
+  }
+  'profile.device_sessions.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/account/device-sessions'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/device_sessions_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/device_sessions_controller').default['store']>>>
     }
   }
   'profile.push_tokens.destroy': {
@@ -269,6 +305,30 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/directory_controller').default['lookupAgent']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/directory_controller').default['lookupAgent']>>>
+    }
+  }
+  'directory.directory.lookup_merchant': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/directory/merchants'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/directory_controller').default['lookupMerchant']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/directory_controller').default['lookupMerchant']>>>
+    }
+  }
+  'merchant_payments.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/merchant-payments'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/merchants/merchant_payments_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/merchants/merchant_payments_controller').default['store']>>>
     }
   }
   'currencies.index': {
@@ -3451,6 +3511,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/transactions_controller').default['index']>>>
     }
   }
+  'business.business_merchant_payments.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/merchant-payments'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/merchant_payments_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/merchant_payments_controller').default['index']>>>
+    }
+  }
   'business.business_webhooks.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/business/webhooks'
@@ -4169,6 +4241,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/transactions_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/transactions_controller').default['index']>>>
+    }
+  }
+  'business.dashboard.business_merchant_payments.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/business/dashboard/merchant-payments'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business/merchant_payments_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business/merchant_payments_controller').default['index']>>>
     }
   }
   'business.dashboard.business_webhooks.index': {

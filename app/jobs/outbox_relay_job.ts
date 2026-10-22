@@ -4,6 +4,7 @@ import LedgerTransaction from '#models/ledger_transaction'
 import OutboxEvent from '#models/outbox_event'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { formatAmount, TransactionNotifier } from '#services/notifications/transaction_notifier'
+import { InAppNotificationService } from '#services/notifications/in_app_notification_service'
 
 /**
  * Outbox Relay Job
@@ -32,12 +33,32 @@ import { formatAmount, TransactionNotifier } from '#services/notifications/trans
  */
 const MAX_DELIVERY_AGE_HOURS = 24
 
+/**
+ * An event still `processing` this long after the relay took it was abandoned by a worker that
+ * died mid-delivery: it goes back to the queue. Without this, one killed worker left an event
+ * stuck forever, and every event behind it — pushes included — waited for nothing.
+ */
+const STUCK_PROCESSING_MINUTES = 10
+
 export async function handleOutboxRelay(): Promise<void> {
   // FOR UPDATE SKIP LOCKED prevents two workers from picking up the same event.
+  const stuckBefore = DateTime.now().minus({ minutes: STUCK_PROCESSING_MINUTES }).toJSDate()
   const pendingEvents = await db
     .query()
     .from('outbox_events')
-    .where('status', 'pending')
+    .where((q) =>
+      q
+        .where('status', 'pending')
+        .orWhere((stuck) =>
+          stuck
+            .where('status', 'processing')
+            .where((t) =>
+              t
+                .whereNull('processing_started_at')
+                .orWhere('processing_started_at', '<', stuckBefore)
+            )
+        )
+    )
     .orderBy('created_at', 'asc')
     .limit(100)
     .forUpdate()
@@ -51,6 +72,7 @@ export async function handleOutboxRelay(): Promise<void> {
       // Marked before the external call, so a crash mid-delivery does not look like a fresh event.
       event.status = 'processing'
       event.attempts = (event.attempts || 0) + 1
+      event.processingStartedAt = DateTime.now()
       await event.save()
 
       if (isStale(event)) {
@@ -73,6 +95,9 @@ export async function handleOutboxRelay(): Promise<void> {
           break
         case 'cash_out.completed':
           await handleCashOutCompleted(event)
+          break
+        case 'merchant_payment.completed':
+          await handleMerchantPaymentCompleted(event)
           break
         case 'mobile_money_deposit.completed':
         case 'mobile_money_deposit.failed':
@@ -144,6 +169,19 @@ function formatDate(value: DateTime | null | undefined): string {
   return (value ?? DateTime.now()).setLocale('fr').toFormat("d LLLL yyyy 'à' HH:mm")
 }
 
+/**
+ * E-mail is best effort here. The in-app row — and the push it triggers — is the record and is
+ * always written first; an SMTP server that is down or slow must neither hold those back nor
+ * fail the event (a retry would write every in-app row, and push, a second time).
+ */
+async function emailSafely(...args: Parameters<typeof TransactionNotifier.email>): Promise<void> {
+  try {
+    await TransactionNotifier.email(...args)
+  } catch (error) {
+    console.error(`Outbox relay: e-mail to ${args[0].type}#${args[0].id} not sent:`, error)
+  }
+}
+
 /** "Compte USD": the wallet a movement touched, as the app names it. */
 function accountLabel(currency: string | null | undefined): string | null {
   return currency ? `Compte ${currency}` : null
@@ -213,6 +251,8 @@ async function handleP2pTransferCompleted(event: OutboxEvent): Promise<void> {
     TransactionNotifier.recipientForWallet(payload.recipient_wallet_id),
   ])
 
+  // Both in-app rows (and their pushes) first: the recipient learns of the money at once, even
+  // when the sender's e-mail is slow.
   if (sender) {
     await TransactionNotifier.inApp(sender, {
       type: 'p2p_transfer.sent',
@@ -220,7 +260,18 @@ async function handleP2pTransferCompleted(event: OutboxEvent): Promise<void> {
       message: `Votre transfert de ${amount} à ${recipient?.name ?? 'un destinataire'} a été effectué.`,
       data: { transaction_uuid: reference },
     })
-    await TransactionNotifier.email(sender, `Transfert envoyé — ${amount}`, 'transfer_sent', {
+  }
+  if (recipient) {
+    await TransactionNotifier.inApp(recipient, {
+      type: 'p2p_transfer.received',
+      title: 'Transfert reçu',
+      message: `Vous avez reçu ${amount} de la part de ${sender?.name ?? 'un expéditeur'}.`,
+      data: { transaction_uuid: reference },
+    })
+  }
+
+  if (sender) {
+    await emailSafely(sender, `Transfert envoyé — ${amount}`, 'transfer_sent', {
       amount,
       counterparty: recipient?.name ?? 'un destinataire',
       counterparty_code: recipient?.code,
@@ -231,15 +282,8 @@ async function handleP2pTransferCompleted(event: OutboxEvent): Promise<void> {
       date,
     })
   }
-
   if (recipient) {
-    await TransactionNotifier.inApp(recipient, {
-      type: 'p2p_transfer.received',
-      title: 'Transfert reçu',
-      message: `Vous avez reçu ${amount} de la part de ${sender?.name ?? 'un expéditeur'}.`,
-      data: { transaction_uuid: reference },
-    })
-    await TransactionNotifier.email(recipient, `Vous avez reçu ${amount}`, 'transfer_received', {
+    await emailSafely(recipient, `Vous avez reçu ${amount}`, 'transfer_received', {
       amount,
       counterparty: sender?.name ?? 'un expéditeur',
       counterparty_code: sender?.code,
@@ -272,7 +316,7 @@ async function handleCashInInitiated(event: OutboxEvent): Promise<void> {
   const agent = payload.agent_id
     ? await TransactionNotifier.recipientForActor('agent', Number(payload.agent_id))
     : null
-  await TransactionNotifier.email(recipient, `Dépôt en attente — ${amount}`, 'cash_in_pending', {
+  await emailSafely(recipient, `Dépôt en attente — ${amount}`, 'cash_in_pending', {
     amount,
     agent: agent ? [agent.name, agent.code].filter(Boolean).join(' · ') : null,
     account: accountLabel(payload.currency_code),
@@ -302,22 +346,75 @@ async function handleCashOutInitiated(event: OutboxEvent): Promise<void> {
 
   // The customer made the request in the app a moment ago: an in-app row (and its push) is
   // enough to confirm it went through. The e-mail waits for the money to actually change hands.
+  // Written before the agent's e-mail, which must not hold it back.
   const customer = await TransactionNotifier.recipientForWallet(payload.user_wallet_id)
-
-  await TransactionNotifier.email(agent, `Demande de retrait — ${amount}`, 'cash_out_requested', {
-    amount,
-    counterparty: customer?.name,
-    counterparty_code: customer?.code,
-    reference,
-    date: formatDate(event.createdAt),
-  })
-
   if (customer) {
     await TransactionNotifier.inApp(customer, {
       type: 'cash_out.initiated',
       title: 'Retrait demandé',
       message: `Votre demande de retrait de ${amount} est transmise à l'agent. Présentez-vous à son guichet pour récupérer les espèces.`,
       data: { transaction_id: reference, agent_id: payload.agent_id },
+    })
+  }
+
+  await emailSafely(agent, `Demande de retrait — ${amount}`, 'cash_out_requested', {
+    amount,
+    counterparty: customer?.name,
+    counterparty_code: customer?.code,
+    reference,
+    date: formatDate(event.createdAt),
+  })
+}
+
+/**
+ * A customer paid a merchant: the customer gets their receipt (in-app, push, e-mail), the
+ * merchant a notification on its dashboard. The merchant's webhook was queued with the payment.
+ */
+async function handleMerchantPaymentCompleted(event: OutboxEvent): Promise<void> {
+  const payload = event.payload as any
+  const transaction = await LedgerTransaction.find(payload.transaction_id ?? event.aggregateId)
+  if (!transaction) return
+
+  const metadata = (transaction.metadata ?? {}) as Record<string, any>
+  const currency = transaction.currencyCode ?? ''
+  const amount = formatAmount(transaction.amount ?? '0', currency)
+  const merchantName = String(metadata.merchant_name ?? 'le marchand')
+  const customer = await TransactionNotifier.recipientForActor(
+    transaction.initiatedByType,
+    transaction.initiatedById
+  )
+
+  if (customer) {
+    await TransactionNotifier.inApp(customer, {
+      type: 'merchant_payment.sent',
+      title: 'Paiement effectué',
+      message: `Vous avez payé ${amount} à ${merchantName}.`,
+      data: { transaction_id: transaction.id },
+    })
+  }
+
+  if (metadata.business_id) {
+    await InAppNotificationService.notify({
+      recipientType: 'business',
+      recipientId: Number(metadata.business_id),
+      type: 'merchant_payment.received',
+      title: 'Paiement reçu',
+      message: `${amount} reçus de ${customer?.name ?? 'un client'}${
+        metadata.note ? ` — « ${metadata.note} »` : ''
+      }.`,
+      data: { transaction_id: transaction.id },
+    })
+  }
+
+  if (customer) {
+    await emailSafely(customer, `Paiement à ${merchantName} — ${amount}`, 'merchant_payment_sent', {
+      amount,
+      counterparty: merchantName,
+      counterparty_code: metadata.merchant_code,
+      account: accountLabel(currency),
+      note: metadata.note,
+      reference: transaction.id,
+      date: formatDate(transaction.completedAt ?? event.createdAt),
     })
   }
 }
@@ -350,7 +447,7 @@ async function handleCashOutCompleted(event: OutboxEvent): Promise<void> {
     data: { transaction_id: transaction.id },
   })
 
-  await TransactionNotifier.email(customer, `Retrait effectué — ${amount}`, 'cash_out_completed', {
+  await emailSafely(customer, `Retrait effectué — ${amount}`, 'cash_out_completed', {
     amount,
     fee,
     // The fee is paid on top of the cash handed over (cash_out_service.ts).
@@ -410,7 +507,7 @@ async function handleMobileMoneyTerminal(event: OutboxEvent): Promise<void> {
   const chosen = templates[event.eventType]
   if (!chosen) return
 
-  await TransactionNotifier.email(recipient, chosen.subject, chosen.template, {
+  await emailSafely(recipient, chosen.subject, chosen.template, {
     amount,
     fee: feeMinor !== null ? formatAmount(feeMinor, currency) : null,
     // Both directions take the fee out of the gross: credited on a top-up, delivered on a send.

@@ -430,6 +430,22 @@ function buildEmail(template: string, data: Record<string, any>, brand: string):
         },
       })
 
+    case 'merchant_payment_sent':
+      return movement(brand, data, {
+        title: 'Paiement effectué',
+        preheader: `${data.amount} payés à ${data.counterparty}.`,
+        sentence: `Votre paiement à ${data.counterparty ?? 'ce marchand'} a bien été effectué.`,
+        caption: 'Montant payé',
+        direction: 'out',
+        status: 'completed',
+        rows: [
+          ['Marchand', party(data.counterparty, data.counterparty_code)],
+          ['Débité de', data.account],
+          ['Frais', 'Gratuit'],
+          ['Note', data.note],
+        ],
+      })
+
     case 'cash_out_completed':
       return movement(brand, data, {
         title: 'Retrait effectué',
@@ -520,4 +536,5 @@ export const EMAIL_TEMPLATES = [
   'cash_in_pending',
   'cash_out_requested',
   'cash_out_completed',
+  'merchant_payment_sent',
 ] as const

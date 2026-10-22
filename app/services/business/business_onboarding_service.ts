@@ -7,6 +7,7 @@ import LedgerAccount from '#models/ledger_account'
 import Plan from '#models/plan'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { SandboxMode } from '#services/sandbox/sandbox_mode'
+import { MerchantPaymentService } from '#services/merchants/merchant_payment_service'
 
 export class BusinessOnboardingService {
   /**
@@ -42,6 +43,11 @@ export class BusinessOnboardingService {
       // back after insert, so a caller inspecting `business.kind` on the returned instance would
       // otherwise get undefined instead of the value actually stored.
       business.kind = request.kind ?? 'merchant'
+      // A merchant can be paid by customers from day one of its approval: the code exists from
+      // the start, payments are refused until the business is active (MerchantPaymentService).
+      if (business.kind === 'merchant') {
+        business.paymentCode = await MerchantPaymentService.generatePaymentCode(trx)
+      }
       // The sandbox is self-service for integrators: no KYB review, no admin in the loop. Safe
       // only because start/env.ts guarantees a sandbox never talks to a production provider.
       // approvedBy stays null — no internal user made this decision.
