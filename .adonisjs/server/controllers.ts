@@ -14,6 +14,7 @@ export const controllers = {
     FinancialProducts: () => import('#controllers/admin/financial_products_controller'),
     LedgerAccounts: () => import('#controllers/admin/ledger_accounts_controller'),
     Lending: () => import('#controllers/admin/lending_controller'),
+    Likilibas: () => import('#controllers/admin/likilibas_controller'),
     Remittances: () => import('#controllers/admin/remittances_controller'),
     Transactions: () => import('#controllers/admin/transactions_controller'),
   },
@@ -44,6 +45,7 @@ export const controllers = {
     Cards: () => import('#controllers/business/cards_controller'),
     Crypto: () => import('#controllers/business/crypto_controller'),
     Deposits: () => import('#controllers/business/deposits_controller'),
+    MerchantPayments: () => import('#controllers/business/merchant_payments_controller'),
     Payouts: () => import('#controllers/business/payouts_controller'),
     Plan: () => import('#controllers/business/plan_controller'),
     Sandbox: () => import('#controllers/business/sandbox_controller'),
@@ -52,7 +54,6 @@ export const controllers = {
     Transactions: () => import('#controllers/business/transactions_controller'),
     Wallet: () => import('#controllers/business/wallet_controller'),
     Webhooks: () => import('#controllers/business/webhooks_controller'),
-    MerchantPayments: () => import('#controllers/business/merchant_payments_controller'),
   },
   Businesses: () => import('#controllers/businesses_controller'),
   CardProducts: () => import('#controllers/card_products_controller'),
@@ -83,6 +84,7 @@ export const controllers = {
     CryptoWebhooks: () => import('#controllers/crypto/crypto_webhooks_controller'),
   },
   Currencies: () => import('#controllers/currencies_controller'),
+  DeviceSessions: () => import('#controllers/device_sessions_controller'),
   Directory: () => import('#controllers/directory_controller'),
   Disputes: () => import('#controllers/disputes_controller'),
   fx: {
@@ -99,6 +101,13 @@ export const controllers = {
     Products: () => import('#controllers/lending/products_controller'),
     SerializeLoan: () => import('#controllers/lending/serialize_loan'),
     SerializeProduct: () => import('#controllers/lending/serialize_product'),
+  },
+  likiliba: {
+    LikilibaHttp: () => import('#controllers/likiliba/likiliba_http'),
+    Likilibas: () => import('#controllers/likiliba/likilibas_controller'),
+  },
+  merchants: {
+    MerchantPayments: () => import('#controllers/merchants/merchant_payments_controller'),
   },
   mobileMoney: {
     Deposits: () => import('#controllers/mobile_money/deposits_controller'),
@@ -125,8 +134,4 @@ export const controllers = {
   Users: () => import('#controllers/users_controller'),
   Wallets: () => import('#controllers/wallets_controller'),
   Webhooks: () => import('#controllers/webhooks_controller'),
-  merchants: {
-    MerchantPayments: () => import('#controllers/merchants/merchant_payments_controller'),
-  },
-  DeviceSessions: () => import('#controllers/device_sessions_controller'),
 }

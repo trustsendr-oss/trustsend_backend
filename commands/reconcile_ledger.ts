@@ -1,5 +1,6 @@
 import { BaseCommand } from '@adonisjs/core/ace'
 import { ReconciliationService } from '#services/ledger/reconciliation_service'
+import { LikilibaReconciliationService } from '#services/likiliba/admin_service'
 
 /**
  * Safety net against ledger/wallet drift (a bug or integrity violation, per
@@ -27,6 +28,7 @@ export default class ReconcileLedger extends BaseCommand {
   async run() {
     const balanceMismatches = await ReconciliationService.checkBalances()
     const transactionImbalances = await ReconciliationService.checkTransactionBalance()
+    const potMismatches = await LikilibaReconciliationService.checkPots()
 
     if (balanceMismatches.length === 0) {
       this.logger.info('No wallet balance mismatches found')
@@ -44,7 +46,19 @@ export default class ReconcileLedger extends BaseCommand {
       )
     }
 
-    if (balanceMismatches.length > 0 || transactionImbalances.length > 0) {
+    if (potMismatches.length === 0) {
+      this.logger.info('Every likiliba pot matches its contributions')
+    } else {
+      this.logger.error(
+        `${potMismatches.length} likiliba pot(s) disagree with their contributions — see [CRITICAL] lines above`
+      )
+    }
+
+    if (
+      balanceMismatches.length > 0 ||
+      transactionImbalances.length > 0 ||
+      potMismatches.length > 0
+    ) {
       this.exitCode = 1
     }
   }

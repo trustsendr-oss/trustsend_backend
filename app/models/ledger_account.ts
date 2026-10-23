@@ -25,7 +25,8 @@ export default class LedgerAccount extends BaseModel {
   declare accountType: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense'
 
   @column()
-  declare ownerType: 'user_wallet' | 'agent_wallet' | 'business_wallet' | 'platform_internal'
+  declare ownerType:
+    'user_wallet' | 'agent_wallet' | 'business_wallet' | 'platform_internal' | 'likiliba_pot'
 
   @column()
   declare ownerId: number | null

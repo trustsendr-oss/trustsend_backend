@@ -34,6 +34,7 @@ const RESOURCE_PATH: Record<string, string> = {
   ledger_accounts: '/admin/ledger-accounts',
   currencies: '/admin/currencies',
   exchange_rates: '/admin/exchange-rates',
+  likilibas: '/admin/likilibas',
 }
 
 function pathFor(resource: string) {
@@ -87,7 +88,7 @@ const SERVER_FILTER_KEYS: Record<string, string[]> = {
 // admin/transactions, admin/audit-logs, admin/cards paginate for real — see each controller's
 // doc comment in app/controllers/admin/*.ts. getList forwards page/perPage/filters as query
 // params and trusts the server's `meta.total`, instead of pulling everything client-side.
-const PAGINATED_RESOURCES = new Set(['transactions', 'audit_logs', 'cards'])
+const PAGINATED_RESOURCES = new Set(['transactions', 'audit_logs', 'cards', 'likilibas'])
 
 async function fetchList(resource: string, filter: Record<string, any> = {}) {
   const serverKeys = SERVER_FILTER_KEYS[resource] || []
@@ -410,6 +411,22 @@ export const adminActions = {
     return Array.isArray(result) ? result : (result?.transactions ?? [])
   },
 
+  // Likiliba support can freeze and resume a group, and waive a penalty still owed — never move
+  // a group's money. See app/controllers/admin/likilibas_controller.ts.
+  likilibaSuspend: (id: number | string, reason: string) =>
+    apiFetch(`/admin/likilibas/${id}/suspend`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  likilibaResume: (id: number | string, note: string) =>
+    apiFetch(`/admin/likilibas/${id}/resume`, { method: 'POST', body: JSON.stringify({ note }) }),
+  likilibaHistory: (id: number | string) =>
+    apiFetch<LikilibaEvent[]>(`/admin/likilibas/${id}/history?limit=100`),
+  likilibaPenalties: (id: number | string) =>
+    apiFetch<LikilibaPenaltyRow[]>(`/admin/likilibas/${id}/penalties`),
+  likilibaWaivePenalty: (penaltyId: number | string, reason: string) =>
+    apiFetch(`/admin/likilibas/penalties/${penaltyId}/waive`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+
   balanceSheet: (currency: string) =>
     apiFetch<{
       currency_code: string
@@ -437,4 +454,35 @@ export const adminActions = {
       balancedByCurrency: Record<string, boolean>
       totalsByCurrency: Record<string, { debits: string; credits: string }>
     }>('/admin/accounting/reconcile', { method: 'POST' }),
+}
+
+export type LikilibaEvent = {
+  id: number
+  event_type: string
+  actor_type: string
+  member_id: number | null
+  payload: Record<string, unknown> | null
+  created_at: string
+}
+
+export type LikilibaPenaltyRow = {
+  id: number
+  reference: string
+  member: { member_id: number; name: string }
+  beneficiary: { member_id: number; name: string }
+  round: number
+  contribution_reference: string
+  contribution_amount: string
+  day_number: number
+  basis: 'fixed' | 'percent'
+  amount: string
+  cumulative_on_contribution: string
+  cap_on_contribution: string
+  reason: string
+  status: 'paid' | 'in_debt' | 'waived'
+  ledger_transaction_id: string | null
+  grace_ended_at: string
+  assessed_at: string
+  settled_at: string | null
+  waive_reason: string | null
 }

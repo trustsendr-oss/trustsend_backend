@@ -16,6 +16,10 @@ export default class Wallet extends BaseModel {
   @column()
   declare businessId: number | null
 
+  /** Set on a likiliba's pot only — the one wallet a group, rather than a person, owns. */
+  @column()
+  declare likilibaId: number | null
+
   @column()
   declare ledgerAccountId: number
 

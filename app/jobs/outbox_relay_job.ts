@@ -99,6 +99,9 @@ export async function handleOutboxRelay(): Promise<void> {
         case 'merchant_payment.completed':
           await handleMerchantPaymentCompleted(event)
           break
+        case 'likiliba.notification':
+          await handleLikilibaNotification(event)
+          break
         case 'mobile_money_deposit.completed':
         case 'mobile_money_deposit.failed':
         case 'mobile_money_payout.completed':
@@ -233,6 +236,39 @@ function formatDifference(a: unknown, b: unknown, currency: string): string {
 /* -------------------------------------------------------------------------- */
 /*                                 Gestionnaires                              */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Everything a likiliba tells its members (see likiliba/notifier.ts): one event can name several
+ * members. Each gets the in-app row (and its push); money movements also carry an e-mail receipt.
+ */
+async function handleLikilibaNotification(event: OutboxEvent): Promise<void> {
+  const payload = event.payload as any
+  const userIds: number[] = Array.isArray(payload.user_ids) ? payload.user_ids : []
+  const recipients = []
+  for (const id of userIds) {
+    const recipient = await TransactionNotifier.recipientForActor('user', Number(id))
+    if (recipient) recipients.push(recipient)
+  }
+
+  for (const recipient of recipients) {
+    await TransactionNotifier.inApp(recipient, {
+      type: payload.type,
+      title: payload.title,
+      message: payload.message,
+      data: payload.data ?? undefined,
+    })
+  }
+
+  if (payload.email) {
+    const { subject, ...data } = payload.email
+    for (const recipient of recipients) {
+      await emailSafely(recipient, subject, 'likiliba_receipt', {
+        ...data,
+        date: formatDate(event.createdAt),
+      })
+    }
+  }
+}
 
 /**
  * A completed P2P transfer concerns TWO people, and neither was told anything before: the sender

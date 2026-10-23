@@ -25,6 +25,9 @@ const CASH_OUT_EXPIRY_INTERVAL_MS = 60_000
 const REMITTANCE_EXPIRY_INTERVAL_MS = 60 * 60_000
 const AGENT_COMMISSION_INTERVAL_MS = 60 * 60 * 1000
 
+/** How often the likiliba calendar is run. See likiliba_cycle_job.ts. */
+const LIKILIBA_CYCLE_INTERVAL_MS = 5 * 60_000
+
 /**
  * Fails loudly when Redis is unreachable.
  *
@@ -175,6 +178,33 @@ export async function registerWorkers() {
   )
 
   console.log(`✓ Agent commissions scheduled every ${AGENT_COMMISSION_INTERVAL_MS / 60_000} min`)
+
+  // Likiliba — reminders, automatic debits, caution covers, penalties and payouts.
+  const likilibaCycleWorker = new Worker(
+    'likiliba_cycle',
+    async () => {
+      const { handleLikilibaCycle } = await import('#jobs/likiliba_cycle_job')
+      return handleLikilibaCycle()
+    },
+    { connection: redisOptions, concurrency: 1 }
+  )
+  workers.push(likilibaCycleWorker)
+
+  likilibaCycleWorker.on('failed', (job, error) => {
+    console.error(`[queue] likiliba_cycle job ${job?.id} failed:`, error)
+  })
+
+  const likilibaCycleQueue = new Queue('likiliba_cycle', { connection: redisOptions })
+  await likilibaCycleQueue.upsertJobScheduler(
+    'likiliba-cycle-tick',
+    { every: LIKILIBA_CYCLE_INTERVAL_MS },
+    {
+      name: 'tick',
+      opts: { removeOnComplete: true, removeOnFail: 50 },
+    }
+  )
+
+  console.log(`✓ Likiliba cycle scheduled every ${LIKILIBA_CYCLE_INTERVAL_MS / 60_000} min`)
 
   // TODO: Add workers as they're implemented (Phase 3+)
   // - ledger_reconciliation_job

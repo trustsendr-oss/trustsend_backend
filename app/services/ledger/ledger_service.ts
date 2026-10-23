@@ -144,7 +144,8 @@ export class LedgerService {
         if (
           account[0].owner_type === 'user_wallet' ||
           account[0].owner_type === 'agent_wallet' ||
-          account[0].owner_type === 'business_wallet'
+          account[0].owner_type === 'business_wallet' ||
+          account[0].owner_type === 'likiliba_pot'
         ) {
           const walletId = account[0].owner_id
           if (walletId) {

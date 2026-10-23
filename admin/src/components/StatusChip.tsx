@@ -28,6 +28,28 @@ const COLOR_MAP: Record<string, ChipProps['color']> = {
   terminated: 'error',
   rejected: 'error',
   expired: 'error',
+  // Likiliba groups, rounds, contributions, penalties, members and invitations.
+  recruiting: 'info',
+  locked: 'warning',
+  completed: 'success',
+  scheduled: 'default',
+  collecting: 'info',
+  waiting_funds: 'warning',
+  escalated: 'error',
+  paid_out: 'success',
+  confirmed: 'success',
+  late: 'warning',
+  covered: 'warning',
+  netted: 'default',
+  in_debt: 'error',
+  waived: 'default',
+  admitted: 'info',
+  committed: 'success',
+  accepted: 'info',
+  declined: 'default',
+  revoked: 'default',
+  left: 'default',
+  removed: 'default',
 }
 
 function label(status: string) {

@@ -1112,6 +1112,349 @@ export class LedgerTransactionSchema extends BaseModel {
   declare uuid: string
 }
 
+export class LikilibaContributionSchema extends BaseModel {
+  static $columns = ['amount', 'attempts', 'confirmedAt', 'coveredAt', 'createdAt', 'dueNotifiedAt', 'id', 'lastAttemptAt', 'lastFailureReason', 'lateNotifiedAt', 'ledgerTransactionId', 'likilibaId', 'memberId', 'nextAttemptAt', 'paidVia', 'reference', 'remindedAt', 'roundId', 'status', 'updatedAt'] as const
+  $columns = LikilibaContributionSchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column()
+  declare attempts: number
+  @column.dateTime()
+  declare confirmedAt: DateTime | null
+  @column.dateTime()
+  declare coveredAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare dueNotifiedAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime()
+  declare lastAttemptAt: DateTime | null
+  @column()
+  declare lastFailureReason: string | null
+  @column.dateTime()
+  declare lateNotifiedAt: DateTime | null
+  @column()
+  declare ledgerTransactionId: string | null
+  @column()
+  declare likilibaId: number
+  @column()
+  declare memberId: number
+  @column.dateTime()
+  declare nextAttemptAt: DateTime | null
+  @column()
+  declare paidVia: string | null
+  @column()
+  declare reference: string
+  @column.dateTime()
+  declare remindedAt: DateTime | null
+  @column()
+  declare roundId: number
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
+export class LikilibaDebtSchema extends BaseModel {
+  static $columns = ['amount', 'contributionId', 'createdAt', 'creditorMemberId', 'debtorMemberId', 'id', 'likilibaId', 'origin', 'penaltyId', 'remaining', 'settledAt', 'status', 'updatedAt'] as const
+  $columns = LikilibaDebtSchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column()
+  declare contributionId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare creditorMemberId: number
+  @column()
+  declare debtorMemberId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare likilibaId: number
+  @column()
+  declare origin: string
+  @column()
+  declare penaltyId: number | null
+  @column()
+  declare remaining: bigint | number
+  @column.dateTime()
+  declare settledAt: DateTime | null
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
+export class LikilibaEventSchema extends BaseModel {
+  static $columns = ['actorId', 'actorType', 'correlationId', 'createdAt', 'eventType', 'id', 'likilibaId', 'memberId', 'payload'] as const
+  $columns = LikilibaEventSchema.$columns
+  @column()
+  declare actorId: number
+  @column()
+  declare actorType: string
+  @column()
+  declare correlationId: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare eventType: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare likilibaId: number
+  @column()
+  declare memberId: number | null
+  @column()
+  declare payload: any | null
+}
+
+export class LikilibaInvitationSchema extends BaseModel {
+  static $columns = ['channel', 'createdAt', 'decidedAt', 'expiresAt', 'id', 'invitedByUserId', 'inviteePhone', 'inviteeUserId', 'likilibaId', 'respondedAt', 'status', 'tokenHash', 'updatedAt'] as const
+  $columns = LikilibaInvitationSchema.$columns
+  @column()
+  declare channel: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare decidedAt: DateTime | null
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare invitedByUserId: number
+  @column()
+  declare inviteePhone: string | null
+  @column()
+  declare inviteeUserId: number | null
+  @column()
+  declare likilibaId: number
+  @column.dateTime()
+  declare respondedAt: DateTime | null
+  @column()
+  declare status: string
+  @column()
+  declare tokenHash: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
+export class LikilibaMemberSchema extends BaseModel {
+  static $columns = ['acceptedRuleVersionId', 'autoDebit', 'cautionWalletId', 'createdAt', 'id', 'invitationId', 'leftAt', 'likilibaId', 'mandateGrantedAt', 'mandateRevokedAt', 'paidOutAt', 'position', 'role', 'rulesAcceptedAt', 'status', 'updatedAt', 'userId', 'walletId'] as const
+  $columns = LikilibaMemberSchema.$columns
+  @column()
+  declare acceptedRuleVersionId: number | null
+  @column()
+  declare autoDebit: boolean
+  @column()
+  declare cautionWalletId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare invitationId: number | null
+  @column.dateTime()
+  declare leftAt: DateTime | null
+  @column()
+  declare likilibaId: number
+  @column.dateTime()
+  declare mandateGrantedAt: DateTime | null
+  @column.dateTime()
+  declare mandateRevokedAt: DateTime | null
+  @column.dateTime()
+  declare paidOutAt: DateTime | null
+  @column()
+  declare position: number | null
+  @column()
+  declare role: string
+  @column.dateTime()
+  declare rulesAcceptedAt: DateTime | null
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+  @column()
+  declare userId: number
+  @column()
+  declare walletId: number
+}
+
+export class LikilibaPenaltySchema extends BaseModel {
+  static $columns = ['amount', 'assessedAt', 'basis', 'beneficiaryMemberId', 'contributionId', 'createdAt', 'dayNumber', 'id', 'ledgerTransactionId', 'likilibaId', 'memberId', 'reference', 'settledAt', 'status', 'updatedAt', 'waiveReason', 'waivedByInternalUserId'] as const
+  $columns = LikilibaPenaltySchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column.dateTime()
+  declare assessedAt: DateTime
+  @column()
+  declare basis: string
+  @column()
+  declare beneficiaryMemberId: number
+  @column()
+  declare contributionId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare dayNumber: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare ledgerTransactionId: string | null
+  @column()
+  declare likilibaId: number
+  @column()
+  declare memberId: number
+  @column()
+  declare reference: string
+  @column.dateTime()
+  declare settledAt: DateTime | null
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+  @column()
+  declare waiveReason: string | null
+  @column()
+  declare waivedByInternalUserId: number | null
+}
+
+export class LikilibaRoundSchema extends BaseModel {
+  static $columns = ['beneficiaryMemberId', 'commissionAmount', 'createdAt', 'dueAt', 'escalatedAt', 'graceEndsAt', 'grossAmount', 'id', 'likilibaId', 'netAmount', 'number', 'openedAt', 'paidOutAt', 'payoutTransactionId', 'status', 'updatedAt', 'waitingSince', 'withheldAmount'] as const
+  $columns = LikilibaRoundSchema.$columns
+  @column()
+  declare beneficiaryMemberId: number
+  @column()
+  declare commissionAmount: bigint | number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare dueAt: DateTime
+  @column.dateTime()
+  declare escalatedAt: DateTime | null
+  @column.dateTime()
+  declare graceEndsAt: DateTime
+  @column()
+  declare grossAmount: bigint | number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare likilibaId: number
+  @column()
+  declare netAmount: bigint | number | null
+  @column()
+  declare number: number
+  @column.dateTime()
+  declare openedAt: DateTime | null
+  @column.dateTime()
+  declare paidOutAt: DateTime | null
+  @column()
+  declare payoutTransactionId: string | null
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+  @column.dateTime()
+  declare waitingSince: DateTime | null
+  @column()
+  declare withheldAmount: bigint | number | null
+}
+
+export class LikilibaRuleVersionSchema extends BaseModel {
+  static $columns = ['createdAt', 'createdByUserId', 'id', 'likilibaId', 'rules', 'rulesHash', 'version'] as const
+  $columns = LikilibaRuleVersionSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdByUserId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare likilibaId: number
+  @column()
+  declare rules: any
+  @column()
+  declare rulesHash: string
+  @column()
+  declare version: number
+}
+
+export class LikilibaSchema extends BaseModel {
+  static $columns = ['cancelReason', 'cancelledAt', 'cautionMultiplier', 'cautionRequired', 'code', 'completedAt', 'contributionAmount', 'createdAt', 'creatorUserId', 'currencyCode', 'currentRoundNumber', 'currentRuleVersionId', 'description', 'drawSeed', 'drawSeedHash', 'escalationDays', 'frequency', 'graceHours', 'id', 'lockedAt', 'name', 'orderingMode', 'penaltyCapBps', 'penaltyDailyBps', 'penaltyFixedAmount', 'penaltyMode', 'potWalletId', 'size', 'startedAt', 'startsAt', 'status', 'suspendedAt', 'suspensionReason', 'updatedAt'] as const
+  $columns = LikilibaSchema.$columns
+  @column()
+  declare cancelReason: string | null
+  @column.dateTime()
+  declare cancelledAt: DateTime | null
+  @column()
+  declare cautionMultiplier: number | null
+  @column()
+  declare cautionRequired: boolean
+  @column()
+  declare code: string
+  @column.dateTime()
+  declare completedAt: DateTime | null
+  @column()
+  declare contributionAmount: bigint | number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare creatorUserId: number
+  @column()
+  declare currencyCode: string
+  @column()
+  declare currentRoundNumber: number
+  @column()
+  declare currentRuleVersionId: number | null
+  @column()
+  declare description: string | null
+  @column()
+  declare drawSeed: string | null
+  @column()
+  declare drawSeedHash: string | null
+  @column()
+  declare escalationDays: number
+  @column()
+  declare frequency: string
+  @column()
+  declare graceHours: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime()
+  declare lockedAt: DateTime | null
+  @column()
+  declare name: string
+  @column()
+  declare orderingMode: string
+  @column()
+  declare penaltyCapBps: number
+  @column()
+  declare penaltyDailyBps: number | null
+  @column()
+  declare penaltyFixedAmount: bigint | number | null
+  @column()
+  declare penaltyMode: string
+  @column()
+  declare potWalletId: number | null
+  @column()
+  declare size: number
+  @column.dateTime()
+  declare startedAt: DateTime | null
+  @column.dateTime()
+  declare startsAt: DateTime
+  @column()
+  declare status: string
+  @column.dateTime()
+  declare suspendedAt: DateTime | null
+  @column()
+  declare suspensionReason: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
 export class LoanPenaltySchema extends BaseModel {
   static $columns = ['amount', 'basisAmount', 'chargedAt', 'createdAt', 'daysOverdue', 'id', 'loanId', 'periodKey', 'rateBps', 'updatedAt'] as const
   $columns = LoanPenaltySchema.$columns
@@ -1727,7 +2070,7 @@ export class VaultTransferSchema extends BaseModel {
 }
 
 export class WalletSchema extends BaseModel {
-  static $columns = ['agentId', 'balanceCache', 'businessId', 'createdAt', 'currencyCode', 'dailyLimit', 'id', 'ledgerAccountId', 'lockVersion', 'monthlyLimit', 'perTransactionLimit', 'purpose', 'status', 'updatedAt', 'userId'] as const
+  static $columns = ['agentId', 'balanceCache', 'businessId', 'createdAt', 'currencyCode', 'dailyLimit', 'id', 'ledgerAccountId', 'likilibaId', 'lockVersion', 'monthlyLimit', 'perTransactionLimit', 'purpose', 'status', 'updatedAt', 'userId'] as const
   $columns = WalletSchema.$columns
   @column()
   declare agentId: number | null
@@ -1745,6 +2088,8 @@ export class WalletSchema extends BaseModel {
   declare id: number
   @column()
   declare ledgerAccountId: number
+  @column()
+  declare likilibaId: number | null
   @column()
   declare lockVersion: number
   @column()

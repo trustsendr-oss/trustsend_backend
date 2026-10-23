@@ -23,6 +23,7 @@ import LedgerAccountsIcon from '@mui/icons-material/AccountBalanceOutlined'
 import AccountingIcon from '@mui/icons-material/SummarizeOutlined'
 import CurrenciesIcon from '@mui/icons-material/CurrencyExchangeOutlined'
 import ExchangeRatesIcon from '@mui/icons-material/TrendingUpOutlined'
+import LikilibaIcon from '@mui/icons-material/Diversity3Outlined'
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -58,6 +59,7 @@ export function AppMenu() {
       <Menu.ResourceItem name="cards" />
       <Menu.ResourceItem name="loans" />
       <Menu.ResourceItem name="savings_accounts" />
+      <Menu.ResourceItem name="likilibas" />
       <Menu.ResourceItem name="ledger_accounts" />
       <Menu.ResourceItem name="exchange_rates" />
       <Menu.Item to="/accounting" primaryText="Accounting" leftIcon={<AccountingIcon />} />
@@ -95,4 +97,5 @@ export const resourceIcons = {
   ledger_accounts: LedgerAccountsIcon,
   currencies: CurrenciesIcon,
   exchange_rates: ExchangeRatesIcon,
+  likilibas: LikilibaIcon,
 }

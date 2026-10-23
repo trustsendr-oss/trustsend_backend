@@ -446,6 +446,19 @@ function buildEmail(template: string, data: Record<string, any>, brand: string):
         ],
       })
 
+    // Likiliba receipts (contribution, caution, penalty, payout…): the service writes the rows.
+    case 'likiliba_receipt':
+      return movement(brand, data, {
+        title: data.title ?? 'Likiliba',
+        preheader: data.sentence ?? '',
+        sentence: data.sentence ?? '',
+        caption: data.caption ?? 'Montant',
+        direction: data.direction,
+        status: data.status ?? 'completed',
+        rows: Array.isArray(data.rows) ? data.rows : [],
+        notice: data.notice,
+      })
+
     case 'cash_out_completed':
       return movement(brand, data, {
         title: 'Retrait effectué',
@@ -537,4 +550,5 @@ export const EMAIL_TEMPLATES = [
   'cash_out_requested',
   'cash_out_completed',
   'merchant_payment_sent',
+  'likiliba_receipt',
 ] as const

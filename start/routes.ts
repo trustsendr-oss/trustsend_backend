@@ -11,6 +11,8 @@ import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 const P2pTransfersController = () => import('#controllers/transfers/p2p_transfers_controller')
+const LikilibasController = () => import('#controllers/likiliba/likilibas_controller')
+const AdminLikilibasController = () => import('#controllers/admin/likilibas_controller')
 const CashInController = () => import('#controllers/transfers/cash_in_controller')
 const CashOutController = () => import('#controllers/transfers/cash_out_controller')
 const AgentsController = () => import('#controllers/agents_controller')
@@ -288,6 +290,41 @@ router
       })
       .prefix('transfers/p2p')
       .as('transfers.p2p')
+      .use(middleware.auth())
+
+    // Likiliba — private rotating savings groups. See likiliba/likilibas_controller.ts. The
+    // `invitations` routes are declared before `:id` so they are never read as a group id.
+    router
+      .group(() => {
+        router.get('', [LikilibasController, 'index'])
+        router.post('', [LikilibasController, 'store'])
+        router.get('invitations', [LikilibasController, 'invitations'])
+        router.post('invitations/accept-link', [LikilibasController, 'acceptLink'])
+        router.post('invitations/:invitationId/accept', [LikilibasController, 'acceptInvitation'])
+        router.post('invitations/:invitationId/decline', [LikilibasController, 'declineInvitation'])
+        router.post('invitations/:invitationId/admit', [LikilibasController, 'admitInvitation'])
+        router.post('invitations/:invitationId/reject', [LikilibasController, 'rejectInvitation'])
+        router.delete('invitations/:invitationId', [LikilibasController, 'revokeInvitation'])
+        router.get(':id', [LikilibasController, 'show'])
+        router.patch(':id', [LikilibasController, 'update'])
+        router.get(':id/rules', [LikilibasController, 'rules'])
+        router.get(':id/history', [LikilibasController, 'history'])
+        router.get(':id/penalties', [LikilibasController, 'penalties'])
+        router.get(':id/me', [LikilibasController, 'mine'])
+        router.get(':id/draw', [LikilibasController, 'draw'])
+        router.post(':id/invitations', [LikilibasController, 'invite'])
+        router.delete(':id/members/:memberId', [LikilibasController, 'removeMember'])
+        router.post(':id/lock', [LikilibasController, 'lock'])
+        router.post(':id/commit', [LikilibasController, 'commit'])
+        router.post(':id/start', [LikilibasController, 'start'])
+        router.post(':id/cancel', [LikilibasController, 'cancel'])
+        router.post(':id/leave', [LikilibasController, 'leave'])
+        router.post(':id/contributions', [LikilibasController, 'contribute'])
+        router.post(':id/debts/repay', [LikilibasController, 'repay'])
+        router.put(':id/mandate', [LikilibasController, 'mandate'])
+      })
+      .prefix('likilibas')
+      .as('likilibas')
       .use(middleware.auth())
 
     // Cash In
@@ -793,6 +830,23 @@ router
       })
       .prefix('admin')
       .as('admin.lending')
+      .use(middleware.auth({ guards: ['internal'] }))
+      .use(middleware.isInternalUser())
+
+    // Likiliba oversight (admin routes — internal_user only). Support can suspend, resume and
+    // waive a penalty still owed; it never moves a group's money. See admin/likilibas_controller.ts.
+    router
+      .group(() => {
+        router.get('', [AdminLikilibasController, 'index'])
+        router.post('penalties/:penaltyId/waive', [AdminLikilibasController, 'waivePenalty'])
+        router.get(':id', [AdminLikilibasController, 'show'])
+        router.get(':id/history', [AdminLikilibasController, 'history'])
+        router.get(':id/penalties', [AdminLikilibasController, 'penalties'])
+        router.post(':id/suspend', [AdminLikilibasController, 'suspend'])
+        router.post(':id/resume', [AdminLikilibasController, 'resume'])
+      })
+      .prefix('admin/likilibas')
+      .as('admin.likilibas')
       .use(middleware.auth({ guards: ['internal'] }))
       .use(middleware.isInternalUser())
 

@@ -43,6 +43,7 @@ import { AuditLogList, AuditLogShow } from './resources/auditLogs'
 import { CardList, CardShow, CardCreate } from './resources/cards'
 import { LedgerAccountList, LedgerAccountShow } from './resources/ledgerAccounts'
 import { Accounting } from './pages/Accounting'
+import { LikilibaList, LikilibaShow } from './resources/likilibas'
 
 export default function App() {
   return (
@@ -158,6 +159,14 @@ export default function App() {
         show={LoanShow}
         icon={resourceIcons.loans}
         recordRepresentation="borrower_name"
+      />
+      <Resource
+        name="likilibas"
+        list={LikilibaList}
+        show={LikilibaShow}
+        icon={resourceIcons.likilibas}
+        options={{ label: 'Likiliba groups' }}
+        recordRepresentation="name"
       />
       <Resource
         name="savings_accounts"
