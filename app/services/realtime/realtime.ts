@@ -20,6 +20,8 @@ export type RealtimeEvent =
   | { type: 'mobile_money_payout.updated'; payout_id: string; status: string }
   /** A card changed outside the app: status set by the issuer, a refund… */
   | { type: 'card.updated'; card_id: number }
+  /** A crypto withdrawal moved: reviewed, sent, confirmations, completed or refunded. */
+  | { type: 'crypto_payout.updated'; id: string; status: string }
   /** A new in-app notification: the list and the badge refresh. */
   | { type: 'notification.created' }
   /** An international transfer changed state (held, paid, refunded, expired…). */

@@ -168,6 +168,8 @@ export type ScannedRoutes = {
     'crypto.crypto_deposits.options': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.address': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.index': { paramsTuple?: []; params?: {} }
+    'crypto.crypto_payouts.options': { paramsTuple?: []; params?: {} }
+    'crypto.crypto_payouts.index': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.store': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'webhooks.alchemy': { paramsTuple?: []; params?: {} }
@@ -257,6 +259,11 @@ export type ScannedRoutes = {
     'admin.remittances.admin_remittances.watchlist': { paramsTuple?: []; params?: {} }
     'admin.remittances.admin_remittances.add_to_watchlist': { paramsTuple?: []; params?: {} }
     'admin.remittances.admin_remittances.remove_from_watchlist': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_crypto_payouts.treasury': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_crypto_payouts.index': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_crypto_payouts.sent': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_crypto_payouts.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.agent_applications.admin_agent_applications.index': { paramsTuple?: []; params?: {} }
     'admin.agent_applications.admin_agent_applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.agent_applications.admin_agent_applications.review': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -533,6 +540,8 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.options': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.index': { paramsTuple?: []; params?: {} }
+    'crypto.crypto_payouts.options': { paramsTuple?: []; params?: {} }
+    'crypto.crypto_payouts.index': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
@@ -566,6 +575,9 @@ export type ScannedRoutes = {
     'admin.remittances.admin_remittances.index': { paramsTuple?: []; params?: {} }
     'admin.remittances.admin_remittances.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.remittances.admin_remittances.watchlist': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_crypto_payouts.treasury': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_crypto_payouts.index': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.agent_applications.admin_agent_applications.index': { paramsTuple?: []; params?: {} }
     'admin.agent_applications.admin_agent_applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
@@ -731,6 +743,8 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.options': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.index': { paramsTuple?: []; params?: {} }
+    'crypto.crypto_payouts.options': { paramsTuple?: []; params?: {} }
+    'crypto.crypto_payouts.index': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
@@ -764,6 +778,9 @@ export type ScannedRoutes = {
     'admin.remittances.admin_remittances.index': { paramsTuple?: []; params?: {} }
     'admin.remittances.admin_remittances.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.remittances.admin_remittances.watchlist': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_crypto_payouts.treasury': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_crypto_payouts.index': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.agent_applications.admin_agent_applications.index': { paramsTuple?: []; params?: {} }
     'admin.agent_applications.admin_agent_applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.index': { paramsTuple?: []; params?: {} }
@@ -987,6 +1004,8 @@ export type ScannedRoutes = {
     'admin.remittances.admin_remittances.release': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.remittances.admin_remittances.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.remittances.admin_remittances.add_to_watchlist': { paramsTuple?: []; params?: {} }
+    'admin.remittances.admin_crypto_payouts.sent': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.remittances.admin_crypto_payouts.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.agent_applications.admin_agent_applications.review': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.agent_applications.admin_agent_applications.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.agent_applications.admin_agent_applications.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

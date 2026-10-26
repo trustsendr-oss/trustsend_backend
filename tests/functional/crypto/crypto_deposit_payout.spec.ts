@@ -3,12 +3,15 @@ import env from '#start/env'
 import { randomUUID } from 'node:crypto'
 import { HDNodeWallet } from 'ethers'
 import CryptoDeposit from '#models/crypto_deposit'
+import KycVerification from '#models/kyc_verification'
+import InternalUser from '#models/internal_user'
 import CryptoDepositAddress from '#models/crypto_deposit_address'
 import { AlchemyNotify, type AddressRegistrar } from '#services/crypto/alchemy_notify'
 import { AlchemySignatureService } from '#services/crypto/alchemy_signature_service'
 import { CryptoDepositService, type ChainReader } from '#services/crypto/crypto_deposit_service'
 import { MAINNET_NETWORKS as NETWORKS, TESTNET_NETWORKS } from '#services/crypto/crypto_networks'
 import { CryptoPayoutService } from '#services/crypto/crypto_payout_service'
+import { CryptoTreasuryService } from '#services/crypto/crypto_treasury_service'
 import {
   CryptoReconciliationService,
   type TransferSource,
@@ -798,7 +801,10 @@ test.group('Crypto deposits (stablecoins)', (group) => {
       stop()
     }
 
-    const types = heard.map((event) => `${event.payload.type}:${event.payload.status ?? ''}`)
+    // The in-app notification of the credit is announced too; this test follows the deposit.
+    const types = heard
+      .filter((event) => event.payload.type !== 'notification.created')
+      .map((event) => `${event.payload.type}:${event.payload.status ?? ''}`)
     assert.deepEqual(types.slice(0, 2), [
       'crypto_deposit.updated:pending', // recorded from the webhook
       'crypto_deposit.updated:pending', // 11 confirmations; the unchanged pass stays silent
@@ -810,65 +816,308 @@ test.group('Crypto deposits (stablecoins)', (group) => {
   })
 })
 
-test.group('Crypto payouts (stablecoins)', () => {
-  test('initiates crypto payout, debits wallet, and refunds on failure', async ({
+test.group('Crypto withdrawals (reviewed by staff)', (group) => {
+  let admin: InternalUser
+  let previousFeePercent: unknown = null
+  const previous: Record<string, unknown> = {}
+  // Never the machine's real Alchemy settings: a deposit address requested here must not be
+  // registered with a real webhook.
+  const PAYOUT_ENV: Record<string, string> = {
+    ...TEST_ENV,
+    APP_MODE: 'production',
+    CRYPTO_PAYOUT_NETWORKS: 'polygon,bsc',
+    CRYPTO_PAYOUT_NETWORK_FEES: 'polygon=50,bsc=30',
+    CRYPTO_PAYOUT_MIN_AMOUNT: '100',
+  }
+
+  group.setup(async () => {
+    for (const [key, value] of Object.entries(PAYOUT_ENV)) {
+      previous[key] = env.get(key as any)
+      env.set(key as any, value)
+    }
+    const realRegistrar = AlchemyNotify.registrar
+    AlchemyNotify.registrar = async () => {}
+    // The 2 % withdrawal fee, whatever the test database holds.
+    const fee = await db.from('fee_schedules').where('operation_type', 'crypto_payout').first()
+    previousFeePercent = fee?.fee_percent ?? null
+    await db
+      .from('fee_schedules')
+      .where('operation_type', 'crypto_payout')
+      .update({ fee_percent: 2 })
+    admin = await InternalUser.create({
+      email: `crypto-payout-admin-${randomUUID()}@example.test`,
+      fullName: 'Treasury reviewer',
+      password: 'a-real-password',
+      status: 'active',
+      mustChangePassword: false,
+      mfaEnabled: true,
+    })
+    return async () => {
+      if (previousFeePercent !== null) {
+        await db
+          .from('fee_schedules')
+          .where('operation_type', 'crypto_payout')
+          .update({ fee_percent: previousFeePercent })
+      }
+      AlchemyNotify.registrar = realRegistrar
+      for (const [key, value] of Object.entries(previous)) env.set(key as any, (value ?? '') as any)
+    }
+  })
+
+  const asAdmin = (req: any) => req.withGuard('internal').loginAs(admin)
+  const DESTINATION = '0x2222222222222222222222222222222222222222'
+
+  /** A user whose identity is verified, with dollars to withdraw. */
+  async function verifiedUser(balance: bigint) {
+    const created = await createUserWithWallet({
+      email: `crypto-out-${randomUUID()}@test.com`,
+      balance,
+    })
+    const kyc = new KycVerification()
+    kyc.subjectType = 'user'
+    kyc.subjectId = created.user.id
+    kyc.verificationType = 'document'
+    kyc.status = 'approved'
+    kyc.submittedAt = DateTime.now()
+    kyc.decidedAt = DateTime.now()
+    await kyc.save()
+    return created
+  }
+
+  const request = (client: any, user: any, overrides: Record<string, unknown> = {}) =>
+    client
+      .post('/api/v1/crypto/payouts')
+      .loginAs(user)
+      .json({
+        amount: '2000',
+        network: 'polygon',
+        token_symbol: 'USDT',
+        destination_address: DESTINATION,
+        pin: TEST_PIN,
+        idempotency_key: randomUUID(),
+        ...overrides,
+      })
+
+  test('requests are checked before any money moves', async ({ client, assert }) => {
+    const { user, wallet } = await verifiedUser(10000n)
+
+    const offered = await client.get('/api/v1/crypto/payouts/options').loginAs(user)
+    const rails = json(offered).data.map(
+      (rail: any) => `${rail.network}:${rail.token_symbol}:${rail.network_fee}`
+    )
+    assert.includeMembers(rails, ['polygon:USDT:50', 'bsc:USDT:30'])
+    assert.notInclude(rails.join(' '), 'ethereum')
+    assert.equal(json(offered).data[0].fee_bps, 200) // 2 %
+
+    const cases: Array<[Record<string, unknown>, number, string]> = [
+      [{ network: 'ethereum' }, 422, 'CRYPTO_PAYOUT_RAIL_UNAVAILABLE'], // not offered for withdrawals
+      [{ amount: '50' }, 422, 'CRYPTO_PAYOUT_TOO_SMALL'],
+      [
+        {
+          // A real checksummed address with one letter's case changed: a typo the checksum catches.
+          destination_address: '0xf39fd6e51aad88F6F4ce6aB8827279cffFb92266',
+        },
+        422,
+        'CRYPTO_PAYOUT_INVALID_ADDRESS',
+      ],
+      [{ amount: '99999' }, 422, 'INSUFFICIENT_FUNDS'],
+    ]
+    for (const [overrides, status, code] of cases) {
+      const res = await request(client, user, overrides)
+      assert.equal(res.status(), status, JSON.stringify(overrides))
+      assert.equal(json(res).code, code, JSON.stringify(overrides))
+    }
+
+    // One of our own deposit addresses: a Reemite transfer does it for free.
+    const deposit = await client
+      .post('/api/v1/crypto/deposits/address')
+      .loginAs(user)
+      .json({ network: 'polygon', token_symbol: 'USDT' })
+    assert.equal(deposit.status(), 200)
+    const internal = await request(client, user, {
+      destination_address: json(deposit).data.address,
+    })
+    assert.equal(json(internal).code, 'CRYPTO_PAYOUT_INTERNAL_ADDRESS')
+
+    const { user: unverified } = await createUserWithWallet({
+      email: `crypto-nokyc-${randomUUID()}@test.com`,
+      balance: 10000n,
+    })
+    const noKyc = await request(client, unverified)
+    assert.equal(noKyc.status(), 403)
+    assert.equal(json(noKyc).code, 'KYC_REQUIRED')
+
+    await wallet.refresh()
+    assert.equal(wallet.balanceCache, 10000n) // nothing debited by any refusal
+  })
+
+  test('reviewed, sent by staff, then completed only once the chain shows the transfer', async ({
     client,
     assert,
   }) => {
-    const { user, wallet } = await createUserWithWallet({
-      email: `crypto-out-${randomUUID()}@test.com`,
-      balance: 10000n, // $100.00
+    const { user, wallet } = await verifiedUser(10000n)
+
+    const heard: string[] = []
+    const stop = transmit.on('broadcast', ({ channel, payload }) => {
+      if (channel === `users/${user.id}` && (payload as any)?.type === 'crypto_payout.updated')
+        heard.push((payload as any).status)
     })
 
-    const idempotencyKey = randomUUID()
-    const destinationAddress = '0x2222222222222222222222222222222222222222'
-
-    // 1. Initiate payout of $20.00 (2000 hundredths)
-    const payoutRes = await client.post('/api/v1/crypto/payouts').loginAs(user).json({
-      amount: '2000',
-      currency_code: 'USD',
-      network: 'base',
-      token_symbol: 'USDC',
-      destination_address: destinationAddress,
-      pin: TEST_PIN,
-      idempotency_key: idempotencyKey,
-    })
-
-    assert.equal(payoutRes.status(), 201)
-    const data = json(payoutRes).data
-    assert.equal(data.status, 'processing')
-    assert.equal(data.amount, '2000')
-
+    const res = await request(client, user)
+    assert.equal(res.status(), 201)
+    const payout = json(res).data
+    assert.equal(payout.status, 'pending')
+    assert.equal(payout.fee, '90') // 2 % of 20.00 (0.40) + the Polygon network fee (0.50)
     await wallet.refresh()
-    assert.equal(wallet.balanceCache, 8000n) // $80.00 left
+    assert.equal(wallet.balanceCache, 10000n - 2090n)
 
-    // 2. Complete payout
-    const completedTxn = await CryptoPayoutService.completePayout(
-      data.transaction_id,
-      '0xabcde1234567890'
+    // In the review queue, not for users.
+    const queue = await asAdmin(client.get('/api/v1/admin/crypto-payouts?status=pending'))
+    assert.include(
+      json(queue).data.map((row: any) => row.id),
+      payout.id
     )
-    assert.equal(completedTxn.status, 'completed')
+    const forbidden = await client.get('/api/v1/admin/crypto-payouts').loginAs(user)
+    assert.isAtLeast(forbidden.status(), 401)
 
-    // 3. Test failed payout refund scenario
-    const failIdempotencyKey = randomUUID()
-    const payout2Res = await client.post('/api/v1/crypto/payouts').loginAs(user).json({
-      amount: '3000',
-      currency_code: 'USD',
-      network: 'base',
-      token_symbol: 'USDC',
-      destination_address: destinationAddress,
-      pin: TEST_PIN,
-      idempotency_key: failIdempotencyKey,
+    const hash = randomHash()
+    const sent = await asAdmin(client.post(`/api/v1/admin/crypto-payouts/${payout.id}/sent`)).json({
+      tx_hash: hash,
     })
+    assert.equal(sent.status(), 200)
+    assert.equal(json(sent).data.status, 'processing')
 
-    assert.equal(payout2Res.status(), 201)
-    const data2 = json(payout2Res).data
-    await wallet.refresh()
-    assert.equal(wallet.balanceCache, 5000n) // $50.00 left
+    // The same transfer cannot settle another withdrawal.
+    const other = json(await request(client, user, { amount: '1000' })).data
+    const reused = await asAdmin(client.post(`/api/v1/admin/crypto-payouts/${other.id}/sent`)).json(
+      { tx_hash: hash }
+    )
+    assert.equal(json(reused).code, 'TX_HASH_ALREADY_USED')
 
-    // Simulate blockchain broadcast failure & refund
-    await CryptoPayoutService.failPayout(data2.transaction_id, 'Out of gas or reverted on-chain')
+    // 20.00 USDT on Polygon = 20 000 000 base units (6 decimals), to the requested address.
+    const receipts = {
+      [hash]: transferReceipt({
+        contract: POLYGON_USDT,
+        to: DESTINATION,
+        raw: 20_000_000n,
+        block: 100,
+      }),
+    }
+    await CryptoPayoutService.confirmSent(fakeChain(110, receipts))
+    let row = json(await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)).data
+    assert.equal(row.status, 'processing')
+    assert.equal(row.confirmations, 11)
+
+    await CryptoPayoutService.confirmSent(fakeChain(100 + NETWORKS.polygon.confirmations, receipts))
+    row = json(await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)).data
+    assert.equal(row.status, 'completed')
+    assert.equal(row.tx_hash, hash)
+
+    const emails = await OutboxEvent.query()
+      .where('aggregate_id', payout.id)
+      .where('event_type', 'crypto_payout.completed')
+    assert.lengthOf(emails, 1)
+
+    await new Promise((resolve) => setImmediate(resolve))
+    stop()
+    assert.includeMembers(heard, ['pending', 'processing', 'completed'])
+  })
+
+  test('a hash the chain contradicts waits for staff; refusing refunds everything, fees included', async ({
+    client,
+    assert,
+  }) => {
+    const { user, wallet } = await verifiedUser(10000n)
+    const requested = await request(client, user, { network: 'bsc' })
+    assert.equal(requested.status(), 201, JSON.stringify(json(requested)))
+    const payout = json(requested).data
     await wallet.refresh()
-    assert.equal(wallet.balanceCache, 8000n) // Fully refunded to $80.00!
+    assert.equal(wallet.balanceCache, 10000n - 2070n) // 2 % (0.40) + the BSC network fee (0.30)
+
+    // Staff paste a hash whose transfer is 2 USDT instead of 20: never completed, never refunded alone.
+    const hash = randomHash()
+    await asAdmin(client.post(`/api/v1/admin/crypto-payouts/${payout.id}/sent`)).json({
+      tx_hash: hash,
+    })
+    const receipts = {
+      [hash]: transferReceipt({
+        contract: BSC_USDT,
+        to: DESTINATION,
+        raw: 2n * 10n ** 18n,
+        block: 1,
+      }),
+    }
+    await CryptoPayoutService.confirmSent(fakeChain(1000, receipts))
+
+    const attention = json(
+      await asAdmin(client.get('/api/v1/admin/crypto-payouts?status=attention'))
+    ).data
+    const flagged = attention.find((row: any) => row.id === payout.id)
+    assert.equal(flagged.verification_issue, 'transfer_mismatch')
+    await wallet.refresh()
+    assert.equal(wallet.balanceCache, 10000n - 2070n) // 2 % (0.40) + the BSC network fee (0.30)
+
+    const refused = await asAdmin(
+      client.post(`/api/v1/admin/crypto-payouts/${payout.id}/reject`)
+    ).json({
+      reason: 'Montant envoyé incorrect, retrait annulé',
+    })
+    assert.equal(refused.status(), 200)
+    assert.equal(json(refused).data.status, 'failed')
+    await wallet.refresh()
+    assert.equal(wallet.balanceCache, 10000n) // amount and network fee back
+
+    // A completed or refused withdrawal cannot be refused again.
+    const again = await asAdmin(
+      client.post(`/api/v1/admin/crypto-payouts/${payout.id}/reject`)
+    ).json({
+      reason: 'Deuxième tentative de remboursement',
+    })
+    assert.equal(json(again).code, 'CRYPTO_PAYOUT_STATE')
+  })
+
+  test('the treasury view compares each network balance with the withdrawals waiting', async ({
+    client,
+    assert,
+  }) => {
+    const { user } = await verifiedUser(10000n)
+    await request(client, user, { amount: '3000' }) // 30.00 USDT waiting on Polygon
+
+    const previousAddress = env.get('CRYPTO_TREASURY_ADDRESS')
+    env.set('CRYPTO_TREASURY_ADDRESS', '0x000000000000000000000000000000000000dEaD')
+    try {
+      // Polygon: 0.5 POL (below the 1 POL default) and 10.00 USDT. BSC: plenty of both.
+      const fakeNode = {
+        callRpc: async (network: string, method: string) => {
+          if (method === 'eth_getBalance')
+            return network === 'polygon' ? '0x6f05b59d3b20000' : '0xde0b6b3a7640000'
+          return network === 'polygon'
+            ? `0x${10_000_000n.toString(16)}` // 10 USDT, 6 decimals
+            : `0x${(10n ** 21n).toString(16)}` // 1000 USDT, 18 decimals
+        },
+      }
+      const { address, networks } = await CryptoTreasuryService.balances(fakeNode as any)
+      assert.equal(address, '0x000000000000000000000000000000000000dEaD')
+
+      const polygon = networks.find((row) => row.network === 'polygon')!
+      assert.isTrue(polygon.gas_low)
+      assert.equal(polygon.gas_token, 'POL')
+      const usdt = polygon.tokens.find((token) => token.token_symbol === 'USDT')!
+      assert.equal(usdt.balance, '1000')
+      assert.isAtLeast(Number(usdt.pending_withdrawals), 3000)
+      assert.isTrue(usdt.short)
+
+      const bsc = networks.find((row) => row.network === 'bsc')!
+      assert.isFalse(bsc.gas_low)
+      assert.isFalse(bsc.tokens.find((token) => token.token_symbol === 'USDT')!.short)
+
+      const view = await client
+        .get('/api/v1/admin/crypto-treasury')
+        .withGuard('internal')
+        .loginAs(admin)
+      assert.equal(view.status(), 200)
+    } finally {
+      env.set('CRYPTO_TREASURY_ADDRESS', (previousAddress ?? '') as any)
+    }
   })
 })

@@ -81,12 +81,21 @@ export function ReasonActionButton({
   icon: Icon,
   color = 'error',
   helperText = 'Explain why — this is recorded in the audit log and shown to the affected party.',
+  inputLabel = 'Reason',
+  validate = (value: string) => value.trim().length >= 10,
+  invalidText = 'At least 10 characters',
+  multiline = true,
   onConfirm,
 }: {
   label: string
   icon: SvgIconComponent
   color?: Color
   helperText?: string
+  /** The defaults collect a reason; override them to collect another value (a transaction hash…). */
+  inputLabel?: string
+  validate?: (value: string) => boolean
+  invalidText?: string
+  multiline?: boolean
   onConfirm: (reason: string) => Promise<unknown>
 }) {
   const [open, setOpen] = useState(false)
@@ -95,7 +104,7 @@ export function ReasonActionButton({
   const notify = useNotify()
   const refresh = useRefresh()
 
-  const valid = reason.trim().length >= 10
+  const valid = validate(reason)
 
   const handleConfirm = async () => {
     if (!valid) return
@@ -131,13 +140,13 @@ export function ReasonActionButton({
           <TextField
             autoFocus
             fullWidth
-            multiline
-            minRows={3}
-            label="Reason"
+            multiline={multiline}
+            minRows={multiline ? 3 : undefined}
+            label={inputLabel}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             error={reason.length > 0 && !valid}
-            helperText={reason.length > 0 && !valid ? 'At least 10 characters' : ' '}
+            helperText={reason.length > 0 && !valid ? invalidText : ' '}
           />
         </DialogContent>
         <DialogActions>

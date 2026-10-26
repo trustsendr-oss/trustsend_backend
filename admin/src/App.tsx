@@ -10,6 +10,7 @@ import { resourceIcons } from './layout/AppMenu'
 import { AgentList, AgentShow, AgentCreate, AgentEdit } from './resources/agents'
 import { AgentApplicationList, AgentApplicationShow } from './resources/agentApplications'
 import { RemittanceList, RemittanceShow } from './resources/remittances'
+import { CryptoPayoutList, CryptoPayoutShow } from './resources/cryptoPayouts'
 import { WatchlistList, WatchlistCreate } from './resources/watchlist/Watchlist'
 import { BusinessList, BusinessShow, BusinessCreate } from './resources/businesses'
 import {
@@ -84,6 +85,14 @@ export default function App() {
         list={RemittanceList}
         show={RemittanceShow}
         icon={resourceIcons.remittances}
+        recordRepresentation="id"
+      />
+      <Resource
+        name="crypto_payouts"
+        options={{ label: 'Crypto withdrawals' }}
+        list={CryptoPayoutList}
+        show={CryptoPayoutShow}
+        icon={resourceIcons.crypto_payouts}
         recordRepresentation="id"
       />
       <Resource

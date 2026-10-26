@@ -1,12 +1,18 @@
 import vine from '@vinejs/vine'
 
-const networkRule = vine.enum(['polygon', 'base', 'arbitrum', 'optimism', 'ethereum', 'solana'])
+// EVM networks only, for deposits and withdrawals alike. Which ones are actually offered is
+// decided per deployment (see crypto_networks.ts), not here.
+const networkRule = vine.enum(['ethereum', 'polygon', 'arbitrum', 'optimism', 'base', 'bsc'])
 const tokenSymbolRule = vine.enum(['USDC', 'USDT', 'EURC'])
-const addressRule = vine.string().regex(/^(0x[a-fA-F0-9]{40}|[1-9A-HJ-NP-Za-km-z]{32,44})$/)
+// Shape only; the checksum of a mixed-case address is verified by the payout service.
+const addressRule = vine
+  .string()
+  .trim()
+  .regex(/^0x[a-fA-F0-9]{40}$/)
 
 // Deposits are EVM-only: their addresses are derived from an xpub (see deposit_address_deriver.ts).
 export const createCryptoDepositAddressValidator = vine.create({
-  network: vine.enum(['ethereum', 'polygon', 'arbitrum', 'optimism', 'base', 'bsc']),
+  network: networkRule,
   token_symbol: tokenSymbolRule,
   currency_code: vine.string().fixedLength(3).optional(),
 })

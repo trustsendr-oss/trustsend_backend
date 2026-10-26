@@ -5,6 +5,7 @@ import DashboardIcon from '@mui/icons-material/SpaceDashboardOutlined'
 import AgentsIcon from '@mui/icons-material/BadgeOutlined'
 import AgentApplicationsIcon from '@mui/icons-material/HowToRegOutlined'
 import RemittancesIcon from '@mui/icons-material/PublicOutlined'
+import CryptoPayoutsIcon from '@mui/icons-material/CurrencyBitcoinOutlined'
 import WatchlistIcon from '@mui/icons-material/PolicyOutlined'
 import BusinessesIcon from '@mui/icons-material/StorefrontOutlined'
 import BusinessStaffIcon from '@mui/icons-material/SupportAgentOutlined'
@@ -56,6 +57,7 @@ export function AppMenu() {
       <SectionLabel>Finance</SectionLabel>
       <Menu.ResourceItem name="transactions" />
       <Menu.ResourceItem name="remittances" />
+      <Menu.ResourceItem name="crypto_payouts" />
       <Menu.ResourceItem name="cards" />
       <Menu.ResourceItem name="loans" />
       <Menu.ResourceItem name="savings_accounts" />
@@ -78,6 +80,7 @@ export const resourceIcons = {
   agents: AgentsIcon,
   agent_applications: AgentApplicationsIcon,
   remittances: RemittancesIcon,
+  crypto_payouts: CryptoPayoutsIcon,
   watchlist: WatchlistIcon,
   businesses: BusinessesIcon,
   business_staff: BusinessStaffIcon,

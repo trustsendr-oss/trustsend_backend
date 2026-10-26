@@ -89,6 +89,13 @@ const env = await Env.create(new URL('../', import.meta.url), {
   CRYPTO_DEPOSIT_XPUB: Env.schema.string.optional(),
   // Deposit addresses shown within this many days are re-scanned for missed webhooks (default 7).
   CRYPTO_RECONCILE_ACTIVE_DAYS: Env.schema.string.optional(),
+  // Withdrawals: networks offered, flat network fee per network (cents), minimum (cents).
+  CRYPTO_PAYOUT_NETWORKS: Env.schema.string.optional(),
+  CRYPTO_PAYOUT_NETWORK_FEES: Env.schema.string.optional(),
+  CRYPTO_PAYOUT_MIN_AMOUNT: Env.schema.string.optional(),
+  // Treasury address withdrawals are sent from (public), and the fee coin below which it is flagged.
+  CRYPTO_TREASURY_ADDRESS: Env.schema.string.optional(),
+  CRYPTO_TREASURY_MIN_GAS: Env.schema.string.optional(),
   CRYPTO_DEPOSIT_FEE_PERCENT: Env.schema.string.optional(),
   CRYPTO_PAYOUT_FEE_PERCENT: Env.schema.string.optional(),
 

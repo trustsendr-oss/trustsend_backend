@@ -250,3 +250,69 @@ export function availableDepositRails(): Array<{
     }))
   })
 }
+
+/*
+|--------------------------------------------------------------------------
+| Withdrawals (phase 1: reviewed and sent by staff)
+|--------------------------------------------------------------------------
+|
+| Fewer networks than deposits: a withdrawal pays the network's fee, and on Ethereum that fee can
+| exceed a small withdrawal. Everything here is a pricing or risk choice, so it is read from the
+| environment rather than fixed in code:
+|
+|   CRYPTO_PAYOUT_NETWORKS=polygon,bsc          networks offered for withdrawals
+|   CRYPTO_PAYOUT_NETWORK_FEES=polygon=0,bsc=0  flat network fee per withdrawal, in cents
+|   CRYPTO_PAYOUT_MIN_AMOUNT=100                smallest withdrawal, in cents
+|
+*/
+
+function parsePairs(raw: string | undefined | null): Map<string, string> {
+  const pairs = new Map<string, string>()
+  for (const pair of (raw ?? '').split(',')) {
+    const [name, value] = pair.split('=').map((part) => part.trim())
+    if (name && value !== undefined) pairs.set(name, value)
+  }
+  return pairs
+}
+
+/** Smallest withdrawal, in cents of the token's peg currency. */
+export function payoutMinimum(): bigint {
+  const raw = env.get('CRYPTO_PAYOUT_MIN_AMOUNT', '100') ?? '100'
+  return /^\d+$/.test(raw) ? BigInt(raw) : 100n
+}
+
+/** Flat network fee charged on a withdrawal, in cents; 0 when not configured. */
+export function payoutNetworkFee(network: EvmNetwork): bigint {
+  const raw = parsePairs(env.get('CRYPTO_PAYOUT_NETWORK_FEES', '')).get(network)
+  return raw && /^\d+$/.test(raw) ? BigInt(raw) : 0n
+}
+
+/** Every (network, token) a withdrawal can be requested on right now. */
+export function availablePayoutRails(): Array<{
+  network: EvmNetwork
+  tokenSymbol: StablecoinSymbol
+  currencyCode: string
+  networkFee: bigint
+  minAmount: bigint
+  confirmations: number
+  testnetName: string | null
+}> {
+  const configured = (env.get('CRYPTO_PAYOUT_NETWORKS', 'polygon,bsc') ?? '')
+    .split(',')
+    .map((name) => name.trim())
+    .filter(isEvmNetwork)
+
+  return configured.flatMap((network) => {
+    const spec = networkSpec(network)
+    if (!spec) return []
+    return STABLECOINS.filter((symbol) => spec.contracts[symbol]).map((tokenSymbol) => ({
+      network,
+      tokenSymbol,
+      currencyCode: TOKEN_CURRENCY[tokenSymbol],
+      networkFee: payoutNetworkFee(network),
+      minAmount: payoutMinimum(),
+      confirmations: spec.confirmations,
+      testnetName: spec.testnetName,
+    }))
+  })
+}

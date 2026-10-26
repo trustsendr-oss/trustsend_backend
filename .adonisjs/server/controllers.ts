@@ -11,6 +11,7 @@ export const controllers = {
     AuditLogs: () => import('#controllers/admin/audit_logs_controller'),
     BusinessStaff: () => import('#controllers/admin/business_staff_controller'),
     Cards: () => import('#controllers/admin/cards_controller'),
+    CryptoPayouts: () => import('#controllers/admin/crypto_payouts_controller'),
     FinancialProducts: () => import('#controllers/admin/financial_products_controller'),
     LedgerAccounts: () => import('#controllers/admin/ledger_accounts_controller'),
     Lending: () => import('#controllers/admin/lending_controller'),

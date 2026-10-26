@@ -16,6 +16,7 @@ const RESOURCE_PATH: Record<string, string> = {
   agents: '/agents',
   agent_applications: '/admin/agent-applications',
   remittances: '/admin/remittances',
+  crypto_payouts: '/admin/crypto-payouts',
   watchlist: '/admin/watchlist',
   businesses: '/businesses',
   business_staff: '/admin/business-staff',
@@ -81,6 +82,7 @@ const SERVER_FILTER_KEYS: Record<string, string[]> = {
   kyc: ['status', 'subject_type', 'q'],
   agent_applications: ['status'],
   remittances: ['status'],
+  crypto_payouts: ['status'],
   disputes: ['status', 'raised_by_type'],
   ledger_accounts: ['owner_type'],
 }
@@ -288,6 +290,17 @@ export const adminActions = {
     apiFetch(`/admin/remittances/${id}/release`, { method: 'POST' }),
   remittanceReject: (id: number | string, reason: string) =>
     apiFetch(`/admin/remittances/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+
+  cryptoPayoutSent: (id: number | string, txHash: string) =>
+    apiFetch(`/admin/crypto-payouts/${id}/sent`, {
+      method: 'POST',
+      body: JSON.stringify({ tx_hash: txHash }),
+    }),
+  cryptoPayoutReject: (id: number | string, reason: string) =>
+    apiFetch(`/admin/crypto-payouts/${id}/reject`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
     }),

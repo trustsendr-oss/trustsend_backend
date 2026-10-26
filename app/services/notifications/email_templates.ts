@@ -365,6 +365,43 @@ function buildEmail(template: string, data: Record<string, any>, brand: string):
         ],
       })
 
+    case 'crypto_payout_completed':
+      return movement(brand, data, {
+        title: 'Retrait crypto envoyé',
+        preheader: `${data.amount} envoyés en ${data.token} sur ${data.network}.`,
+        sentence: `Votre retrait de ${data.token} sur le réseau ${data.network} a été envoyé et confirmé par la blockchain.`,
+        caption: 'Montant envoyé',
+        status: 'completed',
+        rows: [
+          ['Jeton', data.token],
+          ['Réseau', data.network],
+          ['Adresse de destination', data.destination],
+          ['Frais', feeRow(data.fee)],
+          ['Total débité', feeRow(data.fee) ? data.total : null],
+          ['Débité de', data.account],
+          // The on-chain proof: anyone can look it up on the network's block explorer.
+          ['Transaction', data.tx_hash],
+        ],
+      })
+
+    case 'crypto_payout_failed':
+      return movement(brand, data, {
+        title: "Votre retrait crypto n'a pas été envoyé",
+        preheader: 'Le montant a été remboursé sur votre compte.',
+        sentence: `Votre retrait de ${data.token} sur le réseau ${data.network} n'a pas été envoyé.`,
+        caption: 'Montant demandé',
+        status: 'failed',
+        rows: [
+          ['Réseau', data.network],
+          ['Adresse de destination', data.destination],
+          ['Motif', data.reason],
+        ],
+        notice: {
+          tone: 'info',
+          text: "Le montant et les frais ont été entièrement remboursés sur votre compte. Vous pouvez refaire une demande depuis l'application.",
+        },
+      })
+
     case 'deposit_failed':
       return movement(brand, data, {
         title: "Votre recharge n'a pas abouti",
@@ -563,6 +600,8 @@ export const EMAIL_TEMPLATES = [
   'transfer_received',
   'deposit_completed',
   'crypto_deposit_completed',
+  'crypto_payout_completed',
+  'crypto_payout_failed',
   'deposit_failed',
   'payout_completed',
   'payout_failed',

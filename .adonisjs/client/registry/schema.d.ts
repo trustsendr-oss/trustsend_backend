@@ -1975,6 +1975,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_deposits_controller').default['index']>>>
     }
   }
+  'crypto.crypto_payouts.options': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/crypto/payouts/options'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_payouts_controller').default['options']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_payouts_controller').default['options']>>>
+    }
+  }
+  'crypto.crypto_payouts.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/crypto/payouts'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_payouts_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_payouts_controller').default['index']>>>
+    }
+  }
   'crypto.crypto_payouts.store': {
     methods: ["POST"]
     pattern: '/api/v1/crypto/payouts'
@@ -3041,6 +3065,66 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['removeFromWatchlist']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/remittances_controller').default['removeFromWatchlist']>>>
+    }
+  }
+  'admin.remittances.admin_crypto_payouts.treasury': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/crypto-treasury'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['treasury']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['treasury']>>>
+    }
+  }
+  'admin.remittances.admin_crypto_payouts.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/crypto-payouts'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['index']>>>
+    }
+  }
+  'admin.remittances.admin_crypto_payouts.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/crypto-payouts/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['show']>>>
+    }
+  }
+  'admin.remittances.admin_crypto_payouts.sent': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/crypto-payouts/:id/sent'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['sent']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['sent']>>>
+    }
+  }
+  'admin.remittances.admin_crypto_payouts.reject': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/crypto-payouts/:id/reject'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['reject']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/crypto_payouts_controller').default['reject']>>>
     }
   }
   'admin.agent_applications.admin_agent_applications.index': {

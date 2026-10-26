@@ -5,8 +5,14 @@ import { PinService } from '#services/security/pin_service'
 import { IdempotencyService } from '#services/security/idempotency_service'
 import { CryptoDepositService } from '#services/crypto/crypto_deposit_service'
 import { CryptoPayoutService } from '#services/crypto/crypto_payout_service'
-import { createCryptoDepositAddressValidator, createCryptoPayoutValidator } from '#validators/crypto'
-import { depositAddressPayload, respondToDepositError } from '#controllers/crypto/crypto_deposit_responses'
+import {
+  createCryptoDepositAddressValidator,
+  createCryptoPayoutValidator,
+} from '#validators/crypto'
+import {
+  depositAddressPayload,
+  respondToDepositError,
+} from '#controllers/crypto/crypto_deposit_responses'
 
 const BIZ_CRYPTO_PAYOUT_ENDPOINT = 'POST /api/v1/business/crypto/payouts'
 
@@ -137,7 +143,13 @@ export default class BusinessCryptoController {
     } catch (error) {
       await IdempotencyService.fail(identity)
       const err = error as any
-      if (err.name === 'InsufficientCryptoBalanceException' || err.name === 'LimitExceededException') {
+      if (err.name === 'CryptoPayoutException') {
+        return response.status(err.status).send({ code: err.code, message: err.message })
+      }
+      if (
+        err.name === 'InsufficientCryptoBalanceException' ||
+        err.name === 'LimitExceededException'
+      ) {
         return response.unprocessableEntity({ message: err.message })
       }
       throw error

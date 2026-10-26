@@ -990,6 +990,18 @@ const routes = {
     tokens: [{"old":"/api/v1/crypto/deposits","type":0,"val":"api","end":""},{"old":"/api/v1/crypto/deposits","type":0,"val":"v1","end":""},{"old":"/api/v1/crypto/deposits","type":0,"val":"crypto","end":""},{"old":"/api/v1/crypto/deposits","type":0,"val":"deposits","end":""}],
     types: placeholder as Registry['crypto.crypto_deposits.index']['types'],
   },
+  'crypto.crypto_payouts.options': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/crypto/payouts/options',
+    tokens: [{"old":"/api/v1/crypto/payouts/options","type":0,"val":"api","end":""},{"old":"/api/v1/crypto/payouts/options","type":0,"val":"v1","end":""},{"old":"/api/v1/crypto/payouts/options","type":0,"val":"crypto","end":""},{"old":"/api/v1/crypto/payouts/options","type":0,"val":"payouts","end":""},{"old":"/api/v1/crypto/payouts/options","type":0,"val":"options","end":""}],
+    types: placeholder as Registry['crypto.crypto_payouts.options']['types'],
+  },
+  'crypto.crypto_payouts.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/crypto/payouts',
+    tokens: [{"old":"/api/v1/crypto/payouts","type":0,"val":"api","end":""},{"old":"/api/v1/crypto/payouts","type":0,"val":"v1","end":""},{"old":"/api/v1/crypto/payouts","type":0,"val":"crypto","end":""},{"old":"/api/v1/crypto/payouts","type":0,"val":"payouts","end":""}],
+    types: placeholder as Registry['crypto.crypto_payouts.index']['types'],
+  },
   'crypto.crypto_payouts.store': {
     methods: ["POST"],
     pattern: '/api/v1/crypto/payouts',
@@ -1523,6 +1535,36 @@ const routes = {
     pattern: '/api/v1/admin/watchlist/:id',
     tokens: [{"old":"/api/v1/admin/watchlist/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/watchlist/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/watchlist/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/watchlist/:id","type":0,"val":"watchlist","end":""},{"old":"/api/v1/admin/watchlist/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['admin.remittances.admin_remittances.remove_from_watchlist']['types'],
+  },
+  'admin.remittances.admin_crypto_payouts.treasury': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/crypto-treasury',
+    tokens: [{"old":"/api/v1/admin/crypto-treasury","type":0,"val":"api","end":""},{"old":"/api/v1/admin/crypto-treasury","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/crypto-treasury","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/crypto-treasury","type":0,"val":"crypto-treasury","end":""}],
+    types: placeholder as Registry['admin.remittances.admin_crypto_payouts.treasury']['types'],
+  },
+  'admin.remittances.admin_crypto_payouts.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/crypto-payouts',
+    tokens: [{"old":"/api/v1/admin/crypto-payouts","type":0,"val":"api","end":""},{"old":"/api/v1/admin/crypto-payouts","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/crypto-payouts","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/crypto-payouts","type":0,"val":"crypto-payouts","end":""}],
+    types: placeholder as Registry['admin.remittances.admin_crypto_payouts.index']['types'],
+  },
+  'admin.remittances.admin_crypto_payouts.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/crypto-payouts/:id',
+    tokens: [{"old":"/api/v1/admin/crypto-payouts/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/crypto-payouts/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/crypto-payouts/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/crypto-payouts/:id","type":0,"val":"crypto-payouts","end":""},{"old":"/api/v1/admin/crypto-payouts/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.remittances.admin_crypto_payouts.show']['types'],
+  },
+  'admin.remittances.admin_crypto_payouts.sent': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/crypto-payouts/:id/sent',
+    tokens: [{"old":"/api/v1/admin/crypto-payouts/:id/sent","type":0,"val":"api","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/sent","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/sent","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/sent","type":0,"val":"crypto-payouts","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/sent","type":1,"val":"id","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/sent","type":0,"val":"sent","end":""}],
+    types: placeholder as Registry['admin.remittances.admin_crypto_payouts.sent']['types'],
+  },
+  'admin.remittances.admin_crypto_payouts.reject': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/crypto-payouts/:id/reject',
+    tokens: [{"old":"/api/v1/admin/crypto-payouts/:id/reject","type":0,"val":"api","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/reject","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/reject","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/reject","type":0,"val":"crypto-payouts","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/reject","type":1,"val":"id","end":""},{"old":"/api/v1/admin/crypto-payouts/:id/reject","type":0,"val":"reject","end":""}],
+    types: placeholder as Registry['admin.remittances.admin_crypto_payouts.reject']['types'],
   },
   'admin.agent_applications.admin_agent_applications.index': {
     methods: ["GET","HEAD"],

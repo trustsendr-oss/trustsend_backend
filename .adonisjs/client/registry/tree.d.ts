@@ -313,6 +313,8 @@ export interface ApiDefinition {
       index: typeof routes['crypto.crypto_deposits.index']
     }
     cryptoPayouts: {
+      options: typeof routes['crypto.crypto_payouts.options']
+      index: typeof routes['crypto.crypto_payouts.index']
       store: typeof routes['crypto.crypto_payouts.store']
       show: typeof routes['crypto.crypto_payouts.show']
     }
@@ -675,6 +677,13 @@ export interface ApiDefinition {
         watchlist: typeof routes['admin.remittances.admin_remittances.watchlist']
         addToWatchlist: typeof routes['admin.remittances.admin_remittances.add_to_watchlist']
         removeFromWatchlist: typeof routes['admin.remittances.admin_remittances.remove_from_watchlist']
+      }
+      adminCryptoPayouts: {
+        treasury: typeof routes['admin.remittances.admin_crypto_payouts.treasury']
+        index: typeof routes['admin.remittances.admin_crypto_payouts.index']
+        show: typeof routes['admin.remittances.admin_crypto_payouts.show']
+        sent: typeof routes['admin.remittances.admin_crypto_payouts.sent']
+        reject: typeof routes['admin.remittances.admin_crypto_payouts.reject']
       }
     }
     agentApplications: {

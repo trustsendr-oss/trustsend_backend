@@ -116,6 +116,10 @@ export async function handleOutboxRelay(): Promise<void> {
         case 'crypto_deposit.completed':
           await handleCryptoDepositCompleted(event)
           break
+        case 'crypto_payout.completed':
+        case 'crypto_payout.failed':
+          await handleCryptoPayoutTerminal(event)
+          break
         case 'mobile_money_deposit.initiated':
         case 'mobile_money_payout.initiated':
           // Nothing to announce yet: the money has not moved, and the terminal event that
@@ -624,4 +628,47 @@ export async function handleCryptoDepositCompleted(event: OutboxEvent): Promise<
     reference: transaction.uuid,
     date: formatDate(transaction.completedAt ?? event.createdAt),
   })
+}
+
+/**
+ * Receipt e-mail of a crypto withdrawal: sent with its on-chain proof, or refused and refunded.
+ * The in-app notification is written inline by CryptoPayoutService.
+ */
+async function handleCryptoPayoutTerminal(event: OutboxEvent): Promise<void> {
+  const payload = event.payload as any
+  const transaction = await LedgerTransaction.find(payload.transaction_id ?? event.aggregateId)
+  if (!transaction) return
+
+  const recipient = await TransactionNotifier.recipientForActor(
+    transaction.initiatedByType,
+    transaction.initiatedById
+  )
+  if (!recipient) return
+
+  const metadata = (transaction.metadata ?? {}) as Record<string, any>
+  const currency = transaction.currencyCode ?? metadata.currency_code ?? ''
+  const amount = formatAmount(metadata.gross_amount ?? transaction.amount ?? '0', currency)
+  const fee = BigInt(metadata.fee_amount ?? '0')
+  const testnetName = networkSpec(String(metadata.network ?? ''))?.testnetName
+  const networkName = CRYPTO_NETWORK_LABEL[metadata.network] ?? metadata.network ?? '—'
+  const completed = event.eventType === 'crypto_payout.completed'
+
+  await emailSafely(
+    recipient,
+    completed ? `Retrait crypto envoyé — ${amount}` : `Retrait crypto refusé — ${amount}`,
+    completed ? 'crypto_payout_completed' : 'crypto_payout_failed',
+    {
+      amount,
+      fee: fee > 0n ? formatAmount(fee, currency) : null,
+      total: formatAmount(metadata.total_debit ?? '0', currency),
+      token: metadata.token_symbol ?? 'USDT',
+      network: testnetName ? `${networkName} ${testnetName}` : networkName,
+      destination: metadata.destination_address ?? null,
+      tx_hash: metadata.tx_hash ?? null,
+      account: accountLabel(currency),
+      reason: metadata.failure_reason ?? transaction.failureReason ?? null,
+      reference: transaction.uuid,
+      date: formatDate(transaction.completedAt ?? event.createdAt),
+    }
+  )
 }
