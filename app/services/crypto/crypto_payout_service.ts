@@ -140,27 +140,14 @@ function metadataOf(txn: LedgerTransaction): PayoutMetadata {
 
 /**
  * Signs that the account may not be in its owner's hands, from what the platform already
- * records: a first withdrawal to this address, a PIN changed or reset in the last 24 h, a phone
- * signed in for the first time in the last 24 h. Any of them sends the withdrawal to staff
- * instead of the hot wallet — a stolen phone empties nothing by itself.
- *
- * CRYPTO_AUTO_PAYOUT_NEW_ADDRESS=auto lets a first withdrawal to a new address go automatically.
+ * records: a PIN changed or reset in the last 24 h, a phone signed in for the first time in the
+ * last 24 h. Either sends the withdrawal to staff instead of the hot wallet — a stolen phone
+ * empties nothing by itself.
  */
 async function fraudHold(
   initiator: { type: string; id: number },
-  destination: string,
   trx: TransactionClientContract
 ): Promise<string | null> {
-  if ((env.get('CRYPTO_AUTO_PAYOUT_NEW_ADDRESS') ?? 'review') !== 'auto') {
-    const known = await LedgerTransaction.query({ client: trx })
-      .where('type', 'crypto_payout')
-      .where('status', 'completed')
-      .where('initiated_by_type', initiator.type)
-      .where('initiated_by_id', initiator.id)
-      .whereRaw("LOWER(metadata->>'destination_address') = ?", [destination.toLowerCase()])
-      .first()
-    if (!known) return 'new_destination'
-  }
   if (initiator.type !== 'user') return null
 
   const since = DateTime.now().minus({ hours: 24 }).toSQL()!
@@ -334,7 +321,6 @@ export class CryptoPayoutService {
       if (autoReason === null) {
         autoReason = await fraudHold(
           { type: request.initiatedByType, id: request.initiatedById },
-          destination,
           trx
         )
       }

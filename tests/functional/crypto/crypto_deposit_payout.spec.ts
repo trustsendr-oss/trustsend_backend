@@ -1142,8 +1142,6 @@ test.group('Crypto withdrawals sent automatically (hot wallet)', (group) => {
     CRYPTO_AUTO_PAYOUT_MAX: '20000',
     CRYPTO_AUTO_PAYOUT_USER_DAILY_MAX: '50000',
     CRYPTO_AUTO_PAYOUT_DAILY_MAX: '100000000',
-    // These tests are about sending; the new-address hold has its own test below.
-    CRYPTO_AUTO_PAYOUT_NEW_ADDRESS: 'auto',
     CRYPTO_ALERT_EMAILS: 'ops@example.test',
   }
   let admin: InternalUser
@@ -1335,17 +1333,6 @@ test.group('Crypto withdrawals sent automatically (hot wallet)', (group) => {
   })
 
   test('signs of a taken-over account send the withdrawal to staff', async ({ client, assert }) => {
-    // A first withdrawal to an address, when new addresses are reviewed.
-    env.set('CRYPTO_AUTO_PAYOUT_NEW_ADDRESS', 'review')
-    try {
-      const { user } = await verifiedUser(100000n)
-      const first = await request(client, user, '1000')
-      assert.isFalse(first.auto)
-      assert.equal(first.auto_reason, 'new_destination')
-    } finally {
-      env.set('CRYPTO_AUTO_PAYOUT_NEW_ADDRESS', 'auto')
-    }
-
     // A PIN changed in the last 24 hours.
     const changed = await verifiedUser(100000n)
     await AuditLoggerService.record({

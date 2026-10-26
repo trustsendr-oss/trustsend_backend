@@ -104,8 +104,6 @@ const env = await Env.create(new URL('../', import.meta.url), {
   CRYPTO_AUTO_PAYOUT_DAILY_MAX: Env.schema.string.optional(),
   // Team e-mails for crypto alerts (review queue, hot wallet, rejected deposits), comma-separated.
   CRYPTO_ALERT_EMAILS: Env.schema.string.optional(),
-  // `auto` lets a first withdrawal to a new address leave the hot wallet; default `review`.
-  CRYPTO_AUTO_PAYOUT_NEW_ADDRESS: Env.schema.enum.optional(['review', 'auto'] as const),
   CRYPTO_DEPOSIT_FEE_PERCENT: Env.schema.string.optional(),
   CRYPTO_PAYOUT_FEE_PERCENT: Env.schema.string.optional(),
 
