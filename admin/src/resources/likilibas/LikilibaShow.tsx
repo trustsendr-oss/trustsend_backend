@@ -14,9 +14,15 @@ import { Show, TopToolbar, useRecordContext } from 'react-admin'
 import PauseIcon from '@mui/icons-material/PauseCircleOutlineOutlined'
 import PlayIcon from '@mui/icons-material/PlayCircleOutlineOutlined'
 import ClearIcon from '@mui/icons-material/RemoveCircleOutlineOutlined'
+import HideIcon from '@mui/icons-material/VisibilityOffOutlined'
 import { StatusChip } from '../../components/StatusChip'
 import { ReasonActionButton } from '../../components/ActionButtons'
-import { adminActions, type LikilibaEvent, type LikilibaPenaltyRow } from '../../providers/dataProvider'
+import {
+  adminActions,
+  type LikilibaEvent,
+  type LikilibaMessageRow,
+  type LikilibaPenaltyRow,
+} from '../../providers/dataProvider'
 import { formatAmount } from '../remittances/format'
 
 /**
@@ -97,6 +103,7 @@ function LikilibaContent() {
   const record = useRecordContext()
   const [penalties, setPenalties] = useState<LikilibaPenaltyRow[]>([])
   const [events, setEvents] = useState<LikilibaEvent[]>([])
+  const [messages, setMessages] = useState<LikilibaMessageRow[]>([])
   const id = record?.id
   const status = record?.status
 
@@ -112,6 +119,11 @@ function LikilibaContent() {
       setEvents(await adminActions.likilibaHistory(id))
     } catch {
       setEvents([])
+    }
+    try {
+      setMessages(await adminActions.likilibaMessages(id))
+    } catch {
+      setMessages([])
     }
   }, [id])
 
@@ -417,6 +429,64 @@ function LikilibaContent() {
           </Box>
         </Section>
       )}
+
+      <Section
+        title={`Conversation (${messages.length} messages, ${messages.filter((m) => m.open_reports > 0).length} reported)`}
+      >
+        {messages.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No message written in this group.
+          </Typography>
+        ) : (
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>When</TableCell>
+                <TableCell>Author</TableCell>
+                <TableCell>Message</TableCell>
+                <TableCell>State</TableCell>
+                <TableCell>Reports</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {messages.map((m) => (
+                <TableRow key={m.id} selected={m.open_reports > 0}>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{date(m.created_at)}</TableCell>
+                  <TableCell>{m.author.name}</TableCell>
+                  <TableCell sx={{ maxWidth: 420, whiteSpace: 'pre-wrap' }}>{m.body}</TableCell>
+                  <TableCell>
+                    {m.hidden_at
+                      ? `Hidden — ${m.hide_reason ?? ''}`
+                      : m.deleted_at
+                        ? 'Deleted by author'
+                        : 'Visible'}
+                  </TableCell>
+                  <TableCell>
+                    {m.reports.length === 0
+                      ? '—'
+                      : m.reports.map((r) => `${r.reason}${r.resolved_at ? ' (resolved)' : ''}`).join(' · ')}
+                  </TableCell>
+                  <TableCell>
+                    {!m.hidden_at && (
+                      <ReasonActionButton
+                        label="Hide"
+                        icon={HideIcon}
+                        color="warning"
+                        helperText="The message disappears for every member, replaced by “Message hidden by support”. Its text stays on record here and in the audit log, and its reports are resolved."
+                        onConfirm={async (reason) => {
+                          await adminActions.likilibaHideMessage(m.id, reason)
+                          await load()
+                        }}
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Section>
 
       <Section title="History">
         {events.length === 0 ? (

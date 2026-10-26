@@ -26,6 +26,7 @@ import {
 } from '#services/likiliba/admin_service'
 import { LikilibaRules } from '#services/likiliba/rules'
 import { LikilibaLedger } from '#services/likiliba/likiliba_ledger'
+import { LikilibaPresenter } from '#services/likiliba/presenter'
 
 /**
  * Likiliba, end to end against the real ledger.
@@ -325,6 +326,15 @@ test.group('Likiliba cycle', (group) => {
       .where('memberId', defaulter.id)
       .firstOrFail()
     assert.equal(covered.status, 'covered')
+
+    // The group register shows it: the defaulter covered, the beneficiary netted, the other paid.
+    const board = await LikilibaPresenter.contributionsBoard(likiliba)
+    const cellOf = (memberId: number) =>
+      board.cells.find((c) => c.round === 1 && c.member_id === memberId)!
+    assert.equal(cellOf(defaulter.id).status, 'covered')
+    assert.equal(cellOf(beneficiary1.id).status, 'netted')
+    assert.equal(board.rounds[0].covered_count, 1)
+    assert.equal(board.members.find((m) => m.member_id === defaulter.id)!.covered_count, 1)
     assert.equal(await balance(defaulter.cautionWalletId!), 0n)
     assert.equal(await roundStatus(likiliba.id, 1), 'paid_out')
 

@@ -62,6 +62,27 @@ export class PushService {
   }
 
   /**
+   * Pushes straight to app users, without an in-app row. For conversation messages: each one
+   * is worth a push, but a row per message would bury every other notification. Never throws.
+   */
+  static async toUsers(
+    userIds: number[],
+    message: { title: string; body: string; data: Record<string, unknown> }
+  ): Promise<void> {
+    try {
+      if (userIds.length === 0) return
+      const tokens = await PushToken.query().whereIn('user_id', userIds).select('token')
+      if (tokens.length === 0) return
+      await this.send(
+        tokens.map((row) => row.token),
+        message
+      )
+    } catch (error) {
+      console.error('Push to users failed:', error)
+    }
+  }
+
+  /**
    * The app account behind a recipient. An agent works from the same app as customers, signed
    * in as the user linked to the agent; a business has no app session, so it gets no push.
    */

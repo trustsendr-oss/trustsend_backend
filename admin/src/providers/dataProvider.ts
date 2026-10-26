@@ -321,6 +321,14 @@ export const adminActions = {
     apiFetch(`/businesses/${id}/suspend`, { method: 'POST', body: JSON.stringify({ reason }) }),
   businessDeactivate: (id: number | string, reason: string) =>
     apiFetch(`/businesses/${id}/deactivate`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  // An institution's logo, shown in the app wherever it appears (catalogue of offers included).
+  businessUploadLogo: (id: number | string, file: File) => {
+    const form = new FormData()
+    form.append('image', file)
+    return apiFetch<{ logo_url: string | null }>(`/businesses/${id}/logo`, { method: 'POST', body: form })
+  },
+  businessRemoveLogo: (id: number | string) =>
+    apiFetch<{ logo_url: null }>(`/businesses/${id}/logo`, { method: 'DELETE' }),
   businessAssignPlan: (id: number | string, planId: number) =>
     apiFetch(`/businesses/${id}/plan`, {
       method: 'POST',
@@ -421,6 +429,13 @@ export const adminActions = {
     apiFetch<LikilibaEvent[]>(`/admin/likilibas/${id}/history?limit=100`),
   likilibaPenalties: (id: number | string) =>
     apiFetch<LikilibaPenaltyRow[]>(`/admin/likilibas/${id}/penalties`),
+  likilibaMessages: (id: number | string) =>
+    apiFetch<LikilibaMessageRow[]>(`/admin/likilibas/${id}/messages`),
+  likilibaHideMessage: (messageId: number | string, reason: string) =>
+    apiFetch(`/admin/likilibas/messages/${messageId}/hide`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
   likilibaWaivePenalty: (penaltyId: number | string, reason: string) =>
     apiFetch(`/admin/likilibas/penalties/${penaltyId}/waive`, {
       method: 'POST',
@@ -485,4 +500,16 @@ export type LikilibaPenaltyRow = {
   assessed_at: string
   settled_at: string | null
   waive_reason: string | null
+}
+
+export type LikilibaMessageRow = {
+  id: number
+  author: { member_id: number; name: string; user_id: number }
+  body: string
+  created_at: string
+  deleted_at: string | null
+  hidden_at: string | null
+  hide_reason: string | null
+  reports: { id: number; reason: string; created_at: string; resolved_at: string | null }[]
+  open_reports: number
 }

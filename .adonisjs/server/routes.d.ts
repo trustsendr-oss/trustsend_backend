@@ -29,6 +29,7 @@ export type ScannedRoutes = {
     'notifications.notifications.mark_all_read': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
+    'directory.directory.nearby_agents': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_merchant': { paramsTuple?: []; params?: {} }
     'merchant_payments.store': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
@@ -44,6 +45,44 @@ export type ScannedRoutes = {
     'transfers.p2p.p_2_p_transfers.create': { paramsTuple?: []; params?: {} }
     'transfers.p2p.p_2_p_transfers.show': { paramsTuple: [ParamValue]; params: {'uuid': ParamValue} }
     'transfers.p2p.p_2_p_transfers.index': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.index': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.store': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.invitations': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.accept_link': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.accept_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.decline_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.admit_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.reject_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.revoke_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.rules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.penalties': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.mine': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.contributions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.draw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.feed': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.send_message': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.delete_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
+    'likilibas.likilibas.report_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
+    'likilibas.likilibas.react_to_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
+    'likilibas.likilibas.mark_read': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.member_avatar': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'memberId': ParamValue} }
+    'likilibas.likilibas.update_profile': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.update_photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.remove_photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.invite': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.remove_member': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'memberId': ParamValue} }
+    'likilibas.likilibas.lock': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.commit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.start': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.cancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.leave': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.contribute': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.repay': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.mandate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cash_in.cash_in.store': { paramsTuple?: []; params?: {} }
     'cash_in.cash_in.confirm': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
     'cash_in.cash_in.reject': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
@@ -126,6 +165,7 @@ export type ScannedRoutes = {
     'webhooks.pawapay.mobile_money_webhooks.handle_deposit': { paramsTuple?: []; params?: {} }
     'webhooks.pawapay.mobile_money_webhooks.handle_payout': { paramsTuple?: []; params?: {} }
     'webhooks.payscribe.cards': { paramsTuple?: []; params?: {} }
+    'crypto.crypto_deposits.options': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.address': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.index': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.store': { paramsTuple?: []; params?: {} }
@@ -183,6 +223,7 @@ export type ScannedRoutes = {
     'finance.products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.institutions.index': { paramsTuple?: []; params?: {} }
     'finance.institutions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'finance.institutions.logo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.savings.savings_accounts.index': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.store': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -202,6 +243,8 @@ export type ScannedRoutes = {
     'businesses.businesses.deactivate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.issue_api_key': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.revoke_api_key': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'keyId': ParamValue} }
+    'businesses.business_logo.admin_upload': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'businesses.business_logo.admin_remove': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.assign_plan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.index': { paramsTuple?: []; params?: {} }
     'admin.business_staff.admin_business_staff.store': { paramsTuple?: []; params?: {} }
@@ -228,6 +271,15 @@ export type ScannedRoutes = {
     'admin.lending.admin_lending.loan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.lending.admin_lending.savings': { paramsTuple?: []; params?: {} }
     'admin.lending.admin_lending.position': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.index': { paramsTuple?: []; params?: {} }
+    'admin.likilibas.admin_likilibas.waive_penalty': { paramsTuple: [ParamValue]; params: {'penaltyId': ParamValue} }
+    'admin.likilibas.admin_likilibas.hide_message': { paramsTuple: [ParamValue]; params: {'messageId': ParamValue} }
+    'admin.likilibas.admin_likilibas.messages': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.penalties': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.suspend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.resume': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.store': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -331,6 +383,8 @@ export type ScannedRoutes = {
     'business.auth.business_dashboard_auth.change_password': { paramsTuple?: []; params?: {} }
     'business.dashboard.onboarding.business_dashboard_profile.show': { paramsTuple?: []; params?: {} }
     'business.dashboard.onboarding.business_dashboard_profile.update': { paramsTuple?: []; params?: {} }
+    'business.dashboard.onboarding.business_logo.dashboard_upload': { paramsTuple?: []; params?: {} }
+    'business.dashboard.onboarding.business_logo.dashboard_remove': { paramsTuple?: []; params?: {} }
     'business.dashboard.onboarding.business_pin.set_pin': { paramsTuple?: []; params?: {} }
     'business.dashboard.onboarding.business_pin.change_pin': { paramsTuple?: []; params?: {} }
     'business.dashboard.onboarding.business_kyc.submit': { paramsTuple?: []; params?: {} }
@@ -404,6 +458,9 @@ export type ScannedRoutes = {
     'business.dashboard.business_dashboard_imf.arrears': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_imf_migration.validate': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_imf_migration.commit': { paramsTuple?: []; params?: {} }
+    'event_stream': { paramsTuple?: []; params?: {} }
+    'subscribe': { paramsTuple?: []; params?: {} }
+    'unsubscribe': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
@@ -413,6 +470,7 @@ export type ScannedRoutes = {
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
+    'directory.directory.nearby_agents': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_merchant': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
     'exchange_rates.index': { paramsTuple?: []; params?: {} }
@@ -423,6 +481,18 @@ export type ScannedRoutes = {
     'transactions.transactions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'transfers.p2p.p_2_p_transfers.show': { paramsTuple: [ParamValue]; params: {'uuid': ParamValue} }
     'transfers.p2p.p_2_p_transfers.index': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.index': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.invitations': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.rules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.penalties': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.mine': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.contributions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.draw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.feed': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.member_avatar': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'memberId': ParamValue} }
+    'likilibas.likilibas.photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.image': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cards.cards.index': { paramsTuple?: []; params?: {} }
     'cards.card_products.catalogue': { paramsTuple?: []; params?: {} }
@@ -461,6 +531,7 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.predict_provider': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
+    'crypto.crypto_deposits.options': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.index': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
@@ -483,6 +554,7 @@ export type ScannedRoutes = {
     'finance.products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.institutions.index': { paramsTuple?: []; params?: {} }
     'finance.institutions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'finance.institutions.logo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.savings.savings_accounts.index': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.savings.borrower_loans.index': { paramsTuple?: []; params?: {} }
@@ -502,6 +574,11 @@ export type ScannedRoutes = {
     'admin.lending.admin_lending.loan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.lending.admin_lending.savings': { paramsTuple?: []; params?: {} }
     'admin.lending.admin_lending.position': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.index': { paramsTuple?: []; params?: {} }
+    'admin.likilibas.admin_likilibas.messages': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.penalties': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.index': { paramsTuple?: []; params?: {} }
@@ -581,6 +658,7 @@ export type ScannedRoutes = {
     'business.dashboard.business_dashboard_imf.regulatory_report': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_imf.provisioning': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_imf.arrears': { paramsTuple?: []; params?: {} }
+    'event_stream': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
@@ -590,6 +668,7 @@ export type ScannedRoutes = {
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_recipient': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_agent': { paramsTuple?: []; params?: {} }
+    'directory.directory.nearby_agents': { paramsTuple?: []; params?: {} }
     'directory.directory.lookup_merchant': { paramsTuple?: []; params?: {} }
     'currencies.index': { paramsTuple?: []; params?: {} }
     'exchange_rates.index': { paramsTuple?: []; params?: {} }
@@ -600,6 +679,18 @@ export type ScannedRoutes = {
     'transactions.transactions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'transfers.p2p.p_2_p_transfers.show': { paramsTuple: [ParamValue]; params: {'uuid': ParamValue} }
     'transfers.p2p.p_2_p_transfers.index': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.index': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.invitations': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.rules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.penalties': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.mine': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.contributions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.draw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.feed': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.member_avatar': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'memberId': ParamValue} }
+    'likilibas.likilibas.photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.image': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cards.cards.index': { paramsTuple?: []; params?: {} }
     'cards.card_products.catalogue': { paramsTuple?: []; params?: {} }
@@ -638,6 +729,7 @@ export type ScannedRoutes = {
     'mobile_money.mobile_money_toolkit.predict_provider': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_payment_methods': { paramsTuple?: []; params?: {} }
     'mobile_money.mobile_money_toolkit.list_all_payment_methods_raw': { paramsTuple?: []; params?: {} }
+    'crypto.crypto_deposits.options': { paramsTuple?: []; params?: {} }
     'crypto.crypto_deposits.index': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
@@ -660,6 +752,7 @@ export type ScannedRoutes = {
     'finance.products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.institutions.index': { paramsTuple?: []; params?: {} }
     'finance.institutions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'finance.institutions.logo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.savings.savings_accounts.index': { paramsTuple?: []; params?: {} }
     'finance.savings.savings_accounts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'finance.savings.borrower_loans.index': { paramsTuple?: []; params?: {} }
@@ -679,6 +772,11 @@ export type ScannedRoutes = {
     'admin.lending.admin_lending.loan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.lending.admin_lending.savings': { paramsTuple?: []; params?: {} }
     'admin.lending.admin_lending.position': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.index': { paramsTuple?: []; params?: {} }
+    'admin.likilibas.admin_likilibas.messages': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.penalties': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.index': { paramsTuple?: []; params?: {} }
     'card_products.card_products.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.index': { paramsTuple?: []; params?: {} }
@@ -758,6 +856,7 @@ export type ScannedRoutes = {
     'business.dashboard.business_dashboard_imf.regulatory_report': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_imf.provisioning': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_imf.arrears': { paramsTuple?: []; params?: {} }
+    'event_stream': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'auth.new_account.request_otp': { paramsTuple?: []; params?: {} }
@@ -780,6 +879,24 @@ export type ScannedRoutes = {
     'swaps.swaps.store': { paramsTuple?: []; params?: {} }
     'wallets.wallets.store': { paramsTuple?: []; params?: {} }
     'transfers.p2p.p_2_p_transfers.create': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.store': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.accept_link': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.accept_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.decline_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.admit_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.reject_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.send_message': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.report_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
+    'likilibas.likilibas.mark_read': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.update_photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.invite': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.lock': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.commit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.start': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.cancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.leave': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.contribute': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.repay': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cash_in.cash_in.store': { paramsTuple?: []; params?: {} }
     'cash_in.cash_in.confirm': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
     'cash_in.cash_in.reject': { paramsTuple: [ParamValue]; params: {'transaction_id': ParamValue} }
@@ -864,6 +981,7 @@ export type ScannedRoutes = {
     'businesses.businesses.suspend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.deactivate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.issue_api_key': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'businesses.business_logo.admin_upload': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'businesses.businesses.assign_plan': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.business_staff.admin_business_staff.store': { paramsTuple?: []; params?: {} }
     'admin.remittances.admin_remittances.release': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -875,6 +993,10 @@ export type ScannedRoutes = {
     'admin.financial_products.admin_financial_products.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.financial_products.admin_financial_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.waive_penalty': { paramsTuple: [ParamValue]; params: {'penaltyId': ParamValue} }
+    'admin.likilibas.admin_likilibas.hide_message': { paramsTuple: [ParamValue]; params: {'messageId': ParamValue} }
+    'admin.likilibas.admin_likilibas.suspend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.likilibas.admin_likilibas.resume': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.store': { paramsTuple?: []; params?: {} }
     'card_products.card_products.archive': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'plans.plans.store': { paramsTuple?: []; params?: {} }
@@ -922,6 +1044,7 @@ export type ScannedRoutes = {
     'business.auth.business_dashboard_auth.refresh': { paramsTuple?: []; params?: {} }
     'business.auth.business_dashboard_auth.logout': { paramsTuple?: []; params?: {} }
     'business.auth.business_dashboard_auth.change_password': { paramsTuple?: []; params?: {} }
+    'business.dashboard.onboarding.business_logo.dashboard_upload': { paramsTuple?: []; params?: {} }
     'business.dashboard.onboarding.business_pin.set_pin': { paramsTuple?: []; params?: {} }
     'business.dashboard.onboarding.business_pin.change_pin': { paramsTuple?: []; params?: {} }
     'business.dashboard.onboarding.business_kyc.submit': { paramsTuple?: []; params?: {} }
@@ -950,21 +1073,31 @@ export type ScannedRoutes = {
     'business.dashboard.business_dashboard_staff.store': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_imf_migration.validate': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_dashboard_imf_migration.commit': { paramsTuple?: []; params?: {} }
+    'subscribe': { paramsTuple?: []; params?: {} }
+    'unsubscribe': { paramsTuple?: []; params?: {} }
   }
   DELETE: {
     'profile.profile.destroy_avatar': { paramsTuple?: []; params?: {} }
     'profile.push_tokens.destroy': { paramsTuple?: []; params?: {} }
+    'likilibas.likilibas.revoke_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
+    'likilibas.likilibas.delete_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
+    'likilibas.likilibas.remove_photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.remove_member': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'memberId': ParamValue} }
     'webhooks.webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_groups.remove_member': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'userId': ParamValue} }
     'businesses.businesses.revoke_api_key': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'keyId': ParamValue} }
+    'businesses.business_logo.admin_remove': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.remittances.admin_remittances.remove_from_watchlist': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.card_products.destroy_image': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.business_webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'business.dashboard.onboarding.business_logo.dashboard_remove': { paramsTuple?: []; params?: {} }
     'business.dashboard.business_webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_dashboard_api_keys.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   PATCH: {
     'notifications.notifications.mark_read': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.update_profile': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cards.cards.topup': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cards.cards.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cards.cards.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -989,6 +1122,10 @@ export type ScannedRoutes = {
     'business.dashboard.lending_products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_dashboard_outlets.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'business.dashboard.business_dashboard_staff.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+  PUT: {
+    'likilibas.likilibas.react_to_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
+    'likilibas.likilibas.mandate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

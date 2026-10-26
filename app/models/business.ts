@@ -45,6 +45,13 @@ export default class Business extends compose(
   @column()
   declare paymentCode: string | null
 
+  /** Logo shown in the app wherever the institution appears; see BusinessLogoService. */
+  @column({ serializeAs: null })
+  declare logoRef: string | null
+
+  @column({ serializeAs: null })
+  declare logoMimeType: string | null
+
   @column()
   declare name: string
 

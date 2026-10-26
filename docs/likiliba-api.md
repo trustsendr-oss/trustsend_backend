@@ -35,9 +35,28 @@ recruiting ──lock──▶ locked ──(tous signent)──start──▶ a
 - `GET /` — mes groupes · `GET /:id` — détail (membres, tours, cagnotte, mon statut)
 - `GET /:id/rules` — version, empreinte (`hash`) et clauses en français, **à afficher avant la signature**
 - `GET /:id/penalties[?mine=true]` — liste détaillée : membre, tour, cotisation, jour, montant, cumul, plafond, motif, statut, bénéficiaire
+- `GET /:id/contributions` — registre du groupe : pour chaque tour et chaque membre, l'état de la cotisation (payée, payée en retard, avancée par les cautions, en retard, bénéficiaire), sa date et le mode de paiement, plus le bilan de chaque membre (à temps, en retard, avancées, pénalités)
 - `GET /:id/me` — mes cotisations et mes dettes · `GET /:id/history` — journal complet · `GET /:id/draw` — vérification du tirage
 
 Un non-membre reçoit `404` sur toutes ces routes.
+
+## Conversation et profil du groupe
+
+| Action | Qui | Route |
+|---|---|---|
+| Fil (messages + événements du groupe, du plus récent au plus ancien) | membre | `GET /:id/feed[?before=ISO]` |
+| Écrire (30 messages / min) | membre | `POST /:id/messages {body}` |
+| Supprimer son message (le texte reste au registre du support) | auteur | `DELETE /:id/messages/:messageId` |
+| Réagir (👍 ❤️ 😂 🙏 👏 😮 ; le même émoji une 2ᵉ fois la retire) | membre | `PUT /:id/messages/:messageId/reaction {emoji}` |
+| Signaler un message | membre | `POST /:id/messages/:messageId/report {reason}` |
+| Marquer le fil comme lu (non-lus, coches de lecture) | membre | `POST /:id/read` |
+| Photo d'un membre (membres du groupe seulement) | membre | `GET /:id/members/:memberId/avatar` |
+| Nom et description, à tout moment | organisateur | `PATCH /:id/profile {name?, description?}` |
+| Photo du groupe (multipart `image`) / retrait / lecture | organisateur / membres | `POST` · `DELETE` · `GET /:id/photo` |
+
+La liste `GET /` porte `last_activity` et `unread_count` ; chaque message porte `reactions` et, pour les
+siens, `read_by_all`. Les messages déclenchent un push aux autres membres, sans ligne dans l'écran Notifications.
+Support : `GET /admin/likilibas/:id/messages`, `POST /admin/likilibas/messages/:messageId/hide {reason}`.
 
 ## Règles appliquées
 

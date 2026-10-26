@@ -5,6 +5,10 @@ import { listValidator, noteValidator, reasonValidator } from '#validators/likil
 import { LikilibaPresenter } from '#services/likiliba/presenter'
 import { LikilibaPenaltyService } from '#services/likiliba/penalty_service'
 import { LikilibaAdminService } from '#services/likiliba/admin_service'
+import { LikilibaChatService } from '#services/likiliba/chat_service'
+import LikilibaMessage from '#models/likiliba_message'
+import LikilibaMessageReport from '#models/likiliba_message_report'
+import { displayName } from '#services/likiliba/likiliba_service'
 import { LikilibaException } from '#services/likiliba/shared'
 import { likilibaError } from '#controllers/likiliba/likiliba_http'
 
@@ -101,6 +105,69 @@ export default class AdminLikilibasController {
         correlationId
       )
       return response.ok({ data: { reference: penalty.reference, status: penalty.status } })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /**
+   * GET /admin/likilibas/:id/messages — the whole conversation as written, deleted and hidden
+   * messages included, with the reports on each. Reported ones first.
+   */
+  async messages({ params, response }: HttpContext) {
+    try {
+      const likiliba = await this.find(params.id)
+      const messages = await LikilibaMessage.query()
+        .where('likilibaId', likiliba.id)
+        .preload('member', (q) => q.preload('user'))
+        .orderBy('createdAt', 'desc')
+        .limit(500)
+      const reports = await LikilibaMessageReport.query().whereIn(
+        'messageId',
+        messages.map((m) => m.id)
+      )
+      const data = messages.map((m) => {
+        const own = reports.filter((r) => r.messageId === m.id)
+        return {
+          id: m.id,
+          author: {
+            member_id: m.memberId,
+            name: displayName(m.member.user),
+            user_id: m.member.userId,
+          },
+          body: m.body,
+          created_at: m.createdAt,
+          deleted_at: m.deletedAt,
+          hidden_at: m.hiddenAt,
+          hide_reason: m.hideReason,
+          reports: own.map((r) => ({
+            id: r.id,
+            reason: r.reason,
+            created_at: r.createdAt,
+            resolved_at: r.resolvedAt,
+          })),
+          open_reports: own.filter((r) => !r.resolvedAt).length,
+        }
+      })
+      data.sort((a, b) => b.open_reports - a.open_reports)
+      return response.ok({ data })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** POST /admin/likilibas/messages/:messageId/hide — removes a message from every member's view. */
+  async hideMessage({ auth, params, request, response, correlationId }: HttpContext) {
+    const staff = auth.getUserOrFail() as InternalUser
+    const { reason } = await request.validateUsing(reasonValidator)
+    try {
+      const message = await LikilibaChatService.hide(
+        staff.id,
+        Number(params.messageId),
+        reason,
+        correlationId
+      )
+      return response.ok({ data: { id: message.id, hidden_at: message.hiddenAt } })
     } catch (error) {
       return likilibaError(error, response)
     }

@@ -454,3 +454,12 @@ Ces routes ne font pas partie du dashboard business (réservées au staff intern
 5. **Idempotency obligatoire** sur dépôt/retrait (`idempotency_key` UUID) — un retry réseau ne double-jamais l'opération.
 6. **Isolation stricte par `business.id`** sur toutes les lectures/écritures (wallet, transactions, webhooks, clés) — vérifié par tests fonctionnels dédiés.
 7. **Audit** systématique : login, changement de mot de passe, émission/révocation de clé, édition de profil.
+
+## Logo de l'institution
+
+- `POST /api/v1/business/dashboard/profile/logo` — multipart, champ `image` (PNG, JPEG ou WebP, 1 Mo au plus).
+  Réponse : `{ data: { logo_url } }`. Le type est lu dans les octets, pas dans l'en-tête annoncé.
+- `DELETE /api/v1/business/dashboard/profile/logo` — retour aux initiales.
+- `GET /api/v1/business/dashboard/profile` renvoie `logo_url`.
+- Lecture publique : `GET /api/v1/finance/institutions/:id/logo` (l'URL porte `?v=` : elle change à chaque nouveau logo).
+  Le catalogue (`/finance/institutions`, `/finance/institutions/:id`) renvoie aussi `logo_url`.

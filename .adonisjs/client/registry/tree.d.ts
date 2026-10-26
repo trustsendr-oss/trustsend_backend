@@ -59,6 +59,7 @@ export interface ApiDefinition {
     directory: {
       lookupRecipient: typeof routes['directory.directory.lookup_recipient']
       lookupAgent: typeof routes['directory.directory.lookup_agent']
+      nearbyAgents: typeof routes['directory.directory.nearby_agents']
       lookupMerchant: typeof routes['directory.directory.lookup_merchant']
     }
   }
@@ -100,6 +101,48 @@ export interface ApiDefinition {
         show: typeof routes['transfers.p2p.p_2_p_transfers.show']
         index: typeof routes['transfers.p2p.p_2_p_transfers.index']
       }
+    }
+  }
+  likilibas: {
+    likilibas: {
+      index: typeof routes['likilibas.likilibas.index']
+      store: typeof routes['likilibas.likilibas.store']
+      invitations: typeof routes['likilibas.likilibas.invitations']
+      acceptLink: typeof routes['likilibas.likilibas.accept_link']
+      acceptInvitation: typeof routes['likilibas.likilibas.accept_invitation']
+      declineInvitation: typeof routes['likilibas.likilibas.decline_invitation']
+      admitInvitation: typeof routes['likilibas.likilibas.admit_invitation']
+      rejectInvitation: typeof routes['likilibas.likilibas.reject_invitation']
+      revokeInvitation: typeof routes['likilibas.likilibas.revoke_invitation']
+      show: typeof routes['likilibas.likilibas.show']
+      update: typeof routes['likilibas.likilibas.update']
+      rules: typeof routes['likilibas.likilibas.rules']
+      history: typeof routes['likilibas.likilibas.history']
+      penalties: typeof routes['likilibas.likilibas.penalties']
+      mine: typeof routes['likilibas.likilibas.mine']
+      contributions: typeof routes['likilibas.likilibas.contributions']
+      draw: typeof routes['likilibas.likilibas.draw']
+      feed: typeof routes['likilibas.likilibas.feed']
+      sendMessage: typeof routes['likilibas.likilibas.send_message']
+      deleteMessage: typeof routes['likilibas.likilibas.delete_message']
+      reportMessage: typeof routes['likilibas.likilibas.report_message']
+      reactToMessage: typeof routes['likilibas.likilibas.react_to_message']
+      markRead: typeof routes['likilibas.likilibas.mark_read']
+      memberAvatar: typeof routes['likilibas.likilibas.member_avatar']
+      updateProfile: typeof routes['likilibas.likilibas.update_profile']
+      photo: typeof routes['likilibas.likilibas.photo']
+      updatePhoto: typeof routes['likilibas.likilibas.update_photo']
+      removePhoto: typeof routes['likilibas.likilibas.remove_photo']
+      invite: typeof routes['likilibas.likilibas.invite']
+      removeMember: typeof routes['likilibas.likilibas.remove_member']
+      lock: typeof routes['likilibas.likilibas.lock']
+      commit: typeof routes['likilibas.likilibas.commit']
+      start: typeof routes['likilibas.likilibas.start']
+      cancel: typeof routes['likilibas.likilibas.cancel']
+      leave: typeof routes['likilibas.likilibas.leave']
+      contribute: typeof routes['likilibas.likilibas.contribute']
+      repay: typeof routes['likilibas.likilibas.repay']
+      mandate: typeof routes['likilibas.likilibas.mandate']
     }
   }
   cashIn: {
@@ -265,6 +308,7 @@ export interface ApiDefinition {
   }
   crypto: {
     cryptoDeposits: {
+      options: typeof routes['crypto.crypto_deposits.options']
       address: typeof routes['crypto.crypto_deposits.address']
       index: typeof routes['crypto.crypto_deposits.index']
     }
@@ -434,6 +478,10 @@ export interface ApiDefinition {
           show: typeof routes['business.dashboard.onboarding.business_dashboard_profile.show']
           update: typeof routes['business.dashboard.onboarding.business_dashboard_profile.update']
         }
+        businessLogo: {
+          dashboardUpload: typeof routes['business.dashboard.onboarding.business_logo.dashboard_upload']
+          dashboardRemove: typeof routes['business.dashboard.onboarding.business_logo.dashboard_remove']
+        }
         businessPin: {
           setPin: typeof routes['business.dashboard.onboarding.business_pin.set_pin']
           changePin: typeof routes['business.dashboard.onboarding.business_pin.change_pin']
@@ -572,6 +620,7 @@ export interface ApiDefinition {
     institutions: {
       index: typeof routes['finance.institutions.index']
       show: typeof routes['finance.institutions.show']
+      logo: typeof routes['finance.institutions.logo']
     }
     savings: {
       savingsAccounts: {
@@ -602,6 +651,10 @@ export interface ApiDefinition {
       issueApiKey: typeof routes['businesses.businesses.issue_api_key']
       revokeApiKey: typeof routes['businesses.businesses.revoke_api_key']
       assignPlan: typeof routes['businesses.businesses.assign_plan']
+    }
+    businessLogo: {
+      adminUpload: typeof routes['businesses.business_logo.admin_upload']
+      adminRemove: typeof routes['businesses.business_logo.admin_remove']
     }
   }
   admin: {
@@ -648,6 +701,19 @@ export interface ApiDefinition {
         loan: typeof routes['admin.lending.admin_lending.loan']
         savings: typeof routes['admin.lending.admin_lending.savings']
         position: typeof routes['admin.lending.admin_lending.position']
+      }
+    }
+    likilibas: {
+      adminLikilibas: {
+        index: typeof routes['admin.likilibas.admin_likilibas.index']
+        waivePenalty: typeof routes['admin.likilibas.admin_likilibas.waive_penalty']
+        hideMessage: typeof routes['admin.likilibas.admin_likilibas.hide_message']
+        messages: typeof routes['admin.likilibas.admin_likilibas.messages']
+        show: typeof routes['admin.likilibas.admin_likilibas.show']
+        history: typeof routes['admin.likilibas.admin_likilibas.history']
+        penalties: typeof routes['admin.likilibas.admin_likilibas.penalties']
+        suspend: typeof routes['admin.likilibas.admin_likilibas.suspend']
+        resume: typeof routes['admin.likilibas.admin_likilibas.resume']
       }
     }
     adminTransactions: {
@@ -732,4 +798,7 @@ export interface ApiDefinition {
       }
     }
   }
+  eventStream: typeof routes['event_stream']
+  subscribe: typeof routes['subscribe']
+  unsubscribe: typeof routes['unsubscribe']
 }

@@ -64,6 +64,10 @@ export default class LikilibaMember extends BaseModel {
   @column.dateTime()
   declare leftAt: DateTime | null
 
+  /** Where this member stopped reading the group's conversation. */
+  @column.dateTime()
+  declare lastReadAt: DateTime | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

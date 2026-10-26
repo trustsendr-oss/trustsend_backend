@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { BusinessLogoService } from '#services/business/business_logo_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { PinService } from '#services/security/pin_service'
 import { SandboxMode } from '#services/sandbox/sandbox_mode'
@@ -16,6 +17,7 @@ export default class BusinessDashboardProfileController {
         // What customers type, or scan as a QR, to pay this business; null for institutions.
         payment_code: business.paymentCode,
         name: business.name,
+        logo_url: BusinessLogoService.urlOf(business),
         email: business.email,
         phone: business.phone,
         status: business.status,

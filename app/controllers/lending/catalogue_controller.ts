@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { BusinessLogoService } from '#services/business/business_logo_service'
 import type FinancialProduct from '#models/financial_product'
 import { FinancialProductService } from '#services/lending/financial_product_service'
 import {
@@ -68,6 +69,7 @@ export default class LendingCatalogueController {
           id: business.id,
           name: business.name,
           kind: business.kind,
+          logo_url: BusinessLogoService.urlOf(business),
           kinds: KIND_ORDER.filter((kind) => offers.some((product) => product.kind === kind)),
           product_count: offers.length,
         }
@@ -90,6 +92,7 @@ export default class LendingCatalogueController {
         id: result.business.id,
         name: result.business.name,
         kind: result.business.kind,
+        logo_url: BusinessLogoService.urlOf(result.business),
         products: result.products.map(publicProduct),
       },
     })

@@ -11,3 +11,4 @@
 /// <reference path="../../config/logger.ts" />
 /// <reference path="../../config/mail.ts" />
 /// <reference path="../../config/mobile_money.ts" />
+/// <reference path="../../config/transmit.ts" />

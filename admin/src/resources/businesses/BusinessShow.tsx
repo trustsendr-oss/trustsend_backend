@@ -36,7 +36,7 @@ import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined'
 import { StatusChip } from '../../components/StatusChip'
 import { ConfirmActionButton, ReasonActionButton } from '../../components/ActionButtons'
 import { adminActions } from '../../providers/dataProvider'
-import { ApiError } from '../../providers/httpClient'
+import { API_URL, ApiError } from '../../providers/httpClient'
 import { businessKindLabel } from './businessKinds'
 
 function AssignPlanButton({ businessId, currentPlanId }: { businessId: number | string; currentPlanId?: number }) {
@@ -277,6 +277,99 @@ export function BusinessShow() {
   )
 }
 
+/**
+ * The institution's logo, as the app shows it. Uploaded here by staff, or by the institution from
+ * its own dashboard; PNG, JPEG or WebP up to 1 MB, square works best.
+ */
+function LogoCard() {
+  const record = useRecordContext()
+  const notify = useNotify()
+  const refresh = useRefresh()
+  const [busy, setBusy] = useState(false)
+  if (!record) return null
+
+  async function run(action: () => Promise<unknown>, done: string) {
+    setBusy(true)
+    try {
+      await action()
+      notify(done, { type: 'success' })
+      refresh()
+    } catch (error) {
+      notify(error instanceof ApiError ? error.message : 'Logo update failed', { type: 'error' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card sx={{ mb: 2 }}>
+      <CardContent>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+          Logo
+        </Typography>
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+          <Box
+            sx={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              overflow: 'hidden',
+              bgcolor: 'action.hover',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {record.logo_url ? (
+              <img
+                src={`${API_URL.replace(/\/api\/v1$/, '')}${record.logo_url}`}
+                alt={`${record.name} logo`}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            ) : (
+              <Typography variant="caption" color="text.secondary">
+                No logo
+              </Typography>
+            )}
+          </Box>
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={1}>
+              <Button variant="outlined" size="small" component="label" disabled={busy}>
+                {busy ? <CircularProgress size={16} /> : record.logo_url ? 'Replace logo' : 'Upload logo'}
+                <input
+                  hidden
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0]
+                    event.target.value = ''
+                    if (file) void run(() => adminActions.businessUploadLogo(record.id, file), 'Logo updated')
+                  }}
+                />
+              </Button>
+              {record.logo_url ? (
+                <Button
+                  variant="text"
+                  size="small"
+                  color="error"
+                  disabled={busy}
+                  onClick={() => void run(() => adminActions.businessRemoveLogo(record.id), 'Logo removed')}
+                >
+                  Remove
+                </Button>
+              ) : null}
+            </Stack>
+            <Typography variant="caption" color="text.secondary">
+              PNG, JPEG or WebP, 1 MB at most. A square image on a light background reads best in the app.
+            </Typography>
+          </Stack>
+        </Stack>
+      </CardContent>
+    </Card>
+  )
+}
+
 function BusinessShowContent() {
   const record = useRecordContext()
   if (!record) return null
@@ -288,6 +381,7 @@ function BusinessShowContent() {
         </Typography>
         <StatusChip status={record.status} />
       </Stack>
+      <LogoCard />
       <Card>
         <CardContent>
           <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 4 }}>

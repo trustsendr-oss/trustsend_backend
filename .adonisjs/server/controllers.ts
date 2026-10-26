@@ -41,6 +41,7 @@ export const controllers = {
     SerializeInstitution: () => import('#controllers/business_dashboard/serialize_institution'),
     Staff: () => import('#controllers/business_dashboard/staff_controller'),
   },
+  BusinessLogo: () => import('#controllers/business_logo_controller'),
   business: {
     Cards: () => import('#controllers/business/cards_controller'),
     Crypto: () => import('#controllers/business/crypto_controller'),
@@ -79,6 +80,7 @@ export const controllers = {
     Vault: () => import('#controllers/counter/vault_controller'),
   },
   crypto: {
+    CryptoDepositResponses: () => import('#controllers/crypto/crypto_deposit_responses'),
     CryptoDeposits: () => import('#controllers/crypto/crypto_deposits_controller'),
     CryptoPayouts: () => import('#controllers/crypto/crypto_payouts_controller'),
     CryptoWebhooks: () => import('#controllers/crypto/crypto_webhooks_controller'),

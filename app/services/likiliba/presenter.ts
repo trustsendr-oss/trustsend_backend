@@ -12,6 +12,16 @@ import { LikilibaDebtService } from '#services/likiliba/debt_service'
 import { displayName, membersOf } from '#services/likiliba/likiliba_service'
 import { bpsOf } from '#services/likiliba/shared'
 
+/**
+ * A member's profile photo, as other members of the group fetch it. The version suffix changes
+ * with each new photo, so the app can cache it without ever showing the previous one.
+ */
+export function memberAvatarUrl(likilibaId: number, memberId: number, avatarRef: string | null) {
+  return avatarRef
+    ? `/api/v1/likilibas/${likilibaId}/members/${memberId}/avatar?v=${avatarRef.slice(0, 8)}`
+    : null
+}
+
 const str = (v: bigint | null | undefined) => (v === null || v === undefined ? null : v.toString())
 
 /**
@@ -60,6 +70,9 @@ export class LikilibaPresenter {
         draw_seed_hash: likiliba.drawSeedHash,
         draw_seed: started ? likiliba.drawSeed : null,
       },
+      photo_url: likiliba.photoRef
+        ? `/api/v1/likilibas/${likiliba.id}/photo?v=${likiliba.photoRef.slice(0, 8)}`
+        : null,
       current_round: likiliba.currentRoundNumber || null,
       organiser_user_id: likiliba.creatorUserId,
       locked_at: likiliba.lockedAt,
@@ -108,6 +121,7 @@ export class LikilibaPresenter {
       members: members.map((m) => ({
         member_id: m.id,
         name: displayName(m.user),
+        avatar_url: memberAvatarUrl(likiliba.id, m.id, m.user.avatarRef),
         code: m.user.code,
         role: m.role,
         position: m.position,
@@ -249,6 +263,79 @@ export class LikilibaPresenter {
         created_at: e.createdAt,
       })),
       meta: { total: result.total, page, limit },
+    }
+  }
+
+  /**
+   * Who contributed what, round by round, for the whole group: the register members read to see
+   * who paid, when, on time or late, and who was covered by the cautions. Statuses and dates
+   * only — never anyone's balance.
+   */
+  static async contributionsBoard(likiliba: Likiliba) {
+    const members = await membersOf(likiliba)
+    const rounds = await LikilibaRound.query()
+      .where('likilibaId', likiliba.id)
+      .orderBy('number', 'asc')
+    const contributions = await LikilibaContribution.query().where('likilibaId', likiliba.id)
+    const penalties = await db
+      .from('likiliba_penalties')
+      .where('likiliba_id', likiliba.id)
+      .whereNot('status', 'waived')
+      .groupBy('member_id')
+      .select('member_id')
+      .count('* as count')
+      .sum('amount as total')
+
+    const dueOf = new Map(rounds.map((r) => [r.id, r.dueAt]))
+    const numberOf = new Map(rounds.map((r) => [r.id, r.number]))
+    const cells = contributions.map((c) => {
+      const due = dueOf.get(c.roundId)
+      return {
+        round: numberOf.get(c.roundId) ?? 0,
+        member_id: c.memberId,
+        status: c.status,
+        amount: str(c.amount),
+        paid_late: c.status === 'confirmed' && !!due && !!c.confirmedAt && c.confirmedAt > due,
+        paid_via: c.paidVia,
+        confirmed_at: c.confirmedAt,
+        covered_at: c.coveredAt,
+      }
+    })
+
+    return {
+      currency_code: likiliba.currencyCode,
+      current_round: likiliba.currentRoundNumber || null,
+      rounds: rounds.map((r) => {
+        const own = cells.filter((c) => c.round === r.number)
+        return {
+          number: r.number,
+          due_at: r.dueAt,
+          status: r.status,
+          beneficiary_member_id: r.beneficiaryMemberId,
+          paid_count: own.filter((c) => c.status === 'confirmed').length,
+          covered_count: own.filter((c) => c.status === 'covered').length,
+          missing_count: own.filter((c) => c.status === 'pending' || c.status === 'late').length,
+          expected_count: own.filter((c) => c.status !== 'netted' && c.status !== 'cancelled')
+            .length,
+          paid_out_at: r.paidOutAt,
+        }
+      }),
+      members: members.map((m) => {
+        const own = cells.filter((c) => c.member_id === m.id)
+        const penalty = penalties.find((p: any) => p.member_id === m.id) as any
+        return {
+          member_id: m.id,
+          name: displayName(m.user),
+          avatar_url: memberAvatarUrl(likiliba.id, m.id, m.user.avatarRef),
+          position: m.position,
+          on_time_count: own.filter((c) => c.status === 'confirmed' && !c.paid_late).length,
+          late_count: own.filter((c) => c.paid_late || c.status === 'late').length,
+          covered_count: own.filter((c) => c.status === 'covered').length,
+          penalties_count: Number(penalty?.count ?? 0),
+          penalties_total: String(penalty?.total ?? '0'),
+        }
+      }),
+      cells,
     }
   }
 

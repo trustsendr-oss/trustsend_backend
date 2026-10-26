@@ -115,3 +115,22 @@ export const reasonValidator = vine.compile(
 export const noteValidator = vine.compile(
   vine.object({ note: vine.string().trim().minLength(3).maxLength(500) })
 )
+
+export const messageValidator = vine.compile(
+  vine.object({ body: vine.string().trim().minLength(1).maxLength(1000) })
+)
+
+export const feedValidator = vine.compile(
+  vine.object({ before: vine.string().trim().maxLength(40).optional() })
+)
+
+export const reactionValidator = vine.compile(
+  vine.object({ emoji: vine.string().trim().minLength(1).maxLength(16) })
+)
+
+export const profileValidator = vine.compile(
+  vine.object({
+    name: vine.string().trim().minLength(2).maxLength(120).optional(),
+    description: vine.string().trim().maxLength(500).nullable().optional(),
+  })
+)

@@ -19,9 +19,9 @@ export class InvalidAvatarException extends Error {
  * Stores account holders' profile photos.
  *
  * Not encrypted, unlike KycDocumentStorageService: a profile photo is something its owner chose
- * to show, not an identity document. It is still only ever served to its owner (see
- * ProfileController.avatar), and the file name is a UUID with no link to the user id, so nothing
- * can be enumerated from outside.
+ * to show, not an identity document. It is served to its owner (ProfileController.avatar) and to
+ * the members of a likiliba they belong to (LikilibasController.memberAvatar), never publicly; the
+ * file name is a UUID with no link to the user id, so nothing can be enumerated from outside.
  */
 export class AvatarStorageService {
   /**

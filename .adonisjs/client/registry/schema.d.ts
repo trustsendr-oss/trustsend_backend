@@ -307,6 +307,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/directory_controller').default['lookupAgent']>>>
     }
   }
+  'directory.directory.nearby_agents': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/directory/agents/nearby'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/directory_controller').default['nearbyAgents']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/directory_controller').default['nearbyAgents']>>>
+    }
+  }
   'directory.directory.lookup_merchant': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/directory/merchants'
@@ -485,6 +497,462 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/transfers').listTransfersValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/transfers/p2p_transfers_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/transfers/p2p_transfers_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['index']>>>
+    }
+  }
+  'likilibas.likilibas.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').createLikilibaValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').createLikilibaValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.invitations': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/invitations'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['invitations']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['invitations']>>>
+    }
+  }
+  'likilibas.likilibas.accept_link': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/invitations/accept-link'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').acceptLinkValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').acceptLinkValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['acceptLink']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['acceptLink']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.accept_invitation': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/invitations/:invitationId/accept'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { invitationId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['acceptInvitation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['acceptInvitation']>>>
+    }
+  }
+  'likilibas.likilibas.decline_invitation': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/invitations/:invitationId/decline'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { invitationId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['declineInvitation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['declineInvitation']>>>
+    }
+  }
+  'likilibas.likilibas.admit_invitation': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/invitations/:invitationId/admit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { invitationId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['admitInvitation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['admitInvitation']>>>
+    }
+  }
+  'likilibas.likilibas.reject_invitation': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/invitations/:invitationId/reject'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { invitationId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['rejectInvitation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['rejectInvitation']>>>
+    }
+  }
+  'likilibas.likilibas.revoke_invitation': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/likilibas/invitations/:invitationId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { invitationId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['revokeInvitation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['revokeInvitation']>>>
+    }
+  }
+  'likilibas.likilibas.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['show']>>>
+    }
+  }
+  'likilibas.likilibas.update': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/likilibas/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').updateLikilibaValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').updateLikilibaValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.rules': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/rules'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['rules']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['rules']>>>
+    }
+  }
+  'likilibas.likilibas.history': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/history'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/likiliba').listValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['history']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['history']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.penalties': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/penalties'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/likiliba').listValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['penalties']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['penalties']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.mine': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/me'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['mine']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['mine']>>>
+    }
+  }
+  'likilibas.likilibas.contributions': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/contributions'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['contributions']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['contributions']>>>
+    }
+  }
+  'likilibas.likilibas.draw': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/draw'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['draw']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['draw']>>>
+    }
+  }
+  'likilibas.likilibas.feed': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/feed'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/likiliba').feedValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['feed']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['feed']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.send_message': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/messages'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').messageValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').messageValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['sendMessage']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['sendMessage']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.delete_message': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/likilibas/:id/messages/:messageId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; messageId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['deleteMessage']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['deleteMessage']>>>
+    }
+  }
+  'likilibas.likilibas.report_message': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/messages/:messageId/report'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').reasonValidator)>>
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; messageId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').reasonValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['reportMessage']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['reportMessage']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.react_to_message': {
+    methods: ["PUT"]
+    pattern: '/api/v1/likilibas/:id/messages/:messageId/reaction'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').reactionValidator)>>
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; messageId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').reactionValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['reactToMessage']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['reactToMessage']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.mark_read': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/read'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['markRead']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['markRead']>>>
+    }
+  }
+  'likilibas.likilibas.member_avatar': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/members/:memberId/avatar'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; memberId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['memberAvatar']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['memberAvatar']>>>
+    }
+  }
+  'likilibas.likilibas.update_profile': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/likilibas/:id/profile'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').profileValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').profileValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['updateProfile']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['updateProfile']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.photo': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/photo'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['photo']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['photo']>>>
+    }
+  }
+  'likilibas.likilibas.update_photo': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/photo'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['updatePhoto']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['updatePhoto']>>>
+    }
+  }
+  'likilibas.likilibas.remove_photo': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/likilibas/:id/photo'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['removePhoto']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['removePhoto']>>>
+    }
+  }
+  'likilibas.likilibas.invite': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/invitations'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').inviteValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').inviteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['invite']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['invite']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.remove_member': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/likilibas/:id/members/:memberId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; memberId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['removeMember']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['removeMember']>>>
+    }
+  }
+  'likilibas.likilibas.lock': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/lock'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').lockValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').lockValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['lock']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['lock']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.commit': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/commit'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').commitValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').commitValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['commit']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['commit']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.start': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/start'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').pinValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').pinValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['start']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['start']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.cancel': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/cancel'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').cancelValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').cancelValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['cancel']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['cancel']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.leave': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/leave'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').pinValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').pinValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['leave']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['leave']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.contribute': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/contributions'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').moneyActionValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').moneyActionValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['contribute']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['contribute']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.repay': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/debts/repay'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').moneyActionValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').moneyActionValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['repay']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['repay']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.mandate': {
+    methods: ["PUT"]
+    pattern: '/api/v1/likilibas/:id/mandate'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').mandateValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').mandateValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['mandate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['mandate']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'cash_in.cash_in.store': {
@@ -1471,6 +1939,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/cards/webhooks_controller').default['handle']>>>
     }
   }
+  'crypto.crypto_deposits.options': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/crypto/deposits/options'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_deposits_controller').default['options']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_deposits_controller').default['options']>>>
+    }
+  }
   'crypto.crypto_deposits.address': {
     methods: ["POST"]
     pattern: '/api/v1/crypto/deposits/address'
@@ -2155,6 +2635,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/lending/catalogue_controller').default['showInstitution']>>>
     }
   }
+  'finance.institutions.logo': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/finance/institutions/:id/logo'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['show']>>>
+    }
+  }
   'finance.savings.savings_accounts.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/finance/savings'
@@ -2381,6 +2873,30 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/businesses_controller').default['revokeApiKey']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/businesses_controller').default['revokeApiKey']>>>
+    }
+  }
+  'businesses.business_logo.admin_upload': {
+    methods: ["POST"]
+    pattern: '/api/v1/businesses/:id/logo'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['adminUpload']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['adminUpload']>>>
+    }
+  }
+  'businesses.business_logo.admin_remove': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/businesses/:id/logo'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['adminRemove']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['adminRemove']>>>
     }
   }
   'businesses.businesses.assign_plan': {
@@ -2693,6 +3209,114 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['position']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/lending_controller').default['position']>>>
+    }
+  }
+  'admin.likilibas.admin_likilibas.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/likilibas'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/likiliba').listValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.likilibas.admin_likilibas.waive_penalty': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/likilibas/penalties/:penaltyId/waive'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').reasonValidator)>>
+      paramsTuple: [ParamValue]
+      params: { penaltyId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').reasonValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['waivePenalty']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['waivePenalty']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.likilibas.admin_likilibas.hide_message': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/likilibas/messages/:messageId/hide'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').reasonValidator)>>
+      paramsTuple: [ParamValue]
+      params: { messageId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').reasonValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['hideMessage']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['hideMessage']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.likilibas.admin_likilibas.messages': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/likilibas/:id/messages'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['messages']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['messages']>>>
+    }
+  }
+  'admin.likilibas.admin_likilibas.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/likilibas/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['show']>>>
+    }
+  }
+  'admin.likilibas.admin_likilibas.history': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/likilibas/:id/history'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/likiliba').listValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['history']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['history']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.likilibas.admin_likilibas.penalties': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/likilibas/:id/penalties'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['penalties']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['penalties']>>>
+    }
+  }
+  'admin.likilibas.admin_likilibas.suspend': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/likilibas/:id/suspend'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').reasonValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').reasonValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['suspend']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['suspend']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.likilibas.admin_likilibas.resume': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/likilibas/:id/resume'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').noteValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').noteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['resume']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['resume']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'card_products.card_products.index': {
@@ -3931,6 +4555,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/profile_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'business.dashboard.onboarding.business_logo.dashboard_upload': {
+    methods: ["POST"]
+    pattern: '/api/v1/business/dashboard/profile/logo'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['dashboardUpload']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['dashboardUpload']>>>
+    }
+  }
+  'business.dashboard.onboarding.business_logo.dashboard_remove': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/business/dashboard/profile/logo'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['dashboardRemove']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_logo_controller').default['dashboardRemove']>>>
+    }
+  }
   'business.dashboard.onboarding.business_pin.set_pin': {
     methods: ["POST"]
     pattern: '/api/v1/business/dashboard/pin'
@@ -4805,6 +5453,42 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_migration_controller').default['commit']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/business_dashboard/imf_migration_controller').default['commit']>>>
+    }
+  }
+  'event_stream': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/__transmit/events'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: unknown
+      errorResponse: unknown
+    }
+  }
+  'subscribe': {
+    methods: ["POST"]
+    pattern: '/api/v1/__transmit/subscribe'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: unknown
+      errorResponse: unknown
+    }
+  }
+  'unsubscribe': {
+    methods: ["POST"]
+    pattern: '/api/v1/__transmit/unsubscribe'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: unknown
+      errorResponse: unknown
     }
   }
 }

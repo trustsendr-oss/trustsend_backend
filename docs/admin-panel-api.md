@@ -648,3 +648,10 @@ Si le panel a besoin de l'un de ces trois, il faut le demander pour qu'il soit c
 | `500` | Erreur serveur non gérée (bug, contrainte DB) — ne devrait jamais arriver en usage normal | Partout |
 
 **Astuce debug** : chaque réponse porte un `correlation_id` implicite (header `x-correlation-id` en retour, voir `correlation_id_middleware.ts`) — le même identifiant apparaît dans les lignes d'audit log correspondantes (§8.2), pratique pour relier une erreur signalée par un utilisateur au trail admin.
+
+## Logo d'une institution
+
+- `POST /api/v1/businesses/:id/logo` — multipart, champ `image` (PNG, JPEG ou WebP, 1 Mo au plus).
+- `DELETE /api/v1/businesses/:id/logo`
+- `GET /api/v1/businesses/:id` renvoie `logo_url`. Chaque envoi et retrait est inscrit au journal d'audit
+  (`business.logo_updated`, `business.logo_removed`).

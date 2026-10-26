@@ -427,7 +427,7 @@ export class BusinessVaultSchema extends BaseModel {
 }
 
 export class BusinessSchema extends BaseModel {
-  static $columns = ['approvedAt', 'approvedBy', 'code', 'createdAt', 'email', 'id', 'kind', 'loginAttempts', 'loginLockedUntil', 'name', 'password', 'paymentCode', 'phone', 'pinAttempts', 'pinHash', 'pinLockedUntil', 'pinResetExpiresAt', 'pinResetTokenHash', 'planId', 'planNextMaintenanceBillingAt', 'planPaymentStatus', 'planSubscribedAt', 'status', 'suspendedAt', 'suspensionReason', 'terminatedAt', 'terminationReason', 'updatedAt', 'walletId', 'webhookUrl'] as const
+  static $columns = ['approvedAt', 'approvedBy', 'code', 'createdAt', 'email', 'id', 'kind', 'loginAttempts', 'loginLockedUntil', 'logoMimeType', 'logoRef', 'name', 'password', 'paymentCode', 'phone', 'pinAttempts', 'pinHash', 'pinLockedUntil', 'pinResetExpiresAt', 'pinResetTokenHash', 'planId', 'planNextMaintenanceBillingAt', 'planPaymentStatus', 'planSubscribedAt', 'status', 'suspendedAt', 'suspensionReason', 'terminatedAt', 'terminationReason', 'updatedAt', 'walletId', 'webhookUrl'] as const
   $columns = BusinessSchema.$columns
   @column.dateTime()
   declare approvedAt: DateTime | null
@@ -447,6 +447,10 @@ export class BusinessSchema extends BaseModel {
   declare loginAttempts: number | null
   @column.dateTime()
   declare loginLockedUntil: DateTime | null
+  @column()
+  declare logoMimeType: string | null
+  @column()
+  declare logoRef: string | null
   @column()
   declare name: string
   @column({ serializeAs: null })
@@ -589,7 +593,7 @@ export class CardSchema extends BaseModel {
 }
 
 export class CryptoDepositAddressSchema extends BaseModel {
-  static $columns = ['address', 'businessId', 'createdAt', 'id', 'memoTag', 'network', 'status', 'tokenSymbol', 'updatedAt', 'userId', 'walletId'] as const
+  static $columns = ['address', 'businessId', 'createdAt', 'derivationIndex', 'id', 'lastRequestedAt', 'memoTag', 'network', 'status', 'tokenSymbol', 'updatedAt', 'userId', 'walletId'] as const
   $columns = CryptoDepositAddressSchema.$columns
   @column()
   declare address: string
@@ -597,8 +601,12 @@ export class CryptoDepositAddressSchema extends BaseModel {
   declare businessId: number | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
+  @column()
+  declare derivationIndex: number | null
   @column({ isPrimary: true })
   declare id: number
+  @column.dateTime()
+  declare lastRequestedAt: DateTime | null
   @column()
   declare memoTag: string | null
   @column()
@@ -613,6 +621,62 @@ export class CryptoDepositAddressSchema extends BaseModel {
   declare userId: number | null
   @column()
   declare walletId: number
+}
+
+export class CryptoDepositSchema extends BaseModel {
+  static $columns = ['blockNumber', 'confirmations', 'contractAddress', 'createdAt', 'creditedAt', 'depositAddressId', 'fromAddress', 'id', 'ledgerTransactionId', 'logIndex', 'network', 'rawAmount', 'rejectReason', 'status', 'toAddress', 'tokenSymbol', 'txHash', 'updatedAt'] as const
+  $columns = CryptoDepositSchema.$columns
+  @column()
+  declare blockNumber: bigint | number | null
+  @column()
+  declare confirmations: number
+  @column()
+  declare contractAddress: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare creditedAt: DateTime | null
+  @column()
+  declare depositAddressId: number
+  @column()
+  declare fromAddress: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare ledgerTransactionId: string | null
+  @column()
+  declare logIndex: number
+  @column()
+  declare network: string
+  @column()
+  declare rawAmount: string
+  @column()
+  declare rejectReason: string | null
+  @column()
+  declare status: string
+  @column()
+  declare toAddress: string
+  @column()
+  declare tokenSymbol: string
+  @column()
+  declare txHash: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
+export class CryptoReconciliationCursorSchema extends BaseModel {
+  static $columns = ['chain', 'createdAt', 'id', 'lastBlock', 'updatedAt'] as const
+  $columns = CryptoReconciliationCursorSchema.$columns
+  @column()
+  declare chain: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare lastBlock: bigint | number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
 }
 
 export class CurrencySchema extends BaseModel {
@@ -1243,7 +1307,7 @@ export class LikilibaInvitationSchema extends BaseModel {
 }
 
 export class LikilibaMemberSchema extends BaseModel {
-  static $columns = ['acceptedRuleVersionId', 'autoDebit', 'cautionWalletId', 'createdAt', 'id', 'invitationId', 'leftAt', 'likilibaId', 'mandateGrantedAt', 'mandateRevokedAt', 'paidOutAt', 'position', 'role', 'rulesAcceptedAt', 'status', 'updatedAt', 'userId', 'walletId'] as const
+  static $columns = ['acceptedRuleVersionId', 'autoDebit', 'cautionWalletId', 'createdAt', 'id', 'invitationId', 'lastReadAt', 'leftAt', 'likilibaId', 'mandateGrantedAt', 'mandateRevokedAt', 'paidOutAt', 'position', 'role', 'rulesAcceptedAt', 'status', 'updatedAt', 'userId', 'walletId'] as const
   $columns = LikilibaMemberSchema.$columns
   @column()
   declare acceptedRuleVersionId: number | null
@@ -1257,6 +1321,8 @@ export class LikilibaMemberSchema extends BaseModel {
   declare id: number
   @column()
   declare invitationId: number | null
+  @column.dateTime()
+  declare lastReadAt: DateTime | null
   @column.dateTime()
   declare leftAt: DateTime | null
   @column()
@@ -1281,6 +1347,61 @@ export class LikilibaMemberSchema extends BaseModel {
   declare userId: number
   @column()
   declare walletId: number
+}
+
+export class LikilibaMessageReactionSchema extends BaseModel {
+  static $columns = ['createdAt', 'emoji', 'id', 'memberId', 'messageId'] as const
+  $columns = LikilibaMessageReactionSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare emoji: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare memberId: number
+  @column()
+  declare messageId: number
+}
+
+export class LikilibaMessageReportSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'messageId', 'reason', 'reporterMemberId', 'resolvedAt'] as const
+  $columns = LikilibaMessageReportSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare messageId: number
+  @column()
+  declare reason: string
+  @column()
+  declare reporterMemberId: number
+  @column.dateTime()
+  declare resolvedAt: DateTime | null
+}
+
+export class LikilibaMessageSchema extends BaseModel {
+  static $columns = ['body', 'createdAt', 'deletedAt', 'hiddenAt', 'hiddenByInternalUserId', 'hideReason', 'id', 'likilibaId', 'memberId'] as const
+  $columns = LikilibaMessageSchema.$columns
+  @column()
+  declare body: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare deletedAt: DateTime | null
+  @column.dateTime()
+  declare hiddenAt: DateTime | null
+  @column()
+  declare hiddenByInternalUserId: number | null
+  @column()
+  declare hideReason: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare likilibaId: number
+  @column()
+  declare memberId: number
 }
 
 export class LikilibaPenaltySchema extends BaseModel {
@@ -1383,7 +1504,7 @@ export class LikilibaRuleVersionSchema extends BaseModel {
 }
 
 export class LikilibaSchema extends BaseModel {
-  static $columns = ['cancelReason', 'cancelledAt', 'cautionMultiplier', 'cautionRequired', 'code', 'completedAt', 'contributionAmount', 'createdAt', 'creatorUserId', 'currencyCode', 'currentRoundNumber', 'currentRuleVersionId', 'description', 'drawSeed', 'drawSeedHash', 'escalationDays', 'frequency', 'graceHours', 'id', 'lockedAt', 'name', 'orderingMode', 'penaltyCapBps', 'penaltyDailyBps', 'penaltyFixedAmount', 'penaltyMode', 'potWalletId', 'size', 'startedAt', 'startsAt', 'status', 'suspendedAt', 'suspensionReason', 'updatedAt'] as const
+  static $columns = ['cancelReason', 'cancelledAt', 'cautionMultiplier', 'cautionRequired', 'code', 'completedAt', 'contributionAmount', 'createdAt', 'creatorUserId', 'currencyCode', 'currentRoundNumber', 'currentRuleVersionId', 'description', 'drawSeed', 'drawSeedHash', 'escalationDays', 'frequency', 'graceHours', 'id', 'lockedAt', 'name', 'orderingMode', 'penaltyCapBps', 'penaltyDailyBps', 'penaltyFixedAmount', 'penaltyMode', 'photoMimeType', 'photoRef', 'potWalletId', 'size', 'startedAt', 'startsAt', 'status', 'suspendedAt', 'suspensionReason', 'updatedAt'] as const
   $columns = LikilibaSchema.$columns
   @column()
   declare cancelReason: string | null
@@ -1437,6 +1558,10 @@ export class LikilibaSchema extends BaseModel {
   declare penaltyFixedAmount: bigint | number | null
   @column()
   declare penaltyMode: string
+  @column()
+  declare photoMimeType: string | null
+  @column()
+  declare photoRef: string | null
   @column()
   declare potWalletId: number | null
   @column()

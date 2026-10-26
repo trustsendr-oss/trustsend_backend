@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { BusinessLogoService } from '#services/business/business_logo_service'
 import Business from '#models/business'
 import type InternalUser from '#models/internal_user'
 import { BusinessOnboardingService } from '#services/business/business_onboarding_service'
@@ -113,6 +114,7 @@ export default class BusinessesController {
         status: business.status,
         wallet_id: business.walletId,
         webhook_url: business.webhookUrl,
+        logo_url: BusinessLogoService.urlOf(business),
         plan: business.plan
           ? {
               id: business.plan.id,

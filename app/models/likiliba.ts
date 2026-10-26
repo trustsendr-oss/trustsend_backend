@@ -122,6 +122,13 @@ export default class Likiliba extends BaseModel {
   @column()
   declare suspensionReason: string | null
 
+  /** Group photo set by the organiser, stored like profile photos; null shows the initials. */
+  @column({ serializeAs: null })
+  declare photoRef: string | null
+
+  @column({ serializeAs: null })
+  declare photoMimeType: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

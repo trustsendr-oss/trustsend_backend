@@ -25,6 +25,26 @@ import { MerchantPaymentService } from '#services/merchants/merchant_payment_ser
  * requests (see throttle_middleware.ts for the per-instance caveat).
  */
 
+/**
+ * Bounds on the nearby-agents search. The radius cap keeps a single request from listing the
+ * whole network; the result cap keeps the payload (and the map) readable in a dense city.
+ */
+const DEFAULT_NEARBY_RADIUS_KM = 10
+const MAX_NEARBY_RADIUS_KM = 25
+const MAX_NEARBY_RESULTS = 50
+const KM_PER_DEGREE_LAT = 111.32
+const EARTH_RADIUS_KM = 6371
+
+/** Great-circle distance between two points, in kilometres. */
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const rad = (deg: number) => (deg * Math.PI) / 180
+  const dLat = rad(lat2 - lat1)
+  const dLng = rad(lng2 - lng1)
+  const a =
+    Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(a)))
+}
+
 const lookupRecipientValidator = vine.create({
   code: vine.string().regex(/^\d{9}$/),
   // Which of the recipient's wallets to credit. Defaults to USD, matching the wallet every
@@ -38,6 +58,12 @@ const lookupMerchantValidator = vine.create({
 
 const lookupAgentValidator = vine.create({
   code: vine.string().regex(/^\d{9}$/),
+})
+
+const nearbyAgentsValidator = vine.create({
+  lat: vine.number().min(-90).max(90),
+  lng: vine.number().min(-180).max(180),
+  radius_km: vine.number().min(1).max(MAX_NEARBY_RADIUS_KM).optional(),
 })
 
 export default class DirectoryController {
@@ -143,6 +169,67 @@ export default class DirectoryController {
         // apps keep showing the fee line, now at zero.
         cash_out_fee_percent: 0,
       },
+    })
+  }
+
+  /**
+   * GET /api/v1/directory/agents/nearby?lat=-3.38&lng=29.36&radius_km=10
+   * Active network agents with a known location around a point, nearest first — what the app's
+   * agent map shows.
+   *
+   * Unlike the exact-match lookups this does list agents, which is acceptable because an agent's
+   * shopfront is public by nature: the response carries only what is painted on it (name, code,
+   * address) and never the agent's phone, email or float. Institution counters (business_id set)
+   * serve their own members and are left out.
+   *
+   * The distance filter runs in two steps so it stays portable across database engines: a
+   * bounding box in SQL narrows the rows, then the exact great-circle distance is computed here.
+   */
+  async nearbyAgents({ auth, request, response }: HttpContext) {
+    if (!auth.user) {
+      return response.unauthorized({ message: 'Unauthenticated' })
+    }
+
+    const { lat, lng, radius_km: radiusKm } = await request.validateUsing(nearbyAgentsValidator)
+    const radius = radiusKm ?? DEFAULT_NEARBY_RADIUS_KM
+
+    const dLat = radius / KM_PER_DEGREE_LAT
+    // Clamped so the box stays finite near the poles, where a degree of longitude shrinks to 0.
+    const dLng = radius / (KM_PER_DEGREE_LAT * Math.max(Math.cos((lat * Math.PI) / 180), 0.01))
+
+    const candidates = await Agent.query()
+      .where('status', 'active')
+      .whereNull('business_id')
+      .whereNotNull('latitude')
+      .whereNotNull('longitude')
+      .whereBetween('latitude', [lat - dLat, lat + dLat])
+      .whereBetween('longitude', [lng - dLng, lng + dLng])
+
+    const agents = candidates
+      .map((agent) => {
+        // Decimal columns come back as strings from the pg driver.
+        const latitude = Number(agent.latitude)
+        const longitude = Number(agent.longitude)
+        return { agent, latitude, longitude, distance: haversineKm(lat, lng, latitude, longitude) }
+      })
+      .filter((row) => row.distance <= radius)
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, MAX_NEARBY_RESULTS)
+
+    return response.ok({
+      data: agents.map(({ agent, latitude, longitude, distance }) => ({
+        id: agent.id,
+        code: agent.code,
+        name: agent.businessName ?? agent.fullName,
+        address: agent.address,
+        city: agent.city,
+        region: agent.region,
+        latitude,
+        longitude,
+        distance_km: Math.round(distance * 100) / 100,
+        // Withdrawals are free for the customer, as in lookupAgent.
+        cash_out_fee_percent: 0,
+      })),
     })
   }
 

@@ -349,6 +349,110 @@ export class LikilibaService {
     })
   }
 
+  /* -------------------------------- Profile ------------------------------- */
+
+  /**
+   * The group's name and description. Not rules — nothing about the money depends on them — so
+   * the organiser may change them at any point of the cycle, without a new rules version.
+   */
+  static async updateProfile(
+    user: User,
+    likilibaId: number,
+    changes: { name?: string; description?: string | null },
+    correlationId: string
+  ): Promise<Likiliba> {
+    return db.transaction(async (trx) => {
+      const likiliba = await lockGroup(likilibaId, trx)
+      this.assertOrganiser(likiliba, user.id)
+      this.assertProfileEditable(likiliba)
+
+      const organiser = await this.memberOf(likiliba, user.id, trx)
+      const before = { name: likiliba.name, description: likiliba.description }
+      if (changes.name !== undefined) {
+        const name = changes.name.trim()
+        if (name.length < 2 || name.length > 120) {
+          throw new LikilibaException('A group name is 2 to 120 characters long', 'INVALID_NAME')
+        }
+        likiliba.name = name
+      }
+      if (changes.description !== undefined) {
+        likiliba.description = changes.description?.trim() || null
+      }
+      const renamed = likiliba.name !== before.name
+      const described = likiliba.description !== before.description
+      if (!renamed && !described) return likiliba
+      await likiliba.useTransaction(trx).save()
+
+      await LikilibaJournal.record({
+        likiliba,
+        actor: { type: 'user', id: user.id },
+        eventType: 'profile_updated',
+        memberId: organiser.id,
+        payload: {
+          renamed,
+          described,
+          name: likiliba.name,
+          previous_name: renamed ? before.name : null,
+        },
+        before,
+        correlationId,
+        trx,
+      })
+      const members = await membersOf(likiliba, trx)
+      await LikilibaNotifier.notify(
+        likiliba,
+        {
+          userIds: members.map((m) => m.userId).filter((id) => id !== user.id),
+          type: 'profile_updated',
+          title: likiliba.name,
+          message: renamed
+            ? `${displayName(user)} a renommé le groupe « ${before.name} » en « ${likiliba.name} ».`
+            : `${displayName(user)} a modifié la description de « ${likiliba.name} ».`,
+          correlationId,
+        },
+        trx
+      )
+      return likiliba
+    })
+  }
+
+  /** Sets (or, with `null`, removes) the group photo. */
+  static async setPhoto(
+    user: User,
+    likilibaId: number,
+    photo: { ref: string; mimeType: string } | null,
+    correlationId: string
+  ): Promise<{ likiliba: Likiliba; previousRef: string | null }> {
+    return db.transaction(async (trx) => {
+      const likiliba = await lockGroup(likilibaId, trx)
+      this.assertOrganiser(likiliba, user.id)
+      this.assertProfileEditable(likiliba)
+
+      const organiser = await this.memberOf(likiliba, user.id, trx)
+      const previousRef = likiliba.photoRef
+      likiliba.photoRef = photo?.ref ?? null
+      likiliba.photoMimeType = photo?.mimeType ?? null
+      await likiliba.useTransaction(trx).save()
+
+      await LikilibaJournal.record({
+        likiliba,
+        actor: { type: 'user', id: user.id },
+        eventType: 'photo_updated',
+        memberId: organiser.id,
+        payload: { removed: photo === null },
+        correlationId,
+        trx,
+      })
+      return { likiliba, previousRef }
+    })
+  }
+
+  private static assertProfileEditable(likiliba: Likiliba) {
+    if (likiliba.status === 'cancelled' || likiliba.status === 'completed') {
+      throw new LikilibaException('This likiliba is closed', 'GROUP_CLOSED', 409)
+    }
+  }
+
   /* --------------------------------- Lock --------------------------------- */
 
   /**

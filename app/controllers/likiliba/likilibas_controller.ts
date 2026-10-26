@@ -4,6 +4,11 @@ import LikilibaMember from '#models/likiliba_member'
 import type User from '#models/user'
 import {
   acceptLinkValidator,
+  feedValidator,
+  messageValidator,
+  profileValidator,
+  reactionValidator,
+  reasonValidator,
   cancelValidator,
   commitValidator,
   createLikilibaValidator,
@@ -22,6 +27,14 @@ import { LikilibaContributionService } from '#services/likiliba/contribution_ser
 import { LikilibaDebtService } from '#services/likiliba/debt_service'
 import { LikilibaPenaltyService } from '#services/likiliba/penalty_service'
 import { LikilibaPresenter } from '#services/likiliba/presenter'
+import { LikilibaChatService } from '#services/likiliba/chat_service'
+import {
+  ALLOWED_AVATAR_EXTENSIONS,
+  AvatarStorageService,
+  InvalidAvatarException,
+  MAX_AVATAR_SIZE_BYTES,
+} from '#services/users/avatar_storage_service'
+import { readFile } from 'node:fs/promises'
 import { LikilibaException, sha256 } from '#services/likiliba/shared'
 import {
   assertPin,
@@ -39,7 +52,10 @@ import {
  * invitation, rules included.
  */
 export default class LikilibasController {
-  /** GET /likilibas — the groups I belong to or organise. */
+  /**
+   * GET /likilibas — the groups I belong to or organise, like a list of conversations: the
+   * latest message or event of each, and how much I have not read, most recent first.
+   */
   async index({ auth, response }: HttpContext) {
     const user = auth.getUserOrFail() as User
     const memberships = await LikilibaMember.query()
@@ -47,16 +63,143 @@ export default class LikilibasController {
       .whereNotIn('status', ['left', 'removed'])
       .preload('likiliba')
       .orderBy('createdAt', 'desc')
-    const data = []
+    const data: Array<
+      Awaited<ReturnType<typeof LikilibaPresenter.summary>> & {
+        my_role: string
+        my_status: string
+        my_position: number | null
+        last_activity: Awaited<ReturnType<typeof LikilibaChatService.lastActivity>>
+        unread_count: number
+      }
+    > = []
     for (const m of memberships) {
       data.push({
         ...(await LikilibaPresenter.summary(m.likiliba)),
         my_role: m.role,
         my_status: m.status,
         my_position: m.position,
+        last_activity: await LikilibaChatService.lastActivity(m.likiliba, m),
+        unread_count: await LikilibaChatService.unreadCount(m),
       })
     }
+    const activityAt = (row: (typeof data)[number]) =>
+      row.last_activity?.created_at ?? new Date(String(row.starts_at)).toISOString()
+    data.sort((a, b) => (activityAt(a) < activityAt(b) ? 1 : -1))
     return response.ok({ data })
+  }
+
+  /* ------------------------------ Conversation ---------------------------- */
+
+  /** GET /likilibas/:id/feed?before=ISO — messages and group events, newest first. */
+  async feed({ auth, params, request, response }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    const q = await request.validateUsing(feedValidator, { data: request.qs() })
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await this.anyMembership(likiliba, user)
+      const before = q.before ? parseDate(q.before, 'before') : undefined
+      return response.ok(await LikilibaChatService.feed(likiliba, member, before))
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** POST /likilibas/:id/messages */
+  async sendMessage({ auth, params, request, response, correlationId }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    const { body } = await request.validateUsing(messageValidator)
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await LikilibaService.memberOf(likiliba, user.id)
+      const item = await LikilibaChatService.send(user, likiliba, member, body, correlationId)
+      return response.created({ data: item })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** DELETE /likilibas/:id/messages/:messageId — the author takes a message back. */
+  async deleteMessage({ auth, params, response, correlationId }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await LikilibaService.memberOf(likiliba, user.id)
+      await LikilibaChatService.remove(user, member, Number(params.messageId), correlationId)
+      return response.noContent()
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** POST /likilibas/:id/messages/:messageId/report — flag a message for Reemite support. */
+  async reportMessage({ auth, params, request, response, correlationId }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    const { reason } = await request.validateUsing(reasonValidator)
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await LikilibaService.memberOf(likiliba, user.id)
+      await LikilibaChatService.report(
+        user,
+        member,
+        Number(params.messageId),
+        reason,
+        correlationId
+      )
+      return response.created({ data: { reported: true } })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** PUT /likilibas/:id/messages/:messageId/reaction — set, change or remove my reaction. */
+  async reactToMessage({ auth, params, request, response }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    const { emoji } = await request.validateUsing(reactionValidator)
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await LikilibaService.memberOf(likiliba, user.id)
+      const reactions = await LikilibaChatService.react(member, Number(params.messageId), emoji)
+      return response.ok({ data: { reactions } })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /**
+   * GET /likilibas/:id/members/:memberId/avatar — a member's profile photo, for the other
+   * members of the same group only. Anyone else gets the same 404 as a missing photo.
+   */
+  async memberAvatar({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await LikilibaMember.query()
+        .where('id', Number(params.memberId))
+        .where('likilibaId', likiliba.id)
+        .preload('user')
+        .first()
+      if (!member?.user.avatarRef) {
+        return response.notFound({ message: 'No profile photo' })
+      }
+      const bytes = await AvatarStorageService.retrieve(member.user.avatarRef)
+      response.header('Content-Type', member.user.avatarMimeType ?? 'application/octet-stream')
+      response.header('Cache-Control', 'private, max-age=86400')
+      return response.send(bytes)
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** POST /likilibas/:id/read — everything up to now has been seen. */
+  async markRead({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    try {
+      const likiliba = await this.visible(params.id, user)
+      await LikilibaChatService.markRead(await this.anyMembership(likiliba, user))
+      return response.noContent()
+    } catch (error) {
+      return likilibaError(error, response)
+    }
   }
 
   /** POST /likilibas */
@@ -136,6 +279,91 @@ export default class LikilibasController {
     }
   }
 
+  /* -------------------------------- Profile ------------------------------- */
+
+  /** PATCH /likilibas/:id/profile — name and description, any time, organiser only. */
+  async updateProfile({ auth, params, request, response, correlationId }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    const p = await request.validateUsing(profileValidator)
+    try {
+      const likiliba = await LikilibaService.updateProfile(
+        user,
+        Number(params.id),
+        p,
+        correlationId
+      )
+      return response.ok({ data: await LikilibaPresenter.detail(likiliba, user.id) })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** POST /likilibas/:id/photo — multipart, field `image`; organiser only. */
+  async updatePhoto({ auth, params, request, response, correlationId }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    const file = request.file('image', {
+      size: MAX_AVATAR_SIZE_BYTES,
+      extnames: [...ALLOWED_AVATAR_EXTENSIONS],
+    })
+    if (!file) {
+      return response.badRequest({ code: 'PHOTO_MISSING', message: 'No image was sent' })
+    }
+    try {
+      if (!file.isValid) {
+        throw new InvalidAvatarException(file.errors.map((error) => error.message).join(', '))
+      }
+      const stored = await AvatarStorageService.store(await readFile(file.tmpPath!))
+      const { likiliba, previousRef } = await LikilibaService.setPhoto(
+        user,
+        Number(params.id),
+        stored,
+        correlationId
+      ).catch(async (error) => {
+        await AvatarStorageService.remove(stored.ref)
+        throw error
+      })
+      if (previousRef) await AvatarStorageService.remove(previousRef)
+      return response.ok({ data: await LikilibaPresenter.detail(likiliba, user.id) })
+    } catch (error) {
+      if (error instanceof InvalidAvatarException) {
+        return response.unprocessableEntity({ code: 'PHOTO_INVALID', message: error.message })
+      }
+      return likilibaError(error, response)
+    }
+  }
+
+  /** DELETE /likilibas/:id/photo — back to the initials. */
+  async removePhoto({ auth, params, response, correlationId }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    try {
+      const { likiliba, previousRef } = await LikilibaService.setPhoto(
+        user,
+        Number(params.id),
+        null,
+        correlationId
+      )
+      if (previousRef) await AvatarStorageService.remove(previousRef)
+      return response.ok({ data: await LikilibaPresenter.detail(likiliba, user.id) })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** GET /likilibas/:id/photo — the group photo, for its members only. */
+  async photo({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    try {
+      const likiliba = await this.visible(params.id, user)
+      if (!likiliba.photoRef) return response.notFound({ message: 'No group photo' })
+      const bytes = await AvatarStorageService.retrieve(likiliba.photoRef)
+      response.header('Content-Type', likiliba.photoMimeType ?? 'application/octet-stream')
+      response.header('Cache-Control', 'private, max-age=86400')
+      return response.send(bytes)
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
   /** GET /likilibas/:id/rules — the current version, in plain French, with its hash to sign. */
   async rules({ auth, params, response }: HttpContext) {
     const user = auth.getUserOrFail() as User
@@ -185,6 +413,17 @@ export default class LikilibasController {
           cap_per_contribution: LikilibaPenaltyService.capAmount(likiliba).toString(),
         },
       })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** GET /likilibas/:id/contributions — the group's contribution register, round by round. */
+  async contributions({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    try {
+      const likiliba = await this.visible(params.id, user)
+      return response.ok({ data: await LikilibaPresenter.contributionsBoard(likiliba) })
     } catch (error) {
       return likilibaError(error, response)
     }
@@ -540,6 +779,16 @@ export default class LikilibasController {
     } catch (error) {
       return likilibaError(error, response)
     }
+  }
+
+  /** The viewer's membership, including one they left: they can still read what happened. */
+  private async anyMembership(likiliba: Likiliba, user: User): Promise<LikilibaMember> {
+    const member = await LikilibaMember.query()
+      .where('likilibaId', likiliba.id)
+      .where('userId', user.id)
+      .first()
+    if (!member) throw new LikilibaException('This likiliba does not exist', 'NOT_FOUND', 404)
+    return member
   }
 
   /** A group is visible to its members only — anyone else gets the same 404 as a missing group. */
