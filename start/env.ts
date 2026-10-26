@@ -96,6 +96,12 @@ const env = await Env.create(new URL('../', import.meta.url), {
   // Treasury address withdrawals are sent from (public), and the fee coin below which it is flagged.
   CRYPTO_TREASURY_ADDRESS: Env.schema.string.optional(),
   CRYPTO_TREASURY_MIN_GAS: Env.schema.string.optional(),
+  // Hot wallet for automatic withdrawals (phase 2): a separate, small float. Unset = all manual.
+  CRYPTO_HOT_WALLET_PRIVATE_KEY: Env.schema.string.optional(),
+  // Automatic withdrawal limits, in cents: per withdrawal, per account per 24 h, platform per 24 h.
+  CRYPTO_AUTO_PAYOUT_MAX: Env.schema.string.optional(),
+  CRYPTO_AUTO_PAYOUT_USER_DAILY_MAX: Env.schema.string.optional(),
+  CRYPTO_AUTO_PAYOUT_DAILY_MAX: Env.schema.string.optional(),
   CRYPTO_DEPOSIT_FEE_PERCENT: Env.schema.string.optional(),
   CRYPTO_PAYOUT_FEE_PERCENT: Env.schema.string.optional(),
 

@@ -15,6 +15,14 @@ export async function handleCryptoDepositConfirmation() {
       `[crypto] deposits: ${result.credited} credited, ${result.rejected} rejected, ${result.waiting} waiting`
     )
   }
+  // Small withdrawals leave the hot wallet first, then every sent one is checked on-chain.
+  const automatic = await CryptoPayoutService.processAutomatic()
+  if (automatic.sent > 0 || automatic.handedOver > 0) {
+    console.log(
+      `[crypto] automatic withdrawals: ${automatic.sent} sent, ${automatic.handedOver} handed over to staff`
+    )
+  }
+
   // Same chain checks for withdrawals staff marked as sent.
   const payouts = await CryptoPayoutService.confirmSent()
   if (payouts.completed > 0 || payouts.flagged > 0) {

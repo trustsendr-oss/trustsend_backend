@@ -24,6 +24,16 @@ export const EXPLORER_TX: Record<string, string> = {
   bsc: 'https://bscscan.com/tx/',
 }
 
+/** Why a withdrawal is in the staff queue instead of leaving the hot wallet. */
+export const AUTO_REASON_LABEL: Record<string, string> = {
+  not_configured: 'No hot wallet configured: every withdrawal is sent by staff.',
+  above_withdrawal_limit: 'Above the automatic limit per withdrawal.',
+  above_daily_limit: "Above the account's automatic limit over 24 hours.",
+  above_platform_daily_limit: "Above the platform's automatic limit over 24 hours.",
+  hot_wallet_insufficient: 'The hot wallet did not hold enough tokens or fee coin: top it up.',
+  network_not_served: 'This network is no longer served by this deployment.',
+}
+
 export const ISSUE_LABEL: Record<string, string> = {
   tx_not_found: 'The hash is unknown on this network after 6 hours (typo, wrong network, or dropped).',
   tx_reverted: 'The transaction failed on-chain: nothing was sent.',

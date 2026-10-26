@@ -12,6 +12,7 @@ import { CryptoDepositService, type ChainReader } from '#services/crypto/crypto_
 import { MAINNET_NETWORKS as NETWORKS, TESTNET_NETWORKS } from '#services/crypto/crypto_networks'
 import { CryptoPayoutService } from '#services/crypto/crypto_payout_service'
 import { CryptoTreasuryService } from '#services/crypto/crypto_treasury_service'
+import type { PayoutSender } from '#services/crypto/hot_wallet'
 import {
   CryptoReconciliationService,
   type TransferSource,
@@ -828,6 +829,8 @@ test.group('Crypto withdrawals (reviewed by staff)', (group) => {
     CRYPTO_PAYOUT_NETWORKS: 'polygon,bsc',
     CRYPTO_PAYOUT_NETWORK_FEES: 'polygon=50,bsc=30',
     CRYPTO_PAYOUT_MIN_AMOUNT: '100',
+    // Manual flow here: no hot wallet, whatever the machine's .env holds.
+    CRYPTO_HOT_WALLET_PRIVATE_KEY: '',
   }
 
   group.setup(async () => {
@@ -1119,5 +1122,209 @@ test.group('Crypto withdrawals (reviewed by staff)', (group) => {
     } finally {
       env.set('CRYPTO_TREASURY_ADDRESS', (previousAddress ?? '') as any)
     }
+  })
+})
+
+test.group('Crypto withdrawals sent automatically (hot wallet)', (group) => {
+  const previous: Record<string, unknown> = {}
+  const AUTO_ENV: Record<string, string> = {
+    ...TEST_ENV,
+    APP_MODE: 'production',
+    CRYPTO_PAYOUT_NETWORKS: 'polygon,bsc',
+    CRYPTO_PAYOUT_NETWORK_FEES: 'polygon=0,bsc=0',
+    CRYPTO_PAYOUT_MIN_AMOUNT: '100',
+    // Hardhat's public test key: only proves a hot wallet is configured; tests use a fake sender.
+    CRYPTO_HOT_WALLET_PRIVATE_KEY:
+      '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+    CRYPTO_AUTO_PAYOUT_MAX: '20000',
+    CRYPTO_AUTO_PAYOUT_USER_DAILY_MAX: '50000',
+    CRYPTO_AUTO_PAYOUT_DAILY_MAX: '100000000',
+  }
+  let admin: InternalUser
+
+  group.setup(async () => {
+    for (const [key, value] of Object.entries(AUTO_ENV)) {
+      previous[key] = env.get(key as any)
+      env.set(key as any, value)
+    }
+    admin = await InternalUser.create({
+      email: `crypto-auto-admin-${randomUUID()}@example.test`,
+      fullName: 'Treasury reviewer',
+      password: 'a-real-password',
+      status: 'active',
+      mustChangePassword: false,
+      mfaEnabled: true,
+    })
+    return () => {
+      for (const [key, value] of Object.entries(previous)) env.set(key as any, (value ?? '') as any)
+    }
+  })
+
+  const DESTINATION = '0x2222222222222222222222222222222222222222'
+
+  // The test database outlives each run: automatic withdrawals left pending by earlier runs would
+  // be sent first (oldest first) and change what each test observes. Each test starts alone.
+  group.each.setup(async () => {
+    await db
+      .from('ledger_transactions')
+      .where('type', 'crypto_payout')
+      .where('status', 'pending')
+      .update({ metadata: db.raw(`jsonb_set(metadata::jsonb, '{auto}', 'false')`) })
+  })
+
+  async function verifiedUser(balance: bigint) {
+    const created = await createUserWithWallet({
+      email: `crypto-auto-${randomUUID()}@test.com`,
+      balance,
+    })
+    const kyc = new KycVerification()
+    kyc.subjectType = 'user'
+    kyc.subjectId = created.user.id
+    kyc.verificationType = 'document'
+    kyc.status = 'approved'
+    kyc.submittedAt = DateTime.now()
+    kyc.decidedAt = DateTime.now()
+    await kyc.save()
+    return created
+  }
+
+  const request = async (client: any, user: any, amount: string) => {
+    const res = await client.post('/api/v1/crypto/payouts').loginAs(user).json({
+      amount,
+      network: 'polygon',
+      token_symbol: 'USDT',
+      destination_address: DESTINATION,
+      pin: TEST_PIN,
+      idempotency_key: randomUUID(),
+    })
+    return json(res).data
+  }
+
+  /** A hot wallet that signs on paper and records what it broadcasts. */
+  function fakeHotWallet(options: { tokens?: bigint; failBroadcasts?: number } = {}) {
+    const broadcasts: string[] = []
+    // Each fake signs its own bytes, so a simulated failure never hits leftovers of earlier runs.
+    const prefix = `0xraw${randomUUID().replace(/-/g, '')}`
+    let signed = 0
+    let failures = options.failBroadcasts ?? 0
+    const sender: PayoutSender = {
+      address: '0x1111111111111111111111111111111111111111',
+      balances: async () => ({ token: options.tokens ?? 10n ** 12n, gas: 10n ** 18n }),
+      sign: async () => {
+        signed++
+        return { hash: randomHash(), raw: `${prefix}${signed}` }
+      },
+      broadcast: async (_network, raw) => {
+        broadcasts.push(raw)
+        if (failures > 0 && raw.startsWith(prefix)) {
+          failures--
+          throw new Error('network unreachable')
+        }
+      },
+    }
+    return { sender, broadcasts, prefix, signedCount: () => signed }
+  }
+
+  test('a small withdrawal leaves the hot wallet alone, and completes once the chain confirms it', async ({
+    client,
+    assert,
+  }) => {
+    const { user } = await verifiedUser(100000n)
+    const payout = await request(client, user, '2000')
+    assert.isTrue(payout.auto)
+    assert.equal(payout.status, 'pending')
+
+    // Staff cannot send it too: that would pay twice.
+    const manual = await client
+      .post(`/api/v1/admin/crypto-payouts/${payout.id}/sent`)
+      .withGuard('internal')
+      .loginAs(admin)
+      .json({ tx_hash: randomHash() })
+    assert.equal(json(manual).code, 'CRYPTO_PAYOUT_AUTOMATIC')
+
+    const hot = fakeHotWallet()
+    const run = await CryptoPayoutService.processAutomatic(hot.sender)
+    assert.isAtLeast(run.sent, 1)
+
+    const sent = json(await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)).data
+    assert.equal(sent.status, 'processing')
+    assert.match(sent.tx_hash, /^0x[0-9a-f]{64}$/)
+
+    // Running again sends nothing new for it.
+    await CryptoPayoutService.processAutomatic(hot.sender)
+    const after = json(await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)).data
+    assert.equal(after.tx_hash, sent.tx_hash)
+
+    const receipts = {
+      [sent.tx_hash]: transferReceipt({
+        contract: POLYGON_USDT,
+        to: DESTINATION,
+        raw: 20_000_000n,
+        block: 5,
+      }),
+    }
+    await CryptoPayoutService.confirmSent(fakeChain(5 + NETWORKS.polygon.confirmations, receipts))
+    const done = json(await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)).data
+    assert.equal(done.status, 'completed')
+  })
+
+  test('above the limits, the withdrawal waits for staff', async ({ client, assert }) => {
+    const { user } = await verifiedUser(200000n)
+
+    const large = await request(client, user, '25000') // $250 > $200
+    assert.isFalse(large.auto)
+    assert.equal(large.auto_reason, 'above_withdrawal_limit')
+
+    const first = await request(client, user, '20000')
+    const second = await request(client, user, '20000')
+    const third = await request(client, user, '20000') // $600 over 24 h > $500
+    assert.isTrue(first.auto)
+    assert.isTrue(second.auto)
+    assert.isFalse(third.auto)
+    assert.equal(third.auto_reason, 'above_daily_limit')
+
+    // Staff can send the ones that are theirs.
+    const sent = await client
+      .post(`/api/v1/admin/crypto-payouts/${large.id}/sent`)
+      .withGuard('internal')
+      .loginAs(admin)
+      .json({ tx_hash: randomHash() })
+    assert.equal(sent.status(), 200)
+  })
+
+  test('an empty hot wallet hands the withdrawal to staff instead of failing it', async ({
+    client,
+    assert,
+  }) => {
+    const { user } = await verifiedUser(100000n)
+    const payout = await request(client, user, '3000')
+    assert.isTrue(payout.auto)
+
+    await CryptoPayoutService.processAutomatic(fakeHotWallet({ tokens: 0n }).sender)
+    const row = json(await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)).data
+    assert.equal(row.status, 'pending')
+    assert.isFalse(row.auto)
+    assert.equal(row.auto_reason, 'hot_wallet_insufficient')
+  })
+
+  test('a failed broadcast is retried with the very same transaction, never signed again', async ({
+    client,
+    assert,
+  }) => {
+    const { user } = await verifiedUser(100000n)
+    const payout = await request(client, user, '1500')
+
+    const hot = fakeHotWallet({ failBroadcasts: 1 })
+    await CryptoPayoutService.processAutomatic(hot.sender)
+    const recorded = json(
+      await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)
+    ).data
+    assert.equal(recorded.status, 'processing') // hash committed before broadcasting
+    const raw = hot.broadcasts.filter((item) => item.startsWith(hot.prefix)).at(-1)!
+    await CryptoPayoutService.processAutomatic(hot.sender)
+    // The same bytes broadcast again, not a newly signed transaction.
+    assert.isAtLeast(hot.broadcasts.filter((item) => item === raw).length, 2)
+    const again = json(await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)).data
+    assert.equal(again.tx_hash, recorded.tx_hash)
   })
 })

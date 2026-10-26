@@ -36,6 +36,7 @@ export function CryptoPayoutList() {
           render={(r) => `${String(r.destination_address).slice(0, 8)}…${String(r.destination_address).slice(-6)}`}
         />
         <FunctionField label="User" render={(r) => `${r.initiated_by_type} #${r.initiated_by_id}`} />
+        <FunctionField label="Sent by" render={(r) => (r.auto ? 'Hot wallet' : 'Staff')} />
         <StatusField source="status" />
         <DateField source="created_at" label="Requested" showTime />
       </Datagrid>

@@ -28,12 +28,55 @@ import {
   type StablecoinSymbol,
 } from '#services/crypto/crypto_networks'
 import type { CryptoPayoutRequest } from '#services/crypto/crypto_types'
+import env from '#start/env'
+import { HotWallet, type PayoutSender } from '#services/crypto/hot_wallet'
 
 /** keccak256("Transfer(address,address,uint256)"). */
 const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
 /** A hash the chain still does not know after this long was mistyped or dropped. */
 const NOT_FOUND_FLAG_HOURS = 6
+
+/**
+ * Automatic withdrawals (phase 2): small ones leave the hot wallet without staff. Every limit is
+ * in cents of the peg currency, read from the environment:
+ *
+ *   CRYPTO_AUTO_PAYOUT_MAX=20000             a single withdrawal sent automatically ($200)
+ *   CRYPTO_AUTO_PAYOUT_USER_DAILY_MAX=50000  per account over 24 h ($500)
+ *   CRYPTO_AUTO_PAYOUT_DAILY_MAX=200000      all accounts over 24 h ($2,000): caps what a breach
+ *                                            or a run of fraud can take from the hot wallet
+ *
+ * Anything above, or anything the hot wallet cannot cover, goes to the staff review queue.
+ */
+function autoLimit(key: string, fallback: bigint): bigint {
+  const raw = String(env.get(key as any, '') ?? '')
+  return /^\d+$/.test(raw) ? BigInt(raw) : fallback
+}
+const autoLimits = () => ({
+  perWithdrawal: autoLimit('CRYPTO_AUTO_PAYOUT_MAX', 20_000n),
+  perUserDaily: autoLimit('CRYPTO_AUTO_PAYOUT_USER_DAILY_MAX', 50_000n),
+  platformDaily: autoLimit('CRYPTO_AUTO_PAYOUT_DAILY_MAX', 200_000n),
+})
+
+/** Sum of automatic withdrawals over the last 24 h, for one initiator or for everyone. */
+async function autoSentLast24h(
+  initiator?: { type: string; id: number },
+  trx?: TransactionClientContract
+) {
+  const query = LedgerTransaction.query(trx ? { client: trx } : undefined)
+    .where('type', 'crypto_payout')
+    .whereNot('status', 'failed')
+    .where('created_at', '>=', DateTime.now().minus({ hours: 24 }).toSQL()!)
+    .whereRaw("(metadata->>'auto')::boolean = true")
+  if (initiator) {
+    query.where('initiated_by_type', initiator.type).where('initiated_by_id', initiator.id)
+  }
+  const rows = await query.select('metadata')
+  return rows.reduce(
+    (sum, row) => sum + BigInt(((row.metadata ?? {}) as any).gross_amount ?? '0'),
+    0n
+  )
+}
 
 export class InsufficientCryptoBalanceException extends Error {
   constructor() {
@@ -78,6 +121,12 @@ type PayoutMetadata = {
   confirmations?: number
   verification_issue?: string | null
   failure_reason?: string
+  /** Sent by the hot wallet without staff (phase 2); false hands it to the review queue. */
+  auto?: boolean
+  /** Why it is not (or no longer) automatic. */
+  auto_reason?: string | null
+  /** The signed transaction, kept so a failed broadcast is retried with the very same one. */
+  raw_tx?: string
   [key: string]: unknown
 }
 
@@ -205,6 +254,23 @@ export class CryptoPayoutService {
       await CashOutHoldService.assertAvailable(wallet, totalDebit, trx)
       await LimitService.assertWithinLimits(wallet, totalDebit, trx)
 
+      // Small enough to leave the hot wallet without staff? Re-checked against the platform-wide
+      // limit and the hot wallet's balance at the moment of sending.
+      const limits = autoLimits()
+      let autoReason: string | null = null
+      if (!HotWallet.fromEnv()) {
+        autoReason = 'not_configured'
+      } else if (requestedAmount.amount > limits.perWithdrawal) {
+        autoReason = 'above_withdrawal_limit'
+      } else {
+        const sentToday = await autoSentLast24h(
+          { type: request.initiatedByType, id: request.initiatedById },
+          trx
+        )
+        if (sentToday + requestedAmount.amount > limits.perUserDaily)
+          autoReason = 'above_daily_limit'
+      }
+
       const clearingAccount = await LedgerService.getOrCreatePlatformAccount(
         `CRYPTO_CLEARING_${network.toUpperCase()}`,
         `Crypto Clearing (${network.toUpperCase()})`,
@@ -260,6 +326,8 @@ export class CryptoPayoutService {
             network_fee: rail.networkFee.toString(),
             total_debit: totalDebit.toString(),
             currency_code: currencyCode,
+            auto: autoReason === null,
+            auto_reason: autoReason,
           } satisfies PayoutMetadata,
         }
       )
@@ -322,6 +390,15 @@ export class CryptoPayoutService {
         throw new CryptoPayoutException(
           `This withdrawal is ${txn.status}`,
           'CRYPTO_PAYOUT_STATE',
+          409
+        )
+      }
+
+      // Sent by the hot wallet: a manual send too would pay the user twice.
+      if (txn.status === 'pending' && metadata.auto) {
+        throw new CryptoPayoutException(
+          'This withdrawal is being sent automatically by the hot wallet',
+          'CRYPTO_PAYOUT_AUTOMATIC',
           409
         )
       }
@@ -401,6 +478,145 @@ export class CryptoPayoutService {
       correlationId,
     })
     return CryptoPayoutService.failPayout(transactionId, reason)
+  }
+
+  /**
+   * Sends the withdrawals eligible for the hot wallet (phase 2). Run by the confirmation job,
+   * one withdrawal at a time, so nonces never collide.
+   *
+   * Never twice: the transaction is signed first, its hash and raw bytes are committed with the
+   * withdrawal (now `processing`), and only then broadcast. A failed broadcast is retried with
+   * those same bytes on the next tick — the network accepts one of them at most.
+   */
+  static async processAutomatic(
+    sender: PayoutSender | null = HotWallet.fromEnv()
+  ): Promise<{ sent: number; handedOver: number }> {
+    const tally = { sent: 0, handedOver: 0 }
+    if (!sender) return tally
+
+    // 1. Signed earlier but perhaps never broadcast: the same bytes again, before anything new.
+    const blockedNetworks = new Set<string>()
+    const unseen = await LedgerTransaction.query()
+      .where('type', 'crypto_payout')
+      .where('status', 'processing')
+      .whereRaw("metadata->>'raw_tx' IS NOT NULL")
+      .whereRaw("COALESCE((metadata->>'confirmations')::int, 0) = 0")
+      // Flagged for staff (never seen, reverted…): rebroadcasting it would block the network.
+      .whereRaw("metadata->>'verification_issue' IS NULL")
+    for (const txn of unseen) {
+      const metadata = metadataOf(txn)
+      try {
+        await sender.broadcast(metadata.network, metadata.raw_tx!)
+      } catch (error) {
+        blockedNetworks.add(metadata.network)
+        logger.error({ err: error, payoutId: txn.id }, 'automatic crypto payout rebroadcast failed')
+      }
+    }
+
+    // 2. New withdrawals, oldest first.
+    const candidates = await LedgerTransaction.query()
+      .where('type', 'crypto_payout')
+      .where('status', 'pending')
+      .whereRaw("(metadata->>'auto')::boolean = true")
+      .orderBy('created_at')
+      .limit(20)
+
+    for (const candidate of candidates) {
+      const metadata = metadataOf(candidate)
+      if (blockedNetworks.has(metadata.network)) continue
+      const contract = networkSpec(metadata.network)?.contracts[metadata.token_symbol]
+      if (!contract) {
+        await CryptoPayoutService.handOver(candidate.id, 'network_not_served')
+        tally.handedOver++
+        continue
+      }
+      const amount = AlchemyProvider.convertHundredthsToRawToken(
+        BigInt(metadata.gross_amount),
+        contract.decimals
+      )
+
+      try {
+        // Sent automatically today, this one excluded (it is counted while still pending).
+        const sentToday = (await autoSentLast24h()) - BigInt(metadata.gross_amount)
+        if (sentToday + BigInt(metadata.gross_amount) > autoLimits().platformDaily) {
+          await CryptoPayoutService.handOver(candidate.id, 'above_platform_daily_limit')
+          tally.handedOver++
+          continue
+        }
+        const balances = await sender.balances(metadata.network, contract.address)
+        if (balances.token < amount || balances.gas === 0n) {
+          await CryptoPayoutService.handOver(candidate.id, 'hot_wallet_insufficient')
+          tally.handedOver++
+          continue
+        }
+
+        const signed = await db.transaction(async (trx) => {
+          const txn = await CryptoPayoutService.lockPayout(candidate.id, trx)
+          const current = metadataOf(txn)
+          // Refused or handed over in the meantime.
+          if (txn.status !== 'pending' || !current.auto) return null
+
+          const { hash, raw } = await sender.sign(
+            metadata.network,
+            contract.address,
+            current.destination_address,
+            amount
+          )
+          txn.status = 'processing'
+          txn.metadata = {
+            ...current,
+            tx_hash: hash,
+            raw_tx: raw,
+            sent_at: DateTime.now().toISO(),
+            sent_from: sender.address,
+            confirmations: 0,
+            verification_issue: null,
+          }
+          await txn.useTransaction(trx).save()
+          await AuditLoggerService.record({
+            actorType: 'system',
+            actorId: 0,
+            action: 'transaction.crypto_payout.sent_automatically',
+            resourceType: 'ledger_transaction',
+            resourceId: txn.id,
+            before: { status: 'pending' },
+            after: { status: txn.status, tx_hash: hash, from: sender.address },
+            correlationId: txn.correlationId,
+            trx,
+          })
+          announce(trx, txn)
+          return { raw }
+        })
+        if (!signed) continue
+
+        try {
+          await sender.broadcast(metadata.network, signed.raw)
+          tally.sent++
+        } catch (error) {
+          // Recorded already: rebroadcast next tick, and nothing new on this network until then.
+          blockedNetworks.add(metadata.network)
+          logger.error(
+            { err: error, payoutId: candidate.id },
+            'automatic crypto payout broadcast failed'
+          )
+        }
+      } catch (error) {
+        logger.error({ err: error, payoutId: candidate.id }, 'automatic crypto payout failed')
+        blockedNetworks.add(metadata.network)
+      }
+    }
+    return tally
+  }
+
+  /** Not for the hot wallet after all: the withdrawal joins the staff queue, for good. */
+  private static async handOver(transactionId: string, reason: string) {
+    await db.transaction(async (trx) => {
+      const txn = await CryptoPayoutService.lockPayout(transactionId, trx)
+      if (txn.status !== 'pending') return
+      txn.metadata = { ...metadataOf(txn), auto: false, auto_reason: reason }
+      await txn.useTransaction(trx).save()
+    })
+    logger.warn({ payoutId: transactionId, reason }, 'crypto payout handed over to staff')
   }
 
   /** Re-reads every sent withdrawal from the chain; completes the ones that are final. */
@@ -640,6 +856,8 @@ export class CryptoPayoutService {
       confirmations: metadata.confirmations ?? 0,
       required_confirmations: networkSpec(metadata.network)?.confirmations ?? null,
       verification_issue: metadata.verification_issue ?? null,
+      auto: metadata.auto ?? false,
+      auto_reason: metadata.auto_reason ?? null,
       failure_reason: metadata.failure_reason ?? txn.failureReason ?? null,
       initiated_by_type: txn.initiatedByType,
       initiated_by_id: txn.initiatedById,

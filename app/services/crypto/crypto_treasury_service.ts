@@ -1,6 +1,7 @@
 import { getAddress } from 'ethers'
 import env from '#start/env'
 import LedgerTransaction from '#models/ledger_transaction'
+import { HotWallet } from '#services/crypto/hot_wallet'
 import { AlchemyProvider } from '#services/crypto/alchemy_provider'
 import {
   availablePayoutRails,
@@ -89,11 +90,26 @@ export class CryptoTreasuryService {
     }
   }
 
-  static async balances(provider = new AlchemyProvider()): Promise<{
+  /**
+   * Both wallets withdrawals leave from: the treasury (sent by staff) and the hot wallet (sent
+   * automatically, the one to top up most often). `null` when not configured.
+   */
+  static async overview(provider = new AlchemyProvider()) {
+    const hotAddress = HotWallet.fromEnv()?.address ?? null
+    const [treasury, hotWallet] = await Promise.all([
+      CryptoTreasuryService.balances(provider, CryptoTreasuryService.address()),
+      CryptoTreasuryService.balances(provider, hotAddress),
+    ])
+    return { ...treasury, hot_wallet: hotWallet }
+  }
+
+  static async balances(
+    provider = new AlchemyProvider(),
+    address: string | null = CryptoTreasuryService.address()
+  ): Promise<{
     address: string | null
     networks: TreasuryNetworkBalance[]
   }> {
-    const address = CryptoTreasuryService.address()
     if (!address) return { address: null, networks: [] }
 
     const pending = await LedgerTransaction.query()

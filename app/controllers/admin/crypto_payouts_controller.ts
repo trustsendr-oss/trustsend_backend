@@ -56,7 +56,7 @@ export default class AdminCryptoPayoutsController {
    * The treasury's balances on each withdrawal network, against the withdrawals waiting.
    */
   async treasury({ response }: HttpContext) {
-    return response.ok({ data: await CryptoTreasuryService.balances() })
+    return response.ok({ data: await CryptoTreasuryService.overview() })
   }
 
   /** GET /api/v1/admin/crypto-payouts/:id */

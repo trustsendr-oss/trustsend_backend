@@ -32,29 +32,50 @@ type TreasuryNetwork = {
  * needs its own coin for fees.
  */
 export function TreasuryPanel() {
-  const [data, setData] = useState<{ address: string | null; networks: TreasuryNetwork[] } | null>(null)
+  const [data, setData] = useState<Overview | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    apiFetch<{ address: string | null; networks: TreasuryNetwork[] }>('/admin/crypto-treasury')
+    apiFetch<Overview>('/admin/crypto-treasury')
       .then(setData)
       .catch((cause) => setError(cause instanceof Error ? cause.message : 'Treasury unavailable'))
   }, [])
 
   if (error) return <Alert severity="error" sx={{ m: 2 }}>Treasury balances unavailable: {error}</Alert>
   if (!data) return null
-  if (!data.address) {
+
+  return (
+    <>
+      <WalletBalances
+        title="Hot wallet — sends automatic withdrawals"
+        wallet={data.hot_wallet}
+        missing="No hot wallet configured (CRYPTO_HOT_WALLET_PRIVATE_KEY): every withdrawal is sent by staff."
+      />
+      <WalletBalances
+        title="Treasury — staff send the others from here"
+        wallet={data}
+        missing="Set CRYPTO_TREASURY_ADDRESS to see the treasury's balance on each network before sending."
+      />
+    </>
+  )
+}
+
+type WalletView = { address: string | null; networks: TreasuryNetwork[] }
+type Overview = WalletView & { hot_wallet: WalletView }
+
+function WalletBalances({ title, wallet, missing }: { title: string; wallet: WalletView; missing: string }) {
+  if (!wallet.address) {
     return (
-      <Alert severity="info" sx={{ m: 2 }}>
-        Set CRYPTO_TREASURY_ADDRESS to see the treasury's balance on each network before sending.
+      <Alert severity="info" sx={{ m: 2, mb: 0 }}>
+        {missing}
       </Alert>
     )
   }
-
+  const data = wallet
   return (
     <Box sx={{ p: 2, pb: 0 }}>
       <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-        Treasury
+        {title}
       </Typography>
       <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
         {data.address}

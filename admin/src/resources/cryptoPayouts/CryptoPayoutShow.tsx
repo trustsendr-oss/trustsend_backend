@@ -11,7 +11,7 @@ import BlockIcon from '@mui/icons-material/Block'
 import { StatusChip } from '../../components/StatusChip'
 import { ReasonActionButton } from '../../components/ActionButtons'
 import { adminActions } from '../../providers/dataProvider'
-import { EXPLORER_TX, formatCents, ISSUE_LABEL, NETWORK_LABEL } from './format'
+import { AUTO_REASON_LABEL, EXPLORER_TX, formatCents, ISSUE_LABEL, NETWORK_LABEL } from './format'
 
 const TX_HASH = /^0x[0-9a-fA-F]{64}$/
 
@@ -21,10 +21,13 @@ function CryptoPayoutActions() {
   const reviewable =
     record.status === 'pending' || (record.status === 'processing' && record.verification_issue)
   if (!reviewable) return <TopToolbar />
+  // The hot wallet is sending it: a manual send too would pay twice. Refusing stays possible.
+  const automatic = record.status === 'pending' && record.auto
 
   const network = NETWORK_LABEL[record.network] ?? record.network
   return (
     <TopToolbar sx={{ gap: 1 }}>
+      {!automatic && (
       <ReasonActionButton
         label={record.verification_issue ? 'Correct the hash' : 'Mark as sent'}
         icon={SendIcon}
@@ -36,6 +39,7 @@ function CryptoPayoutActions() {
         helperText={`Send exactly ${formatCents(record.amount, '').trim()} ${record.token_symbol} on ${network} to ${record.destination_address} from the treasury, then paste the transaction hash. The withdrawal completes only once the chain shows that exact transfer.`}
         onConfirm={(hash) => adminActions.cryptoPayoutSent(record.id, hash)}
       />
+      )}
       <ReasonActionButton
         label="Refuse & refund"
         icon={BlockIcon}
@@ -87,8 +91,15 @@ function CryptoPayoutContent() {
           transaction, then correct the hash — or refuse and refund if nothing left the treasury.
         </Alert>
       )}
-      {record.status === 'pending' && (
+      {record.status === 'pending' && record.auto && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          Within the automatic limits: the hot wallet sends it within a minute. Do not send it by
+          hand — refuse it instead if it must not leave.
+        </Alert>
+      )}
+      {record.status === 'pending' && !record.auto && (
         <Alert severity="info" sx={{ mb: 2 }}>
+          {record.auto_reason ? `${AUTO_REASON_LABEL[record.auto_reason] ?? record.auto_reason} ` : ''}
           The user's account is already debited. Send the tokens from the treasury, then mark the
           withdrawal as sent with its transaction hash.
         </Alert>
