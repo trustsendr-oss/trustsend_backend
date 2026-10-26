@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo, hasMany, beforeSave, afterSave } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Business from '#models/business'
 import BusinessStaff from '#models/business_staff'
@@ -10,6 +10,7 @@ import LoanSchedule from '#models/loan_schedule'
 import SavingsAccount from '#models/savings_account'
 import BorrowerGroup from '#models/borrower_group'
 import User from '#models/user'
+import { Realtime } from '#services/realtime/realtime'
 
 export type LoanStatus =
   | 'requested'
@@ -22,18 +23,16 @@ export type LoanStatus =
   | 'cancelled'
 
 export type LoanStage =
-  | 'requested'
-  | 'under_review'
-  | 'committee_approved'
-  | 'rejected'
-  | 'disbursed'
-  | 'closed'
+  'requested' | 'under_review' | 'committee_approved' | 'rejected' | 'disbursed' | 'closed'
 
 export type CollateralStatus = 'none' | 'locked' | 'released' | 'seized'
 
 /**
  * A loan made by a partner institution to a TumaPlus account holder.
  */
+/** Rows whose status changed in the save under way (see the hooks below). */
+const statusChanged = new WeakSet<object>()
+
 export default class Loan extends BaseModel {
   static table = 'loans'
 
@@ -204,5 +203,20 @@ export default class Loan extends BaseModel {
 
   get isOutstanding(): boolean {
     return this.status === 'disbursed' || this.status === 'repaying' || this.status === 'defaulted'
+  }
+
+  /*
+   * Realtime: the owner hears about a status change once it commits, whichever code path made it
+   * (agent, support, scheduled job, provider callback). See app/services/realtime/realtime.ts.
+   */
+  @beforeSave()
+  static noteStatusChange(row: Loan) {
+    if (row.$isNew || 'status' in row.$dirty) statusChanged.add(row)
+  }
+
+  @afterSave()
+  static announceStatusChange(row: Loan) {
+    if (!statusChanged.delete(row)) return
+    Realtime.toUserForRow(row, row.userId, { type: 'loan.updated', id: row.id, status: row.status })
   }
 }

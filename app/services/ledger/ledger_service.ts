@@ -12,6 +12,7 @@ import Wallet from '#models/wallet'
 import { Money } from '#services/money/money'
 import { IdGenerator } from '#services/security/id_generator'
 import { v4 as uuidv4 } from 'uuid'
+import { Realtime } from '#services/realtime/realtime'
 
 /**
  * LedgerService — The single point of truth for all accounting operations
@@ -226,6 +227,12 @@ export class LedgerService {
 
         await ledgerEntry.useTransaction(trx).save()
       }
+
+      // The owners of the wallets touched see their balance move once this commits.
+      await Realtime.walletsChanged(
+        trx,
+        entries.map((entry) => entry.accountId)
+      )
 
       return txn
     }

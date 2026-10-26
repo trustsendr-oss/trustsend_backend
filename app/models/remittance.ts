@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, beforeSave, afterSave } from '@adonisjs/lucid/orm'
+import { Realtime } from '#services/realtime/realtime'
 
 export type RemittanceStatus =
   | 'held'
@@ -14,6 +15,9 @@ export type RemittanceStatus =
 export type RemittancePayoutMethod = 'cash_pickup' | 'wallet' | 'mobile_money'
 
 /** An international transfer into the DRC (see RemittanceService). */
+/** Rows whose status changed in the save under way (see the hooks below). */
+const statusChanged = new WeakSet<object>()
+
 export default class Remittance extends BaseModel {
   static table = 'remittances'
   static selfAssignPrimaryKey = true
@@ -134,4 +138,23 @@ export default class Remittance extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+
+  /*
+   * Realtime: the owner hears about a status change once it commits, whichever code path made it
+   * (agent, support, scheduled job, provider callback). See app/services/realtime/realtime.ts.
+   */
+  @beforeSave()
+  static noteStatusChange(row: Remittance) {
+    if (row.$isNew || 'status' in row.$dirty) statusChanged.add(row)
+  }
+
+  @afterSave()
+  static announceStatusChange(row: Remittance) {
+    if (!statusChanged.delete(row)) return
+    Realtime.toUserForRow(row, row.senderUserId, {
+      type: 'remittance.updated',
+      id: row.id,
+      status: row.status,
+    })
+  }
 }

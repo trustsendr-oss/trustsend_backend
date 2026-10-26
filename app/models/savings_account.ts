@@ -1,16 +1,20 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo, beforeSave, afterSave } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Business from '#models/business'
 import FinancialProduct from '#models/financial_product'
 import User from '#models/user'
 import Wallet from '#models/wallet'
+import { Realtime } from '#services/realtime/realtime'
 
 export type SavingsAccountStatus = 'active' | 'matured' | 'closed'
 
 /**
  * Savings held with a partner institution, in an escrow wallet owned by the saver.
  */
+/** Rows whose status changed in the save under way (see the hooks below). */
+const statusChanged = new WeakSet<object>()
+
 export default class SavingsAccount extends BaseModel {
   static table = 'savings_accounts'
 
@@ -91,5 +95,24 @@ export default class SavingsAccount extends BaseModel {
   getAvailableBalance(currentBalance: bigint): bigint {
     const locked = this.lockedCollateralAmount || 0n
     return currentBalance > locked ? currentBalance - locked : 0n
+  }
+
+  /*
+   * Realtime: the owner hears about a status change once it commits, whichever code path made it
+   * (agent, support, scheduled job, provider callback). See app/services/realtime/realtime.ts.
+   */
+  @beforeSave()
+  static noteStatusChange(row: SavingsAccount) {
+    if (row.$isNew || 'status' in row.$dirty) statusChanged.add(row)
+  }
+
+  @afterSave()
+  static announceStatusChange(row: SavingsAccount) {
+    if (!statusChanged.delete(row)) return
+    Realtime.toUserForRow(row, row.userId, {
+      type: 'savings.updated',
+      id: row.id,
+      status: row.status,
+    })
   }
 }

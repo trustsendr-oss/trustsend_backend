@@ -346,6 +346,25 @@ function buildEmail(template: string, data: Record<string, any>, brand: string):
         ],
       })
 
+    case 'crypto_deposit_completed':
+      return movement(brand, data, {
+        title: 'Dépôt crypto crédité',
+        preheader: `${data.amount} crédités depuis ${data.token} sur ${data.network}.`,
+        sentence: `Votre dépôt de ${data.token} sur le réseau ${data.network} a bien été crédité sur votre compte.`,
+        caption: 'Montant reçu',
+        direction: 'in',
+        status: 'completed',
+        rows: [
+          ['Jeton', data.token],
+          ['Réseau', data.network],
+          ['Frais', feeRow(data.fee)],
+          ['Montant crédité', feeRow(data.fee) ? data.net : null],
+          ['Crédité sur', data.account],
+          // The on-chain proof: anyone can look it up on the network's block explorer.
+          ['Transaction', data.tx_hash],
+        ],
+      })
+
     case 'deposit_failed':
       return movement(brand, data, {
         title: "Votre recharge n'a pas abouti",
@@ -543,6 +562,7 @@ export const EMAIL_TEMPLATES = [
   'transfer_sent',
   'transfer_received',
   'deposit_completed',
+  'crypto_deposit_completed',
   'deposit_failed',
   'payout_completed',
   'payout_failed',

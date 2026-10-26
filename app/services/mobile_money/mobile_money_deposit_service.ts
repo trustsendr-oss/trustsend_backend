@@ -13,6 +13,7 @@ import { FeeScheduleService } from '#services/ledger/fee_schedule_service'
 import { notifyBusinessWebhook } from '#services/webhooks/notify_business_webhook'
 import { InAppNotificationService } from '#services/notifications/in_app_notification_service'
 import { TransactionNotifier } from '#services/notifications/transaction_notifier'
+import { Realtime } from '#services/realtime/realtime'
 
 export class MobileMoneyDepositNotFoundException extends Error {
   constructor() {
@@ -149,8 +150,34 @@ export class MobileMoneyDepositService {
   /**
    * Called by the (signature-verified) webhook handler and by the reconciliation sweep.
    * Idempotent: a deposit already in a terminal state is a no-op.
+   *
+   * The app is told once the settlement is committed, so its « J'ai validé — vérifier » step
+   * resolves on its own (see app/services/realtime/realtime.ts).
    */
   static async confirmFromCallback(
+    providerName: string,
+    providerReferenceId: string,
+    finalStatus: 'COMPLETED' | 'FAILED',
+    options: { providerTransactionId?: string; failureReason?: { code: string; message: string } }
+  ): Promise<LedgerTransaction> {
+    const txn = await MobileMoneyDepositService.settleFromCallback(
+      providerName,
+      providerReferenceId,
+      finalStatus,
+      options
+    )
+    // The balance itself is announced by the ledger posting (see Realtime.walletsChanged).
+    if (txn.initiatedByType === 'user') {
+      Realtime.toUser(txn.initiatedById, {
+        type: 'mobile_money_deposit.updated',
+        deposit_id: txn.id,
+        status: txn.status,
+      })
+    }
+    return txn
+  }
+
+  private static async settleFromCallback(
     providerName: string,
     providerReferenceId: string,
     finalStatus: 'COMPLETED' | 'FAILED',

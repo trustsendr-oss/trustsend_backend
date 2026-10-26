@@ -1,13 +1,34 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import Wallet from '#models/wallet'
-import LedgerTransaction from '#models/ledger_transaction'
 import { CryptoDepositService } from '#services/crypto/crypto_deposit_service'
+import { availableDepositRails } from '#services/crypto/crypto_networks'
 import { createCryptoDepositAddressValidator } from '#validators/crypto'
+import {
+  depositAddressPayload,
+  respondToDepositError,
+} from '#controllers/crypto/crypto_deposit_responses'
 
 export default class CryptoDepositsController {
   /**
+   * GET /api/v1/crypto/deposits/options
+   * The (network, token) pairs a deposit address can be requested for right now. A network
+   * Alchemy does not watch is absent: offering it would let money in that never gets credited.
+   */
+  async options({ response }: HttpContext) {
+    return response.ok({
+      data: availableDepositRails().map((rail) => ({
+        network: rail.network,
+        token_symbol: rail.tokenSymbol,
+        currency_code: rail.currencyCode,
+        required_confirmations: rail.confirmations,
+        // Non-null in the sandbox: the app labels the rail as a test network.
+        testnet_name: rail.testnetName,
+      })),
+    })
+  }
+
+  /**
    * POST /api/v1/crypto/deposits/address
-   * Generate or retrieve a crypto deposit address for the authenticated user.
+   * The authenticated user's deposit address for a network and token, created on first request.
    */
   async address({ auth, request, response }: HttpContext) {
     const user = auth.user
@@ -16,46 +37,22 @@ export default class CryptoDepositsController {
     }
 
     const payload = await request.validateUsing(createCryptoDepositAddressValidator)
-    const currencyCode = payload.currency_code || 'USD'
-    const network = payload.network
-    const tokenSymbol = payload.token_symbol || 'USDC'
-
-    const wallet = await Wallet.query()
-      .withScopes((s) => s.primary())
-      .where('user_id', user.id)
-      .where('currency_code', currencyCode)
-      .where('status', 'active')
-      .first()
-
-    if (!wallet) {
-      return response.notFound({
-        message: `Active wallet not found for currency ${currencyCode}. Please open a ${currencyCode} wallet first.`,
+    try {
+      const { address, wallet } = await CryptoDepositService.requestAddress({
+        owner: { type: 'user', id: user.id },
+        network: payload.network,
+        tokenSymbol: payload.token_symbol,
+        currencyCode: payload.currency_code,
       })
+      return response.ok({ data: depositAddressPayload(address, wallet) })
+    } catch (error) {
+      return respondToDepositError(error, response)
     }
-
-    const depositAddress = await CryptoDepositService.getOrCreateDepositAddress({
-      userId: user.id,
-      walletId: wallet.id,
-      network,
-      tokenSymbol,
-    })
-
-    return response.ok({
-      data: {
-        network: depositAddress.network,
-        token_symbol: depositAddress.tokenSymbol,
-        address: depositAddress.address,
-        memo_tag: depositAddress.memoTag,
-        currency_code: wallet.currencyCode,
-        wallet_id: wallet.id,
-        created_at: depositAddress.createdAt,
-      },
-    })
   }
 
   /**
    * GET /api/v1/crypto/deposits
-   * List crypto deposits for authenticated user.
+   * The user's crypto deposits, including those still waiting for confirmations.
    */
   async index({ auth, request, response }: HttpContext) {
     const user = auth.user
@@ -63,19 +60,10 @@ export default class CryptoDepositsController {
       return response.unauthorized({ message: 'Unauthenticated' })
     }
 
-    const page = request.input('page', 1)
-    const limit = request.input('limit', 20)
-
-    const transactions = await LedgerTransaction.query()
-      .where('initiated_by_type', 'user')
-      .where('initiated_by_id', user.id)
-      .where('type', 'crypto_deposit')
-      .orderBy('created_at', 'desc')
-      .paginate(page, limit)
-
-    return response.ok({
-      data: transactions.all(),
-      meta: transactions.getMeta(),
-    })
+    const page = Number(request.input('page', 1)) || 1
+    const limit = Math.min(Number(request.input('limit', 20)) || 20, 100)
+    return response.ok(
+      await CryptoDepositService.listFor({ type: 'user', id: user.id }, page, limit)
+    )
   }
 }

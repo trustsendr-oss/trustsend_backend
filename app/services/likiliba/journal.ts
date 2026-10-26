@@ -3,6 +3,7 @@ import type Likiliba from '#models/likiliba'
 import LikilibaEvent from '#models/likiliba_event'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import type { LikilibaActor } from '#services/likiliba/shared'
+import { LikilibaRealtime } from '#services/likiliba/likiliba_realtime'
 
 /**
  * Records one action twice, in the same transaction as the action itself: in the group's own
@@ -31,6 +32,9 @@ export class LikilibaJournal {
     event.payload = payload
     event.correlationId = params.correlationId
     await event.useTransaction(params.trx).save()
+
+    // Every recorded event shows in the group's feed: members see it live.
+    await LikilibaRealtime.changed(params.likiliba.id, params.trx)
 
     await AuditLoggerService.record({
       actorType: params.actor.type,

@@ -9,6 +9,8 @@
 
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
+import transmit from '@adonisjs/transmit/services/main'
+import User from '#models/user'
 import { controllers } from '#generated/controllers'
 const P2pTransfersController = () => import('#controllers/transfers/p2p_transfers_controller')
 const LikilibasController = () => import('#controllers/likiliba/likilibas_controller')
@@ -44,6 +46,7 @@ const CardsController = () => import('#controllers/cards_controller')
 const CardProductsController = () => import('#controllers/card_products_controller')
 const CardWebhooksController = () => import('#controllers/cards/webhooks_controller')
 const BusinessesController = () => import('#controllers/businesses_controller')
+const BusinessLogoController = () => import('#controllers/business_logo_controller')
 const UsersController = () => import('#controllers/users_controller')
 const PlansController = () => import('#controllers/plans_controller')
 const BusinessDepositsController = () => import('#controllers/business/deposits_controller')
@@ -226,6 +229,11 @@ router
           .get('agents', [DirectoryController, 'lookupAgent'])
           .use(middleware.throttle({ maxRequests: 30, windowMinutes: 15, name: 'directory-agent' }))
         router
+          .get('agents/nearby', [DirectoryController, 'nearbyAgents'])
+          .use(
+            middleware.throttle({ maxRequests: 60, windowMinutes: 15, name: 'directory-nearby' })
+          )
+        router
           .get('merchants', [DirectoryController, 'lookupMerchant'])
           .use(
             middleware.throttle({ maxRequests: 30, windowMinutes: 15, name: 'directory-merchant' })
@@ -311,7 +319,21 @@ router
         router.get(':id/history', [LikilibasController, 'history'])
         router.get(':id/penalties', [LikilibasController, 'penalties'])
         router.get(':id/me', [LikilibasController, 'mine'])
+        router.get(':id/contributions', [LikilibasController, 'contributions'])
         router.get(':id/draw', [LikilibasController, 'draw'])
+        router.get(':id/feed', [LikilibasController, 'feed'])
+        router
+          .post(':id/messages', [LikilibasController, 'sendMessage'])
+          .use(middleware.throttle({ maxRequests: 30, windowMinutes: 1, name: 'likiliba-message' }))
+        router.delete(':id/messages/:messageId', [LikilibasController, 'deleteMessage'])
+        router.post(':id/messages/:messageId/report', [LikilibasController, 'reportMessage'])
+        router.put(':id/messages/:messageId/reaction', [LikilibasController, 'reactToMessage'])
+        router.post(':id/read', [LikilibasController, 'markRead'])
+        router.get(':id/members/:memberId/avatar', [LikilibasController, 'memberAvatar'])
+        router.patch(':id/profile', [LikilibasController, 'updateProfile'])
+        router.get(':id/photo', [LikilibasController, 'photo'])
+        router.post(':id/photo', [LikilibasController, 'updatePhoto'])
+        router.delete(':id/photo', [LikilibasController, 'removePhoto'])
         router.post(':id/invitations', [LikilibasController, 'invite'])
         router.delete(':id/members/:memberId', [LikilibasController, 'removeMember'])
         router.post(':id/lock', [LikilibasController, 'lock'])
@@ -594,6 +616,7 @@ router
     // Crypto & Stablecoins (Alchemy Web3)
     router
       .group(() => {
+        router.get('deposits/options', [CryptoDepositsController, 'options'])
         router.post('deposits/address', [CryptoDepositsController, 'address'])
         router.get('deposits', [CryptoDepositsController, 'index'])
         router.post('payouts', [CryptoPayoutsController, 'store'])
@@ -717,6 +740,11 @@ router
       .get('finance/institutions/:id', [LendingCatalogueController, 'showInstitution'])
       .where('id', router.matchers.number())
       .as('finance.institutions.show')
+    // Logos are public like the offers they sit next to — see business_logo_controller.ts.
+    router
+      .get('finance/institutions/:id/logo', [BusinessLogoController, 'show'])
+      .where('id', router.matchers.number())
+      .as('finance.institutions.logo')
 
     // Someone's own savings with a partner institution. Behind middleware.auth(): these move money
     // between two wallets the SAME person owns, so the account holder is the only caller there is.
@@ -749,6 +777,8 @@ router
         router.post(':id/deactivate', [BusinessesController, 'deactivate'])
         router.post(':id/api-keys', [BusinessesController, 'issueApiKey'])
         router.delete(':id/api-keys/:keyId', [BusinessesController, 'revokeApiKey'])
+        router.post(':id/logo', [BusinessLogoController, 'adminUpload'])
+        router.delete(':id/logo', [BusinessLogoController, 'adminRemove'])
         router.post(':id/plan', [BusinessesController, 'assignPlan'])
       })
       .prefix('businesses')
@@ -839,6 +869,8 @@ router
       .group(() => {
         router.get('', [AdminLikilibasController, 'index'])
         router.post('penalties/:penaltyId/waive', [AdminLikilibasController, 'waivePenalty'])
+        router.post('messages/:messageId/hide', [AdminLikilibasController, 'hideMessage'])
+        router.get(':id/messages', [AdminLikilibasController, 'messages'])
         router.get(':id', [AdminLikilibasController, 'show'])
         router.get(':id/history', [AdminLikilibasController, 'history'])
         router.get(':id/penalties', [AdminLikilibasController, 'penalties'])
@@ -1166,6 +1198,8 @@ router
       .group(() => {
         router.get('profile', [BusinessDashboardProfileController, 'show'])
         router.patch('profile', [BusinessDashboardProfileController, 'update'])
+        router.post('profile/logo', [BusinessLogoController, 'dashboardUpload'])
+        router.delete('profile/logo', [BusinessLogoController, 'dashboardRemove'])
         router.post('pin', [BusinessPinController, 'setPin'])
         router.post('pin/change', [BusinessPinController, 'changePin'])
         router.post('kyc/submit', [BusinessKycController, 'submit'])
@@ -1350,3 +1384,34 @@ router
       .use(middleware.businessActive())
   })
   .prefix('/api/v1')
+
+/*
+|--------------------------------------------------------------------------
+| Realtime (Server-Sent Events) — see start/transmit.ts
+|--------------------------------------------------------------------------
+|
+| GET /api/v1/__transmit/events?uid=… opens the stream; /subscribe and /unsubscribe manage extra
+| channels. Signed-in users only. The client picks its connection id, so it is namespaced with the
+| user's id before transmit sees it: guessing someone else's id then only reaches one's own
+| namespace.
+|
+*/
+transmit.registerRoutes((route) => {
+  route
+    .prefix('/api/v1')
+    .use(middleware.auth())
+    .use(async ({ auth, request, response }, next) => {
+      const user = auth.user
+      if (!(user instanceof User)) {
+        return response.forbidden({ message: 'Realtime is only available to user accounts' })
+      }
+      const uid = String(request.input('uid') ?? '')
+      if (!/^[\w-]{8,64}$/.test(uid)) {
+        return response.badRequest({ message: 'Invalid connection id' })
+      }
+      const scoped = `u${user.id}:${uid}`
+      request.updateQs({ ...request.qs(), uid: scoped })
+      request.updateBody({ ...request.body(), uid: scoped })
+      return next()
+    })
+})

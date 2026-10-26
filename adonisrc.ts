@@ -35,13 +35,17 @@ export default defineConfig({
         import('#commands/deliver_pending_webhooks'),
         import('#commands/expire_cash_outs'),
         import('#commands/expire_remittances'),
+        import('#commands/import_crypto_deposit'),
+        import('#commands/reconcile_crypto_deposits'),
       ]).then(
-        ([reconcile, deliver, expireCashOuts, expireRemittances]) =>
+        ([reconcile, deliver, expireCashOuts, expireRemittances, importCryptoDeposit, reconcileCrypto]) =>
           new ListLoader([
             reconcile.default,
             deliver.default,
             expireCashOuts.default,
             expireRemittances.default,
+            importCryptoDeposit.default,
+            reconcileCrypto.default,
           ])
       ),
   ],
@@ -69,6 +73,7 @@ export default defineConfig({
     () => import('@adonisjs/cors/cors_provider'),
     () => import('@adonisjs/auth/auth_provider'),
     () => import('@adonisjs/mail/mail_provider'),
+    () => import('@adonisjs/transmit/transmit_provider'),
     () => import('#providers/api_provider'),
   ],
 
@@ -85,6 +90,7 @@ export default defineConfig({
     () => import('#start/routes'),
     () => import('#start/kernel'),
     () => import('#start/validator'),
+    () => import('#start/transmit'),
   ],
 
   /*

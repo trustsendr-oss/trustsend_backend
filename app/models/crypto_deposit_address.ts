@@ -32,8 +32,16 @@ export default class CryptoDepositAddress extends BaseModel {
   @column()
   declare memoTag: string | null
 
+  /** Child index under the treasury xpub (m/44'/60'/0'/0/n); `null` only on revoked legacy rows. */
+  @column()
+  declare derivationIndex: number | null
+
   @column()
   declare status: 'active' | 'revoked'
+
+  /** Last time the address was shown to its owner; only recent ones are reconciled. */
+  @column.dateTime()
+  declare lastRequestedAt: DateTime | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

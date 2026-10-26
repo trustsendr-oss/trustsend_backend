@@ -13,6 +13,8 @@ import { TellerSessionService } from '#services/counter/teller_session_service'
 import { AgentFloatService } from '#services/agents/agent_float_service'
 import { AgentLimitService } from '#services/agents/agent_limit_service'
 import { v4 as uuidv4 } from 'uuid'
+import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
+import { Realtime } from '#services/realtime/realtime'
 import {
   CASH_OUT_RESERVATION_TTL_MINUTES,
   CashOutHoldService,
@@ -158,6 +160,7 @@ export class CashOutService {
         trx,
       })
 
+      await announceCashOut(trx, txn)
       return txn
     })
   }
@@ -291,6 +294,7 @@ export class CashOutService {
         trx
       )
 
+      await announceCashOut(trx, txn)
       return txn
     })
   }
@@ -331,6 +335,7 @@ export class CashOutService {
         trx,
       })
 
+      await announceCashOut(trx, txn)
       return txn
     })
   }
@@ -372,6 +377,7 @@ export class CashOutService {
         trx,
       })
 
+      await announceCashOut(trx, txn)
       return txn
     })
   }
@@ -421,6 +427,7 @@ export class CashOutService {
         trx,
       })
 
+      await announceCashOut(trx, txn)
       return txn
     })
   }
@@ -467,10 +474,40 @@ export class CashOutService {
           correlationId: txn.correlationId,
           trx,
         })
+        await announceCashOut(trx, txn)
         return true
       })
       if (done) expired++
     }
     return expired
   }
+}
+
+/**
+ * A withdrawal moves through states the customer and the agent both wait on at the counter —
+ * reserved, paid out, collected, cancelled, expired — and most of them move no money, so the
+ * ledger alone would not announce them. Both sides hear it once the change commits.
+ */
+async function announceCashOut(trx: TransactionClientContract, txn: LedgerTransaction) {
+  const metadata = (txn.metadata ?? {}) as Record<string, any>
+  const customer = metadata.user_wallet_id
+    ? await db
+        .from('wallets')
+        .useTransaction(trx)
+        .where('id', metadata.user_wallet_id)
+        .select('user_id')
+        .first()
+    : null
+  const agent = metadata.agent_id
+    ? await db
+        .from('agents')
+        .useTransaction(trx)
+        .where('id', metadata.agent_id)
+        .select('user_id')
+        .first()
+    : null
+  const event = { type: 'cash_out.updated' as const, transaction_id: txn.id, status: txn.status }
+  Realtime.toUserAfterCommit(trx, customer?.user_id, event)
+  if (agent?.user_id && agent.user_id !== customer?.user_id)
+    Realtime.toUserAfterCommit(trx, agent.user_id, event)
 }

@@ -8,6 +8,7 @@ import Wallet from '#models/wallet'
 import { Money } from '#services/money/money'
 import { CashOutHoldService } from '#services/transactions/cash_out_hold_service'
 import { LedgerService } from '#services/ledger/ledger_service'
+import { Realtime } from '#services/realtime/realtime'
 import { LimitService } from '#services/ledger/limit_service'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { IdGenerator } from '#services/security/id_generator'
@@ -293,6 +294,30 @@ export class MobileMoneyPayoutService {
    * Idempotent: a payout already in a terminal state is a no-op.
    */
   static async confirmFromCallback(
+    providerName: string,
+    providerReferenceId: string,
+    finalStatus: 'COMPLETED' | 'FAILED',
+    options: { providerTransactionId?: string; failureReason?: { code: string; message: string } }
+  ): Promise<LedgerTransaction> {
+    const txn = await MobileMoneyPayoutService.settleFromCallback(
+      providerName,
+      providerReferenceId,
+      finalStatus,
+      options
+    )
+    // The app's « envoi en cours » step resolves on its own; a refund on failure moves the
+    // balance, which the ledger posting announces.
+    if (txn.initiatedByType === 'user') {
+      Realtime.toUser(txn.initiatedById, {
+        type: 'mobile_money_payout.updated',
+        payout_id: txn.id,
+        status: txn.status,
+      })
+    }
+    return txn
+  }
+
+  private static async settleFromCallback(
     providerName: string,
     providerReferenceId: string,
     finalStatus: 'COMPLETED' | 'FAILED',

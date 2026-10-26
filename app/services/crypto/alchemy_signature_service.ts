@@ -3,45 +3,32 @@ import env from '#start/env'
 
 export class AlchemySignatureService {
   /**
-   * Validate an inbound Alchemy webhook signature.
-   * Alchemy signs using HMAC-SHA256 with the signing key configured for the webhook in the dashboard.
-   * Signature is sent in the `x-alchemy-signature` header.
+   * Validates the `x-alchemy-signature` header: HMAC-SHA256 of the raw body with the webhook's
+   * signing key.
+   *
+   * Each Alchemy webhook (one per network) has its own key, so `ALCHEMY_WEBHOOK_SIGNING_KEY`
+   * may list several, comma-separated. With no key configured every request is refused — in
+   * development too. An unsigned request is exactly what a forged deposit looks like.
    */
   static verify(rawBody: string | Buffer, signatureHeader: string | null | undefined): boolean {
-    const signingKey = env.get('ALCHEMY_WEBHOOK_SIGNING_KEY', '')
-    if (!signingKey) {
-      // In development / sandbox without signing key configured, we log warning and allow if NODE_ENV !== production
-      if (env.get('NODE_ENV') === 'development' || env.get('NODE_ENV') === 'test') {
-        return true
-      }
+    const keys = (env.get('ALCHEMY_WEBHOOK_SIGNING_KEY', '') ?? '')
+      .split(',')
+      .map((key) => key.trim())
+      .filter(Boolean)
+    if (keys.length === 0 || !signatureHeader) {
       return false
     }
 
-    if (!signatureHeader) {
-      return false
-    }
+    const body = typeof rawBody === 'string' ? rawBody : rawBody.toString('utf8')
+    const header = Buffer.from(signatureHeader.trim().toLowerCase(), 'utf8')
 
-    try {
-      const hmac = createHmac('sha256', signingKey)
-      hmac.update(typeof rawBody === 'string' ? rawBody : rawBody.toString('utf8'))
-      const computedSignature = hmac.digest('hex')
-
-      const computedBuf = Buffer.from(computedSignature, 'utf8')
-      const headerBuf = Buffer.from(signatureHeader, 'utf8')
-
-      if (computedBuf.length !== headerBuf.length) {
-        return false
-      }
-
-      return timingSafeEqual(computedBuf, headerBuf)
-    } catch {
-      return false
-    }
+    return keys.some((key) => {
+      const computed = Buffer.from(createHmac('sha256', key).update(body).digest('hex'), 'utf8')
+      return computed.length === header.length && timingSafeEqual(computed, header)
+    })
   }
 
-  /**
-   * Helper to sign a test payload (useful in unit/integration tests).
-   */
+  /** Signs a payload the way Alchemy does (tests). */
   static sign(payload: string, signingKey: string): string {
     return createHmac('sha256', signingKey).update(payload).digest('hex')
   }

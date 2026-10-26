@@ -8,6 +8,8 @@ tmp/*
 storage/kyc_documents/*
 !storage/kyc_documents/.gitkeep
 storage/avatars/*
+# Uploaded business logos — runtime data, like avatars
+storage/business_logos/*
 
 # Secrets
 .env
@@ -29,3 +31,6 @@ yarn-error.log
 
 # Platform specific
 .DS_Store
+
+# Background process logs
+nohup.out

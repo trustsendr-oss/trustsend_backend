@@ -6,6 +6,7 @@ import { IdempotencyService } from '#services/security/idempotency_service'
 import { CryptoDepositService } from '#services/crypto/crypto_deposit_service'
 import { CryptoPayoutService } from '#services/crypto/crypto_payout_service'
 import { createCryptoDepositAddressValidator, createCryptoPayoutValidator } from '#validators/crypto'
+import { depositAddressPayload, respondToDepositError } from '#controllers/crypto/crypto_deposit_responses'
 
 const BIZ_CRYPTO_PAYOUT_ENDPOINT = 'POST /api/v1/business/crypto/payouts'
 
@@ -21,41 +22,17 @@ export default class BusinessCryptoController {
     }
 
     const payload = await request.validateUsing(createCryptoDepositAddressValidator)
-    const currencyCode = payload.currency_code || 'USD'
-    const network = payload.network
-    const tokenSymbol = payload.token_symbol || 'USDC'
-
-    const wallet = await Wallet.query()
-      .withScopes((s) => s.primary())
-      .where('business_id', business.id)
-      .where('currency_code', currencyCode)
-      .where('status', 'active')
-      .first()
-
-    if (!wallet) {
-      return response.notFound({
-        message: `Active wallet not found for currency ${currencyCode}`,
+    try {
+      const { address, wallet } = await CryptoDepositService.requestAddress({
+        owner: { type: 'business', id: business.id },
+        network: payload.network,
+        tokenSymbol: payload.token_symbol,
+        currencyCode: payload.currency_code,
       })
+      return response.ok({ data: depositAddressPayload(address, wallet) })
+    } catch (error) {
+      return respondToDepositError(error, response)
     }
-
-    const depositAddress = await CryptoDepositService.getOrCreateDepositAddress({
-      businessId: business.id,
-      walletId: wallet.id,
-      network,
-      tokenSymbol,
-    })
-
-    return response.ok({
-      data: {
-        network: depositAddress.network,
-        token_symbol: depositAddress.tokenSymbol,
-        address: depositAddress.address,
-        memo_tag: depositAddress.memoTag,
-        currency_code: wallet.currencyCode,
-        wallet_id: wallet.id,
-        created_at: depositAddress.createdAt,
-      },
-    })
   }
 
   /**

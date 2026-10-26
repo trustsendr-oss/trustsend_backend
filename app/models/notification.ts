@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, afterCreate } from '@adonisjs/lucid/orm'
+import { Realtime } from '#services/realtime/realtime'
 
 export default class Notification extends BaseModel {
   static table = 'notifications'
@@ -33,4 +34,11 @@ export default class Notification extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+
+  /* Realtime: the notifications list and badge refresh as soon as one is written. */
+  @afterCreate()
+  static announce(row: Notification) {
+    if (row.recipientType !== 'user') return
+    Realtime.toUserForRow(row, row.recipientId, { type: 'notification.created' })
+  }
 }

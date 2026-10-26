@@ -5,6 +5,8 @@ import OutboxEvent from '#models/outbox_event'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { formatAmount, TransactionNotifier } from '#services/notifications/transaction_notifier'
 import { InAppNotificationService } from '#services/notifications/in_app_notification_service'
+import { PushService } from '#services/notifications/push_service'
+import { networkSpec } from '#services/crypto/crypto_networks'
 
 /**
  * Outbox Relay Job
@@ -102,11 +104,17 @@ export async function handleOutboxRelay(): Promise<void> {
         case 'likiliba.notification':
           await handleLikilibaNotification(event)
           break
+        case 'likiliba.message':
+          await handleLikilibaMessage(event)
+          break
         case 'mobile_money_deposit.completed':
         case 'mobile_money_deposit.failed':
         case 'mobile_money_payout.completed':
         case 'mobile_money_payout.failed':
           await handleMobileMoneyTerminal(event)
+          break
+        case 'crypto_deposit.completed':
+          await handleCryptoDepositCompleted(event)
           break
         case 'mobile_money_deposit.initiated':
         case 'mobile_money_payout.initiated':
@@ -236,6 +244,20 @@ function formatDifference(a: unknown, b: unknown, currency: string): string {
 /* -------------------------------------------------------------------------- */
 /*                                 Gestionnaires                              */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * A message in a likiliba's conversation: a push to the other members, and nothing in their
+ * notifications screen — the conversation itself is where messages are read.
+ */
+async function handleLikilibaMessage(event: OutboxEvent): Promise<void> {
+  const payload = event.payload as any
+  const userIds: number[] = Array.isArray(payload.user_ids) ? payload.user_ids.map(Number) : []
+  await PushService.toUsers(userIds, {
+    title: String(payload.title ?? ''),
+    body: String(payload.body ?? ''),
+    data: payload.data ?? {},
+  })
+}
 
 /**
  * Everything a likiliba tells its members (see likiliba/notifier.ts): one event can name several
@@ -556,5 +578,50 @@ async function handleMobileMoneyTerminal(event: OutboxEvent): Promise<void> {
     reference: transaction.uuid,
     date,
     reason,
+  })
+}
+
+const CRYPTO_NETWORK_LABEL: Record<string, string> = {
+  ethereum: 'Ethereum',
+  polygon: 'Polygon',
+  arbitrum: 'Arbitrum One',
+  optimism: 'OP Mainnet',
+  base: 'Base',
+  bsc: 'BNB Smart Chain',
+}
+
+/**
+ * Receipt e-mail of a credited stablecoin deposit. The in-app notification is written inline by
+ * CryptoDepositService when it credits, like the mobile money ones.
+ */
+export async function handleCryptoDepositCompleted(event: OutboxEvent): Promise<void> {
+  const payload = event.payload as any
+  const transaction = await LedgerTransaction.find(payload.transaction_id ?? event.aggregateId)
+  if (!transaction) return
+
+  const recipient = await TransactionNotifier.recipientForActor(
+    transaction.initiatedByType,
+    transaction.initiatedById
+  )
+  if (!recipient) return
+
+  const metadata = (transaction.metadata ?? {}) as Record<string, any>
+  const currency = transaction.currencyCode ?? ''
+  const gross = transaction.amount ?? '0'
+  const feeMinor = transaction.fee ?? null
+  const testnetName = networkSpec(String(metadata.network ?? ''))?.testnetName
+  const networkName = CRYPTO_NETWORK_LABEL[metadata.network] ?? metadata.network ?? '—'
+  const amount = formatAmount(gross, currency)
+
+  await emailSafely(recipient, `Dépôt crypto crédité — ${amount}`, 'crypto_deposit_completed', {
+    amount,
+    fee: feeMinor !== null && BigInt(feeMinor) > 0n ? formatAmount(feeMinor, currency) : null,
+    net: feeMinor !== null ? formatDifference(gross, feeMinor, currency) : null,
+    token: metadata.token_symbol ?? 'USDT',
+    network: testnetName ? `${networkName} ${testnetName}` : networkName,
+    account: accountLabel(currency),
+    tx_hash: metadata.tx_hash ?? null,
+    reference: transaction.uuid,
+    date: formatDate(transaction.completedAt ?? event.createdAt),
   })
 }

@@ -28,6 +28,12 @@ const AGENT_COMMISSION_INTERVAL_MS = 60 * 60 * 1000
 /** How often the likiliba calendar is run. See likiliba_cycle_job.ts. */
 const LIKILIBA_CYCLE_INTERVAL_MS = 5 * 60_000
 
+/** How often pending crypto deposits are checked against the chain. See crypto_deposit_confirmation_job.ts. */
+const CRYPTO_DEPOSIT_CONFIRMATION_INTERVAL_MS = 30_000
+
+/** How often recently shown deposit addresses are re-scanned for missed webhooks. See crypto_reconciliation_job.ts. */
+const CRYPTO_RECONCILIATION_INTERVAL_MS = 15 * 60_000
+
 /**
  * Fails loudly when Redis is unreachable.
  *
@@ -205,6 +211,60 @@ export async function registerWorkers() {
   )
 
   console.log(`✓ Likiliba cycle scheduled every ${LIKILIBA_CYCLE_INTERVAL_MS / 60_000} min`)
+
+  // Crypto deposits — credits on-chain transfers once they have enough confirmations.
+  const cryptoDepositWorker = new Worker(
+    'crypto_deposit_confirmation',
+    async () => {
+      const { handleCryptoDepositConfirmation } = await import('#jobs/crypto_deposit_confirmation_job')
+      return handleCryptoDepositConfirmation()
+    },
+    { connection: redisOptions, concurrency: 1 }
+  )
+  workers.push(cryptoDepositWorker)
+
+  cryptoDepositWorker.on('failed', (job, error) => {
+    console.error(`[queue] crypto_deposit_confirmation job ${job?.id} failed:`, error)
+  })
+
+  const cryptoDepositQueue = new Queue('crypto_deposit_confirmation', { connection: redisOptions })
+  await cryptoDepositQueue.upsertJobScheduler(
+    'crypto-deposit-confirmation-tick',
+    { every: CRYPTO_DEPOSIT_CONFIRMATION_INTERVAL_MS },
+    {
+      name: 'confirm',
+      opts: { removeOnComplete: true, removeOnFail: 50 },
+    }
+  )
+
+  console.log(`✓ Crypto deposit confirmation scheduled every ${CRYPTO_DEPOSIT_CONFIRMATION_INTERVAL_MS / 1000}s`)
+
+  // Crypto reconciliation — records deposits whose webhook never arrived.
+  const cryptoReconciliationWorker = new Worker(
+    'crypto_reconciliation',
+    async () => {
+      const { handleCryptoReconciliation } = await import('#jobs/crypto_reconciliation_job')
+      return handleCryptoReconciliation()
+    },
+    { connection: redisOptions, concurrency: 1 }
+  )
+  workers.push(cryptoReconciliationWorker)
+
+  cryptoReconciliationWorker.on('failed', (job, error) => {
+    console.error(`[queue] crypto_reconciliation job ${job?.id} failed:`, error)
+  })
+
+  const cryptoReconciliationQueue = new Queue('crypto_reconciliation', { connection: redisOptions })
+  await cryptoReconciliationQueue.upsertJobScheduler(
+    'crypto-reconciliation-tick',
+    { every: CRYPTO_RECONCILIATION_INTERVAL_MS },
+    {
+      name: 'reconcile',
+      opts: { removeOnComplete: true, removeOnFail: 50 },
+    }
+  )
+
+  console.log(`✓ Crypto reconciliation scheduled every ${CRYPTO_RECONCILIATION_INTERVAL_MS / 60_000} min`)
 
   // TODO: Add workers as they're implemented (Phase 3+)
   // - ledger_reconciliation_job

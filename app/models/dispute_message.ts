@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, afterCreate } from '@adonisjs/lucid/orm'
+import { Realtime } from '#services/realtime/realtime'
+import Dispute from '#models/dispute'
 
 /**
  * Un message dans le fil d'une réclamation.
@@ -27,4 +29,15 @@ export default class DisputeMessage extends BaseModel {
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
+
+  /*
+   * Realtime: a new message in the thread (from support, or the user's other device) shows up
+   * on the dispute screen once it commits.
+   */
+  @afterCreate()
+  static async announceMessage(row: DisputeMessage) {
+    const dispute = await Dispute.find(row.disputeId, row.$trx ? { client: row.$trx } : undefined)
+    if (!dispute || dispute.raisedByType !== 'user') return
+    Realtime.toUserForRow(row, dispute.raisedById, { type: 'dispute.updated', id: dispute.id })
+  }
 }

@@ -3,6 +3,7 @@ import Card from '#models/card'
 import { AuditLoggerService } from '#services/audit/audit_logger_service'
 import { InAppNotificationService } from '#services/notifications/in_app_notification_service'
 import { PayscribeSignatureService } from '#services/cards/payscribe_signature_service'
+import { Realtime } from '#services/realtime/realtime'
 
 /**
  * Inbound webhooks FROM Payscribe (card events) — distinct from webhooks_controller.ts, which
@@ -81,6 +82,8 @@ export default class CardWebhooksController {
       // Payscribe reports balance as a decimal (e.g. 2.51); this column is smallest-unit (cents).
       card.balanceCache = BigInt(Math.round(newBalance * 100))
       await card.save()
+      // The card's balance lives at the issuer, not in our ledger: announce it here.
+      Realtime.toUser(card.userId, { type: 'card.updated', card_id: card.id })
     }
 
     await AuditLoggerService.record({
@@ -128,6 +131,7 @@ export default class CardWebhooksController {
     const before = card.status
     card.status = localStatus
     await card.save()
+    Realtime.toUser(card.userId, { type: 'card.updated', card_id: card.id })
 
     await AuditLoggerService.record({
       actorType: 'system',

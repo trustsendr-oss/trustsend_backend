@@ -79,7 +79,16 @@ const env = await Env.create(new URL('../', import.meta.url), {
 
   // Web3 / Alchemy / Stablecoin Crypto Gateway
   ALCHEMY_API_KEY: Env.schema.string.optional(),
+  // One signing key per Alchemy webhook, comma-separated. None set: every webhook is refused.
   ALCHEMY_WEBHOOK_SIGNING_KEY: Env.schema.string.optional(),
+  // Notify API token (dashboard → Webhooks → Auth token): adds new deposit addresses to the webhooks.
+  ALCHEMY_AUTH_TOKEN: Env.schema.string.optional(),
+  // Address-activity webhook per network, e.g. `polygon=wh_abc,arbitrum=wh_def`. Only these networks are offered.
+  ALCHEMY_WEBHOOK_IDS: Env.schema.string.optional(),
+  // Treasury account xpub (m/44'/60'/0'). Deposit address n is its child 0/n. Never an xprv.
+  CRYPTO_DEPOSIT_XPUB: Env.schema.string.optional(),
+  // Deposit addresses shown within this many days are re-scanned for missed webhooks (default 7).
+  CRYPTO_RECONCILE_ACTIVE_DAYS: Env.schema.string.optional(),
   CRYPTO_DEPOSIT_FEE_PERCENT: Env.schema.string.optional(),
   CRYPTO_PAYOUT_FEE_PERCENT: Env.schema.string.optional(),
 

@@ -1,7 +1,11 @@
 import env from '#start/env'
+import { networkSpec } from '#services/crypto/crypto_networks'
 import type { CryptoNetwork, CryptoTokenSymbol } from '#services/crypto/crypto_types.js'
 
-export const KNOWN_CONTRACTS: Record<string, Record<string, { address: string; decimals: number }>> = {
+export const KNOWN_CONTRACTS: Record<
+  string,
+  Record<string, { address: string; decimals: number }>
+> = {
   base: {
     USDC: { address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', decimals: 6 },
     EURC: { address: '0x60a3E35Cc302bFA44Cb288Bc5a4F316Fdb1DD429', decimals: 6 },
@@ -36,23 +40,23 @@ export class AlchemyProvider {
    */
   getRpcUrl(network: CryptoNetwork | string): string {
     const net = network.toLowerCase()
-    const domainMap: Record<string, string> = {
-      base: 'base-mainnet.g.alchemy.com',
-      polygon: 'polygon-mainnet.g.alchemy.com',
-      arbitrum: 'arb-mainnet.g.alchemy.com',
-      optimism: 'opt-mainnet.g.alchemy.com',
-      ethereum: 'eth-mainnet.g.alchemy.com',
-      solana: 'solana-mainnet.g.alchemy.com',
+    // EVM networks follow the deployment (mainnet in production, testnet in the sandbox). No
+    // fallback: reading another chain than the deposit's would reject every deposit on it.
+    const domain = networkSpec(net)?.rpcHost ?? (net === 'solana' ? 'solana-mainnet.g.alchemy.com' : undefined)
+    if (!domain) {
+      throw new Error(`No Alchemy endpoint configured for network ${network}`)
     }
-
-    const domain = domainMap[net] || 'base-mainnet.g.alchemy.com'
     return `https://${domain}/v2/${this.apiKey || 'demo'}`
   }
 
   /**
    * Execute JSON-RPC request against Alchemy.
    */
-  async callRpc<T = any>(network: CryptoNetwork | string, method: string, params: any[] = []): Promise<T> {
+  async callRpc<T = any>(
+    network: CryptoNetwork | string,
+    method: string,
+    params: any[] = []
+  ): Promise<T> {
     const url = this.getRpcUrl(network)
     const response = await fetch(url, {
       method: 'POST',
@@ -69,7 +73,9 @@ export class AlchemyProvider {
     })
 
     if (!response.ok) {
-      throw new Error(`Alchemy RPC request failed with HTTP ${response.status}: ${await response.text()}`)
+      throw new Error(
+        `Alchemy RPC request failed with HTTP ${response.status}: ${await response.text()}`
+      )
     }
 
     const data = (await response.json()) as any
@@ -88,6 +94,14 @@ export class AlchemyProvider {
   }
 
   /**
+   * Transfers API: the token transfers an address received, over any block range in one call
+   * (paginated by `pageKey`). Unlike eth_getLogs, its cost does not grow with the range.
+   */
+  async getAssetTransfers(network: CryptoNetwork | string, params: Record<string, unknown>): Promise<any> {
+    return this.callRpc(network, 'alchemy_getAssetTransfers', [params])
+  }
+
+  /**
    * Get latest block number.
    */
   async getBlockNumber(network: CryptoNetwork | string): Promise<number> {
@@ -98,7 +112,10 @@ export class AlchemyProvider {
   /**
    * Get token metadata / decimals.
    */
-  getTokenInfo(network: CryptoNetwork | string, symbol: CryptoTokenSymbol | string): { address: string; decimals: number } | null {
+  getTokenInfo(
+    network: CryptoNetwork | string,
+    symbol: CryptoTokenSymbol | string
+  ): { address: string; decimals: number } | null {
     const net = network.toLowerCase()
     const sym = symbol.toUpperCase()
     return KNOWN_CONTRACTS[net]?.[sym] || null
