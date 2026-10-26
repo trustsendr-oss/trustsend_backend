@@ -5,6 +5,7 @@ import env from '#start/env'
 import CryptoDepositAddress from '#models/crypto_deposit_address'
 import { AlchemyProvider } from '#services/crypto/alchemy_provider'
 import { CryptoDepositService } from '#services/crypto/crypto_deposit_service'
+import { CryptoAlerts } from '#services/crypto/crypto_alerts'
 import {
   availableDepositRails,
   networkSpec,
@@ -127,9 +128,12 @@ export class CryptoReconciliationService {
     }
 
     if (result.missed > 0) {
-      logger.warn(
-        { missed: result.missed },
-        'crypto reconciliation recorded deposits no webhook had reported — check the Alchemy webhooks'
+      CryptoAlerts.raise(
+        'webhook_missed',
+        'reconciliation',
+        'Dépôts rattrapés par la réconciliation',
+        `${result.missed} dépôt(s) n'avaient été signalés par aucun webhook. Vérifiez les webhooks Alchemy.`,
+        { depots: result.missed }
       )
     }
     return result

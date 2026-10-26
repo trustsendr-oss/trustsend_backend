@@ -17,7 +17,6 @@ import GavelIcon from '@mui/icons-material/GavelOutlined'
 import {
   Show,
   useRecordContext,
-  TextField as RaTextField,
   DateField,
   Labeled,
   TopToolbar,
@@ -25,6 +24,7 @@ import {
   useRefresh,
 } from 'react-admin'
 import { StatusChip } from '../../components/StatusChip'
+import { EXPLORER_TX, NETWORK_LABEL } from '../cryptoPayouts/format'
 import { adminActions } from '../../providers/dataProvider'
 import { ApiError } from '../../providers/httpClient'
 
@@ -133,7 +133,10 @@ function DisputeShowContent() {
         <CardContent>
           <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 4, mb: 2 }}>
             <Labeled label="Transaction">
-              <RaTextField source="ledger_transaction_id" />
+              <Typography variant="body2">
+                {record.ledger_transaction_id}
+                {record.transaction ? ` · ${record.transaction.type} · ${record.transaction.status}` : ''}
+              </Typography>
             </Labeled>
             <Labeled label="Raised by">
               <Typography variant="body2">
@@ -147,6 +150,9 @@ function DisputeShowContent() {
               <DateField source="resolved_at" showTime emptyText="—" />
             </Labeled>
           </Stack>
+          {record.transaction?.crypto && (
+            <CryptoTrace crypto={record.transaction.crypto} type={record.transaction.type} />
+          )}
           <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
             Reason
           </Typography>
@@ -293,5 +299,43 @@ function DisputeThread({
         )}
       </CardContent>
     </Card>
+  )
+}
+
+/** For a crypto transaction: the hash, opened on the network's explorer, and what to check. */
+function CryptoTrace({
+  crypto,
+  type,
+}: {
+  crypto: { network: string | null; token_symbol: string | null; tx_hash: string; destination_address: string | null }
+  type: string
+}) {
+  const explorer = crypto.network ? EXPLORER_TX[crypto.network] : undefined
+  return (
+    <Box sx={{ mb: 2 }}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+        On-chain · {crypto.token_symbol ?? ''} on {crypto.network ? (NETWORK_LABEL[crypto.network] ?? crypto.network) : '—'}
+      </Typography>
+      <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+        {explorer ? (
+          <a href={`${explorer}${crypto.tx_hash}`} target="_blank" rel="noreferrer">
+            {crypto.tx_hash}
+          </a>
+        ) : (
+          crypto.tx_hash
+        )}
+      </Typography>
+      {crypto.destination_address && (
+        <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+          To {crypto.destination_address}
+        </Typography>
+      )}
+      {type === 'crypto_payout' && (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          A crypto withdrawal cannot be reversed: the tokens left on the blockchain. Check the hash; if
+          it never arrived, refuse it from the crypto withdrawals page.
+        </Typography>
+      )}
+    </Box>
   )
 }

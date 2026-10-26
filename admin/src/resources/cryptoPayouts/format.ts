@@ -32,10 +32,16 @@ export const AUTO_REASON_LABEL: Record<string, string> = {
   above_platform_daily_limit: "Above the platform's automatic limit over 24 hours.",
   hot_wallet_insufficient: 'The hot wallet did not hold enough tokens or fee coin: top it up.',
   network_not_served: 'This network is no longer served by this deployment.',
+  new_destination: 'First withdrawal of this account to this address: check it before sending.',
+  recent_pin_change:
+    'The PIN was changed or reset in the last 24 hours: confirm with the owner first.',
+  new_device:
+    'A new phone signed in to this account in the last 24 hours: confirm with the owner first.',
 }
 
 export const ISSUE_LABEL: Record<string, string> = {
-  tx_not_found: 'The hash is unknown on this network after 6 hours (typo, wrong network, or dropped).',
+  tx_not_found:
+    'The hash is unknown on this network after 6 hours (typo, wrong network, or dropped).',
   tx_reverted: 'The transaction failed on-chain: nothing was sent.',
   transfer_mismatch:
     'The transaction exists but is not this withdrawal: wrong token, destination or amount.',

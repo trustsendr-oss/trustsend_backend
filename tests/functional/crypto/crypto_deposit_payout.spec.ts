@@ -25,6 +25,9 @@ import { handleCryptoDepositCompleted } from '#jobs/outbox_relay_job'
 import { NotificationService } from '#services/notifications/notification_service'
 import { renderEmailHtml } from '#services/notifications/email_templates'
 import { createUserWithWallet, TEST_PIN } from '#tests/helpers/user_helper'
+import { AuditLoggerService } from '#services/audit/audit_logger_service'
+import { CryptoAlerts } from '#services/crypto/crypto_alerts'
+import Dispute from '#models/dispute'
 
 const json = (res: { body(): unknown }) => res.body() as any
 
@@ -1139,6 +1142,9 @@ test.group('Crypto withdrawals sent automatically (hot wallet)', (group) => {
     CRYPTO_AUTO_PAYOUT_MAX: '20000',
     CRYPTO_AUTO_PAYOUT_USER_DAILY_MAX: '50000',
     CRYPTO_AUTO_PAYOUT_DAILY_MAX: '100000000',
+    // These tests are about sending; the new-address hold has its own test below.
+    CRYPTO_AUTO_PAYOUT_NEW_ADDRESS: 'auto',
+    CRYPTO_ALERT_EMAILS: 'ops@example.test',
   }
   let admin: InternalUser
 
@@ -1326,5 +1332,121 @@ test.group('Crypto withdrawals sent automatically (hot wallet)', (group) => {
     assert.isAtLeast(hot.broadcasts.filter((item) => item === raw).length, 2)
     const again = json(await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)).data
     assert.equal(again.tx_hash, recorded.tx_hash)
+  })
+
+  test('signs of a taken-over account send the withdrawal to staff', async ({ client, assert }) => {
+    // A first withdrawal to an address, when new addresses are reviewed.
+    env.set('CRYPTO_AUTO_PAYOUT_NEW_ADDRESS', 'review')
+    try {
+      const { user } = await verifiedUser(100000n)
+      const first = await request(client, user, '1000')
+      assert.isFalse(first.auto)
+      assert.equal(first.auto_reason, 'new_destination')
+    } finally {
+      env.set('CRYPTO_AUTO_PAYOUT_NEW_ADDRESS', 'auto')
+    }
+
+    // A PIN changed in the last 24 hours.
+    const changed = await verifiedUser(100000n)
+    await AuditLoggerService.record({
+      actorType: 'user',
+      actorId: changed.user.id,
+      action: 'pin.changed',
+      resourceType: 'user',
+      resourceId: changed.user.id,
+      correlationId: randomUUID(),
+    })
+    const afterPin = await request(client, changed.user, '1000')
+    assert.isFalse(afterPin.auto)
+    assert.equal(afterPin.auto_reason, 'recent_pin_change')
+
+    // A new phone on an account that already had one.
+    const moved = await verifiedUser(100000n)
+    const now = new Date()
+    await db.table('device_sessions').multiInsert([
+      {
+        user_id: moved.user.id,
+        token_hash: randomUUID(),
+        expires_at: new Date(Date.now() + 30 * 86400_000),
+        created_at: new Date(Date.now() - 40 * 86400_000),
+        updated_at: now,
+      },
+      {
+        user_id: moved.user.id,
+        token_hash: randomUUID(),
+        expires_at: new Date(Date.now() + 30 * 86400_000),
+        created_at: now,
+        updated_at: now,
+      },
+    ])
+    const afterPhone = await request(client, moved.user, '1000')
+    assert.isFalse(afterPhone.auto)
+    assert.equal(afterPhone.auto_reason, 'new_device')
+  })
+
+  test('the team is e-mailed when a withdrawal needs them, once', async ({ client, assert }) => {
+    CryptoAlerts.reset()
+    const sent: Array<{ to: string; subject: string; template: string }> = []
+    const original = NotificationService.sendEmail
+    NotificationService.sendEmail = async (email) => {
+      sent.push(email)
+      return true
+    }
+    try {
+      const { user } = await verifiedUser(200000n)
+      const large = await request(client, user, '25000')
+      assert.isFalse(large.auto)
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const alerts = sent.filter((email) => email.template === 'ops_alert')
+      assert.lengthOf(alerts, 1)
+      assert.equal(alerts[0].to, 'ops@example.test')
+      assert.include(alerts[0].subject, 'Retrait crypto à envoyer')
+
+      // An empty hot wallet: one alert for the wallet, not one per withdrawal.
+      sent.length = 0
+      await request(client, user, '1000')
+      await request(client, user, '1000')
+      await CryptoPayoutService.processAutomatic(fakeHotWallet({ tokens: 0n }).sender)
+      const empty = sent.filter((email) => email.subject.includes('Portefeuille chaud à recharger'))
+      assert.lengthOf(empty, 1)
+    } finally {
+      NotificationService.sendEmail = original
+      CryptoAlerts.reset()
+    }
+  })
+
+  test('support sees the hash of a disputed withdrawal, and cannot reverse it', async ({
+    client,
+    assert,
+  }) => {
+    const { user } = await verifiedUser(100000n)
+    const payout = await request(client, user, '1000')
+    const hot = fakeHotWallet()
+    await CryptoPayoutService.processAutomatic(hot.sender)
+    const sent = json(await client.get(`/api/v1/crypto/payouts/${payout.id}`).loginAs(user)).data
+
+    const dispute = await Dispute.create({
+      ledgerTransactionId: payout.id,
+      raisedByType: 'user',
+      raisedById: user.id,
+      reason: 'Not received',
+      status: 'opened',
+      openedAt: DateTime.now(),
+    })
+
+    const shown = json(
+      await client.get(`/api/v1/disputes/all/${dispute.id}`).withGuard('internal').loginAs(admin)
+    ).data
+    assert.equal(shown.transaction.type, 'crypto_payout')
+    assert.equal(shown.transaction.crypto.tx_hash, sent.tx_hash)
+    assert.equal(shown.transaction.crypto.network, 'polygon')
+
+    const reversal = await client
+      .post(`/api/v1/disputes/${dispute.id}/close`)
+      .withGuard('internal')
+      .loginAs(admin)
+      .json({ outcome: 'approved', resolution_notes: 'Customer says it never arrived' })
+    assert.equal(reversal.status(), 422)
+    assert.equal(json(reversal).code, 'CRYPTO_PAYOUT_NOT_REVERSIBLE')
   })
 })

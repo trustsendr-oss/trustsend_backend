@@ -335,11 +335,30 @@ export default class DisputesController {
   async adminShow({ auth, params, response }: HttpContext) {
     await auth.authenticateUsing(['internal'])
     const dispute = await Dispute.findOrFail(params.id)
+    const txn = await LedgerTransaction.find(dispute.ledgerTransactionId)
+    const meta = (txn?.metadata ?? {}) as Record<string, any>
 
     return response.ok({
       data: {
         id: dispute.id,
         ledger_transaction_id: dispute.ledgerTransactionId,
+        // What support needs to find the money: for crypto, the hash to open on the explorer.
+        transaction: txn
+          ? {
+              type: txn.type,
+              status: txn.status,
+              amount: String(txn.amount),
+              currency: txn.currencyCode,
+              crypto: meta.tx_hash
+                ? {
+                    network: meta.network ?? null,
+                    token_symbol: meta.token_symbol ?? null,
+                    tx_hash: meta.tx_hash,
+                    destination_address: meta.destination_address ?? meta.to_address ?? null,
+                  }
+                : null,
+            }
+          : null,
         raised_by_type: dispute.raisedByType,
         raised_by_id: dispute.raisedById,
         reason: dispute.reason,
@@ -477,6 +496,15 @@ export default class DisputesController {
 
       if (outcome === 'approved') {
         const originalTxn = await LedgerTransaction.findOrFail(dispute.ledgerTransactionId)
+        // Tokens sent on a blockchain cannot be called back: reversing would refund a withdrawal
+        // that was paid. Pending ones are refused (and refunded) from the crypto withdrawals page.
+        if (originalTxn.type === 'crypto_payout') {
+          return response.unprocessableEntity({
+            code: 'CRYPTO_PAYOUT_NOT_REVERSIBLE',
+            message:
+              'A crypto withdrawal cannot be reversed here: check its hash on the explorer, and refuse it from the crypto withdrawals page if it was never sent.',
+          })
+        }
         const reversalTxn = await LedgerService.reverseTransaction(
           this.resolvePostedTransactionId(originalTxn),
           'internal_user',

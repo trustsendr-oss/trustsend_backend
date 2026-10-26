@@ -16,6 +16,7 @@ import { TransactionNotifier } from '#services/notifications/transaction_notifie
 import { AlchemyProvider } from '#services/crypto/alchemy_provider'
 import { AlchemyNotify } from '#services/crypto/alchemy_notify'
 import { Realtime } from '#services/realtime/realtime'
+import { CryptoAlerts } from '#services/crypto/crypto_alerts'
 import { DepositAddressDeriver } from '#services/crypto/deposit_address_deriver'
 import {
   availableDepositRails,
@@ -331,6 +332,13 @@ export class CryptoDepositService {
     deposit.rejectReason = reason
     await deposit.save()
     await CryptoDepositService.notifyOwner(deposit)
+    CryptoAlerts.raise(
+      'deposit_rejected',
+      String(deposit.id),
+      'Dépôt crypto non crédité',
+      `Le dépôt #${deposit.id} (${deposit.tokenSymbol} sur ${deposit.network}) n'a pas été crédité : ${reason}.`,
+      { depot: deposit.id, hash: deposit.txHash, raison: reason }
+    )
     logger.warn(
       { depositId: deposit.id, reason, txHash: deposit.txHash },
       'crypto deposit rejected'
@@ -375,6 +383,15 @@ export class CryptoDepositService {
         deposit.status = 'rejected'
         deposit.rejectReason = 'no_wallet'
         await deposit.useTransaction(trx).save()
+        trx.after('commit', () =>
+          CryptoAlerts.raise(
+            'deposit_rejected',
+            String(deposit.id),
+            'Dépôt crypto non crédité',
+            `Le dépôt #${deposit.id} (${deposit.tokenSymbol} sur ${deposit.network}) attend l'équipe : no_wallet.`,
+            { depot: deposit.id, hash: deposit.txHash, raison: 'no_wallet' }
+          )
+        )
         Realtime.toUserAfterCommit(trx, depositAddress.userId, {
           type: 'crypto_deposit.updated',
           id: deposit.id,
@@ -388,6 +405,15 @@ export class CryptoDepositService {
         deposit.status = 'rejected'
         deposit.rejectReason = 'dust'
         await deposit.useTransaction(trx).save()
+        trx.after('commit', () =>
+          CryptoAlerts.raise(
+            'deposit_rejected',
+            String(deposit.id),
+            'Dépôt crypto non crédité',
+            `Le dépôt #${deposit.id} (${deposit.tokenSymbol} sur ${deposit.network}) attend l'équipe : dust.`,
+            { depot: deposit.id, hash: deposit.txHash, raison: 'dust' }
+          )
+        )
         Realtime.toUserAfterCommit(trx, depositAddress.userId, {
           type: 'crypto_deposit.updated',
           id: deposit.id,

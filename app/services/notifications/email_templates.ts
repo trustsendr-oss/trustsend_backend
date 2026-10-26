@@ -503,6 +503,34 @@ function buildEmail(template: string, data: Record<string, any>, brand: string):
       })
 
     // Likiliba receipts (contribution, caution, penalty, payout…): the service writes the rows.
+    // Internal: alerts for the team (crypto treasury, review queue). Plain on purpose.
+    case 'ops_alert': {
+      const details = Object.entries((data.details ?? {}) as Record<string, unknown>).filter(
+        ([, value]) => value !== null && value !== undefined && value !== ''
+      )
+      return {
+        title: String(data.title ?? 'Alerte'),
+        preheader: String(data.message ?? ''),
+        body:
+          text(escapeHtml(data.message ?? '')) +
+          details
+            .map(([key, value]) =>
+              text(`<strong>${escapeHtml(key)}</strong> : ${escapeHtml(value)}`, { muted: true })
+            )
+            .join('') +
+          text('Alerte automatique de la plateforme — à traiter depuis le back-office.', {
+            muted: true,
+            last: true,
+          }),
+        text: plainText([
+          String(data.title ?? ''),
+          '',
+          String(data.message ?? ''),
+          ...details.map(([key, value]) => `${key} : ${String(value)}`),
+        ]),
+      }
+    }
+
     case 'likiliba_receipt':
       return movement(brand, data, {
         title: data.title ?? 'Likiliba',
@@ -610,4 +638,5 @@ export const EMAIL_TEMPLATES = [
   'cash_out_completed',
   'merchant_payment_sent',
   'likiliba_receipt',
+  'ops_alert',
 ] as const

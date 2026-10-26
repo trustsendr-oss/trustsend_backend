@@ -30,12 +30,16 @@ import {
 import type { CryptoPayoutRequest } from '#services/crypto/crypto_types'
 import env from '#start/env'
 import { HotWallet, type PayoutSender } from '#services/crypto/hot_wallet'
+import { CryptoAlerts } from '#services/crypto/crypto_alerts'
+import { formatCoin, minimumGas } from '#services/crypto/crypto_treasury_service'
 
 /** keccak256("Transfer(address,address,uint256)"). */
 const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
 /** A hash the chain still does not know after this long was mistyped or dropped. */
 const NOT_FOUND_FLAG_HOURS = 6
+
+let lastGasCheck = 0
 
 /**
  * Automatic withdrawals (phase 2): small ones leave the hot wallet without staff. Every limit is
@@ -132,6 +136,63 @@ type PayoutMetadata = {
 
 function metadataOf(txn: LedgerTransaction): PayoutMetadata {
   return (txn.metadata ?? {}) as PayoutMetadata
+}
+
+/**
+ * Signs that the account may not be in its owner's hands, from what the platform already
+ * records: a first withdrawal to this address, a PIN changed or reset in the last 24 h, a phone
+ * signed in for the first time in the last 24 h. Any of them sends the withdrawal to staff
+ * instead of the hot wallet — a stolen phone empties nothing by itself.
+ *
+ * CRYPTO_AUTO_PAYOUT_NEW_ADDRESS=auto lets a first withdrawal to a new address go automatically.
+ */
+async function fraudHold(
+  initiator: { type: string; id: number },
+  destination: string,
+  trx: TransactionClientContract
+): Promise<string | null> {
+  if ((env.get('CRYPTO_AUTO_PAYOUT_NEW_ADDRESS') ?? 'review') !== 'auto') {
+    const known = await LedgerTransaction.query({ client: trx })
+      .where('type', 'crypto_payout')
+      .where('status', 'completed')
+      .where('initiated_by_type', initiator.type)
+      .where('initiated_by_id', initiator.id)
+      .whereRaw("LOWER(metadata->>'destination_address') = ?", [destination.toLowerCase()])
+      .first()
+    if (!known) return 'new_destination'
+  }
+  if (initiator.type !== 'user') return null
+
+  const since = DateTime.now().minus({ hours: 24 }).toSQL()!
+  const pinChange = await trx
+    .from('audit_logs')
+    .where('created_at', '>=', since)
+    .where((query) =>
+      query
+        .where((own) =>
+          own
+            .where('actor_type', 'user')
+            .where('actor_id', initiator.id)
+            .whereIn('action', ['pin.changed', 'pin.reset_confirmed'])
+        )
+        .orWhere((admin) =>
+          admin
+            .where('action', 'user.pin_reset_by_admin')
+            .where('resource_id', String(initiator.id))
+        )
+    )
+    .first()
+  if (pinChange) return 'recent_pin_change'
+
+  // A new phone on an account that already had one: the classic takeover.
+  const devices: Array<{ created_at: Date | string }> = await trx
+    .from('device_sessions')
+    .where('user_id', initiator.id)
+    .select('created_at')
+  const dayAgo = Date.now() - 24 * 3600_000
+  const recent = devices.filter((row) => new Date(row.created_at).getTime() >= dayAgo)
+  if (recent.length > 0 && recent.length < devices.length) return 'new_device'
+  return null
 }
 
 /** Tells the person who asked for the withdrawal that it moved, once `trx` commits. */
@@ -270,6 +331,13 @@ export class CryptoPayoutService {
         if (sentToday + requestedAmount.amount > limits.perUserDaily)
           autoReason = 'above_daily_limit'
       }
+      if (autoReason === null) {
+        autoReason = await fraudHold(
+          { type: request.initiatedByType, id: request.initiatedById },
+          destination,
+          trx
+        )
+      }
 
       const clearingAccount = await LedgerService.getOrCreatePlatformAccount(
         `CRYPTO_CLEARING_${network.toUpperCase()}`,
@@ -358,6 +426,18 @@ export class CryptoPayoutService {
       })
 
       announce(trx, txn)
+      if (autoReason !== null) {
+        // Not for the hot wallet: someone must send it. Once committed.
+        trx.after('commit', () =>
+          CryptoAlerts.raise(
+            'payout_review',
+            txn.id,
+            'Retrait crypto à envoyer',
+            `Un retrait de ${requestedAmount.amount} centimes en ${tokenSymbol} sur ${network} attend l'équipe.`,
+            { retrait: txn.id, adresse: destination, raison: autoReason }
+          )
+        )
+      }
       return txn
     })
   }
@@ -599,13 +679,46 @@ export class CryptoPayoutService {
             { err: error, payoutId: candidate.id },
             'automatic crypto payout broadcast failed'
           )
+          CryptoAlerts.raise(
+            'payout_broadcast_failed',
+            metadata.network,
+            'Envoi automatique bloqué',
+            `Le portefeuille chaud n'a pas pu diffuser le retrait ${candidate.id} sur ${metadata.network} ; nouvel essai à chaque passage.`,
+            { retrait: candidate.id, erreur: (error as Error).message }
+          )
         }
       } catch (error) {
         logger.error({ err: error, payoutId: candidate.id }, 'automatic crypto payout failed')
         blockedNetworks.add(metadata.network)
       }
     }
+    await CryptoPayoutService.checkHotWalletGas(sender)
     return tally
+  }
+
+  /** Warns the team before the hot wallet runs out of fee coin. At most every 10 minutes. */
+  private static async checkHotWalletGas(sender: PayoutSender) {
+    if (Date.now() - lastGasCheck < 10 * 60_000) return
+    lastGasCheck = Date.now()
+    for (const rail of availablePayoutRails()) {
+      const contract = networkSpec(rail.network)?.contracts[rail.tokenSymbol]
+      if (!contract) continue
+      try {
+        const { gas } = await sender.balances(rail.network, contract.address)
+        const minimum = minimumGas(rail.network)
+        if (Number(formatCoin(gas)) < minimum) {
+          CryptoAlerts.raise(
+            'hot_wallet_gas_low',
+            rail.network,
+            'Frais du portefeuille chaud bas',
+            `Le portefeuille chaud n'a plus que ${formatCoin(gas)} en monnaie de frais sur ${rail.network} (minimum ${minimum}).`,
+            { reseau: rail.network, adresse: sender.address }
+          )
+        }
+      } catch {
+        // A node hiccup: the next check will tell.
+      }
+    }
   }
 
   /** Not for the hot wallet after all: the withdrawal joins the staff queue, for good. */
@@ -616,7 +729,17 @@ export class CryptoPayoutService {
       txn.metadata = { ...metadataOf(txn), auto: false, auto_reason: reason }
       await txn.useTransaction(trx).save()
     })
-    logger.warn({ payoutId: transactionId, reason }, 'crypto payout handed over to staff')
+    CryptoAlerts.raise(
+      reason === 'hot_wallet_insufficient' ? 'hot_wallet_insufficient' : 'payout_review',
+      reason === 'hot_wallet_insufficient' ? 'hot_wallet' : transactionId,
+      reason === 'hot_wallet_insufficient'
+        ? 'Portefeuille chaud à recharger'
+        : 'Retrait crypto à envoyer',
+      reason === 'hot_wallet_insufficient'
+        ? `Le portefeuille chaud ne couvre plus les retraits : le retrait ${transactionId} passe à l'équipe. Rechargez-le.`
+        : `Le retrait ${transactionId} passe à l'équipe (${reason}).`,
+      { retrait: transactionId, raison: reason }
+    )
   }
 
   /** Re-reads every sent withdrawal from the chain; completes the ones that are final. */
@@ -708,6 +831,13 @@ export class CryptoPayoutService {
   private static async flag(txn: LedgerTransaction, issue: string): Promise<'flagged'> {
     txn.metadata = { ...metadataOf(txn), verification_issue: issue }
     await txn.save()
+    CryptoAlerts.raise(
+      'payout_flagged',
+      txn.id,
+      'Retrait crypto à vérifier',
+      `La blockchain contredit le hash enregistré pour le retrait ${txn.id} (${issue}). Rien n'a été remboursé.`,
+      { retrait: txn.id, hash: metadataOf(txn).tx_hash ?? null, probleme: issue }
+    )
     logger.warn({ payoutId: txn.id, issue }, 'crypto payout needs staff attention')
     return 'flagged'
   }

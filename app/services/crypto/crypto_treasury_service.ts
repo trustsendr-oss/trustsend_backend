@@ -58,7 +58,7 @@ export type TreasuryNetworkBalance = {
   error: string | null
 }
 
-function minimumGas(network: EvmNetwork): number {
+export function minimumGas(network: EvmNetwork): number {
   for (const pair of (env.get('CRYPTO_TREASURY_MIN_GAS', '') ?? '').split(',')) {
     const [name, value] = pair.split('=').map((part) => part.trim())
     if (name === network && value && Number.isFinite(Number(value))) return Number(value)
@@ -67,7 +67,7 @@ function minimumGas(network: EvmNetwork): number {
 }
 
 /** wei → « 1.2345 » (18 decimals, 4 shown). */
-function formatCoin(wei: bigint): string {
+export function formatCoin(wei: bigint): string {
   const whole = wei / 10n ** 18n
   const fraction = ((wei % 10n ** 18n) / 10n ** 14n).toString().padStart(4, '0')
   return `${whole}.${fraction}`
