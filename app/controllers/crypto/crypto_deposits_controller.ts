@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { FeeScheduleService } from '#services/ledger/fee_schedule_service'
 import { CryptoDepositService } from '#services/crypto/crypto_deposit_service'
 import { availableDepositRails } from '#services/crypto/crypto_networks'
 import { createCryptoDepositAddressValidator } from '#validators/crypto'
@@ -14,6 +15,8 @@ export default class CryptoDepositsController {
    * Alchemy does not watch is absent: offering it would let money in that never gets credited.
    */
   async options({ response }: HttpContext) {
+    // Taken from each deposit when it is credited; the app shows it before the user sends.
+    const feeBps = Math.round((await FeeScheduleService.getFeePercent('crypto_deposit')) * 100)
     return response.ok({
       data: availableDepositRails().map((rail) => ({
         network: rail.network,
@@ -22,6 +25,7 @@ export default class CryptoDepositsController {
         required_confirmations: rail.confirmations,
         // Non-null in the sandbox: the app labels the rail as a test network.
         testnet_name: rail.testnetName,
+        fee_bps: feeBps,
       })),
     })
   }

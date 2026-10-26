@@ -140,13 +140,25 @@ const TEST_ENV: Record<string, string> = {
 }
 
 test.group('Crypto deposits (stablecoins)', (group) => {
-  group.setup(() => {
+  group.setup(async () => {
     const previous = Object.fromEntries(
       Object.keys(TEST_ENV).map((key) => [key, env.get(key as any)])
     )
     for (const [key, value] of Object.entries(TEST_ENV)) env.set(key as any, value)
-    return () => {
+    // Amounts below are checked without a fee; the 1 % fee has its own test.
+    const fee = await db.from('fee_schedules').where('operation_type', 'crypto_deposit').first()
+    await db
+      .from('fee_schedules')
+      .where('operation_type', 'crypto_deposit')
+      .update({ fee_percent: 0 })
+    return async () => {
       for (const [key, value] of Object.entries(previous)) env.set(key as any, (value ?? '') as any)
+      if (fee) {
+        await db
+          .from('fee_schedules')
+          .where('operation_type', 'crypto_deposit')
+          .update({ fee_percent: fee.fee_percent })
+      }
     }
   })
 
@@ -263,6 +275,49 @@ test.group('Crypto deposits (stablecoins)', (group) => {
       'ethereum:EURC',
     ])
     assert.notInclude(rails, 'arbitrum:USDC')
+  })
+
+  test('a deposit pays 1 %, and the app is told before sending', async ({ client, assert }) => {
+    await db
+      .from('fee_schedules')
+      .where('operation_type', 'crypto_deposit')
+      .update({ fee_percent: 1 })
+    try {
+      const { user, wallet } = await createUserWithWallet({
+        email: `crypto-fee-${randomUUID()}@test.com`,
+        balance: 0n,
+      })
+      const options = json(await client.get('/api/v1/crypto/deposits/options').loginAs(user)).data
+      assert.isTrue(options.every((rail: any) => rail.fee_bps === 100))
+      const address = json(
+        await client
+          .post('/api/v1/crypto/deposits/address')
+          .loginAs(user)
+          .json({ network: 'polygon', token_symbol: 'USDC' })
+      ).data.address
+      const hash = randomHash()
+      await postSigned(
+        client,
+        activityEvent({ contract: POLYGON_USDC, to: address, raw: 25_000_000n, hash })
+      )
+      await CryptoDepositService.confirmPending(
+        fakeChain(1000 + NETWORKS.polygon.confirmations, {
+          [hash]: transferReceipt({
+            contract: POLYGON_USDC,
+            to: address,
+            raw: 25_000_000n,
+            block: 1000,
+          }),
+        })
+      )
+      await wallet.refresh()
+      assert.equal(wallet.balanceCache, 2475n) // $25.00 − 1 % = $24.75
+    } finally {
+      await db
+        .from('fee_schedules')
+        .where('operation_type', 'crypto_deposit')
+        .update({ fee_percent: 0 })
+    }
   })
 
   test('the webhook only records; the chain decides when to credit', async ({ client, assert }) => {
@@ -481,6 +536,7 @@ test.group('Crypto deposits (stablecoins)', (group) => {
         currency_code: 'USD',
         required_confirmations: TESTNET_NETWORKS.bsc!.confirmations,
         testnet_name: 'Testnet',
+        fee_bps: 0,
       })
       assert.notDeepInclude(
         rails.map((rail: any) => `${rail.network}:${rail.token_symbol}`),
