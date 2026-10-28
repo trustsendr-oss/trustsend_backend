@@ -34,6 +34,9 @@ const CRYPTO_DEPOSIT_CONFIRMATION_INTERVAL_MS = 30_000
 /** How often recently shown deposit addresses are re-scanned for missed webhooks. See crypto_reconciliation_job.ts. */
 const CRYPTO_RECONCILIATION_INTERVAL_MS = 15 * 60_000
 
+/** How often card top-ups stuck in `charging` are checked with GoFreshPay. See card_deposit_reconciliation_job.ts. */
+const CARD_DEPOSIT_RECONCILIATION_INTERVAL_MS = 2 * 60_000
+
 /**
  * Fails loudly when Redis is unreachable.
  *
@@ -265,6 +268,37 @@ export async function registerWorkers() {
   )
 
   console.log(`✓ Crypto reconciliation scheduled every ${CRYPTO_RECONCILIATION_INTERVAL_MS / 60_000} min`)
+
+  // Card top-ups — settles charges whose answer was lost, closes abandoned checkouts.
+  const cardDepositReconciliationWorker = new Worker(
+    'card_deposit_reconciliation',
+    async () => {
+      const { handleCardDepositReconciliation } = await import('#jobs/card_deposit_reconciliation_job')
+      return handleCardDepositReconciliation()
+    },
+    { connection: redisOptions, concurrency: 1 }
+  )
+  workers.push(cardDepositReconciliationWorker)
+
+  cardDepositReconciliationWorker.on('failed', (job, error) => {
+    console.error(`[queue] card_deposit_reconciliation job ${job?.id} failed:`, error)
+  })
+
+  const cardDepositReconciliationQueue = new Queue('card_deposit_reconciliation', {
+    connection: redisOptions,
+  })
+  await cardDepositReconciliationQueue.upsertJobScheduler(
+    'card-deposit-reconciliation-tick',
+    { every: CARD_DEPOSIT_RECONCILIATION_INTERVAL_MS },
+    {
+      name: 'reconcile',
+      opts: { removeOnComplete: true, removeOnFail: 50 },
+    }
+  )
+
+  console.log(
+    `✓ Card deposit reconciliation scheduled every ${CARD_DEPOSIT_RECONCILIATION_INTERVAL_MS / 60_000} min`
+  )
 
   // TODO: Add workers as they're implemented (Phase 3+)
   // - ledger_reconciliation_job

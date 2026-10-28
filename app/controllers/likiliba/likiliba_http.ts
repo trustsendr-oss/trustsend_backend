@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import type User from '#models/user'
+import type LikilibaMessage from '#models/likiliba_message'
+import { LikilibaAttachmentStorageService } from '#services/likiliba/attachment_storage_service'
 import { PinService } from '#services/security/pin_service'
 import { IdempotencyService } from '#services/security/idempotency_service'
 import { LikilibaException } from '#services/likiliba/shared'
@@ -18,6 +20,25 @@ export function likilibaError(error: unknown, response: HttpContext['response'])
     return response.badRequest({ code: 'LIMIT_EXCEEDED', message: (error as Error).message })
   }
   throw error
+}
+
+/**
+ * Sends the photo, voice message or file of a message. Photos and voice messages are played
+ * inline; every other file is a download
+ * (`attachment` disposition, `nosniff`), so a document can never be rendered as a page.
+ */
+export async function serveAttachment(response: HttpContext['response'], message: LikilibaMessage) {
+  const bytes = await LikilibaAttachmentStorageService.retrieve(message.attachmentRef!)
+  const mimeType = message.attachmentMimeType ?? 'application/octet-stream'
+  const name = (message.attachmentName ?? 'fichier').replace(/["\\\r\n]/g, '_')
+  response.header('Content-Type', mimeType)
+  response.header('X-Content-Type-Options', 'nosniff')
+  response.header(
+    'Content-Disposition',
+    `${message.kind === 'file' ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(name)}`
+  )
+  response.header('Cache-Control', 'private, max-age=86400')
+  return response.send(bytes)
 }
 
 export function parseDate(value: string, field: string): DateTime {

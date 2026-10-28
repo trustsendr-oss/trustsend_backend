@@ -45,6 +45,15 @@ const env = await Env.create(new URL('../', import.meta.url), {
   DB_PASSWORD: Env.schema.string.optional(),
   DB_DATABASE: Env.schema.string.optional(),
 
+  // Uploaded files (likiliba photos, files, voice messages). `local` (default) keeps them under
+  // storage/; `s3` puts them in a private S3-compatible bucket — Reemite uses MinIO.
+  STORAGE_DRIVER: Env.schema.enum.optional(['local', 's3'] as const),
+  S3_ENDPOINT: Env.schema.string.optional({ format: 'url', tld: false }),
+  S3_REGION: Env.schema.string.optional(),
+  S3_BUCKET: Env.schema.string.optional(),
+  S3_ACCESS_KEY: Env.schema.string.optional(),
+  S3_SECRET_KEY: Env.schema.secret.optional(),
+
   // Redis
   REDIS_HOST: Env.schema.string.optional({ format: 'host' }),
   REDIS_PORT: Env.schema.number.optional(),
@@ -107,6 +116,18 @@ const env = await Env.create(new URL('../', import.meta.url), {
   CRYPTO_DEPOSIT_FEE_PERCENT: Env.schema.string.optional(),
   CRYPTO_PAYOUT_FEE_PERCENT: Env.schema.string.optional(),
 
+  // Card acceptance (GoFreshPay / Moko Afrika, Microform). Three keys, never sent to the app:
+  // X-API-Key identifies us, the api secret signs every outgoing request, the callback secret
+  // verifies the webhooks they send back. See app/services/card_payments/.
+  GOFRESHPAY_ENV: Env.schema.enum.optional(['sandbox', 'production'] as const),
+  GOFRESHPAY_API_KEY: Env.schema.string.optional(),
+  GOFRESHPAY_API_SECRET: Env.schema.string.optional(),
+  GOFRESHPAY_CALLBACK_SECRET: Env.schema.string.optional(),
+  // Deep link the checkout page sends the cardholder back to (default trustsend://card-deposit).
+  CARD_CHECKOUT_RETURN_URL: Env.schema.string.optional(),
+  // Seeds fee_schedules.card_deposit at migration time only; the admin rate wins afterwards.
+  CARD_DEPOSIT_FEE_PERCENT: Env.schema.string.optional(),
+
   // Mail (Namecheap Private Email via SMTP — see config/mail.ts). Required, not optional: like
   // ENCRYPTION_KEY above, fail fast at boot if these are missing rather than only discovering it
   // when the first PIN-reset/notification email silently fails to send in production.
@@ -127,7 +148,7 @@ const env = await Env.create(new URL('../', import.meta.url), {
 // see config/mobile_money.ts and config/cards.ts.) The reverse — production mode on sandbox
 // providers — is just a local dev setup, so it stays allowed.
 if (env.get('APP_MODE') === 'sandbox') {
-  const productionProviders = (['PAWAPAY_ENV', 'PAYSCRIBE_ENV'] as const).filter(
+  const productionProviders = (['PAWAPAY_ENV', 'PAYSCRIBE_ENV', 'GOFRESHPAY_ENV'] as const).filter(
     (key) => env.get(key) === 'production'
   )
   if (productionProviders.length > 0) {

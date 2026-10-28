@@ -13,6 +13,7 @@ import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 export type RealtimeEvent =
   | { type: 'crypto_deposit.updated'; id: number; status: string }
   | { type: 'mobile_money_deposit.updated'; deposit_id: string; status: string }
+  | { type: 'card_deposit.updated'; session_id: string; status: string }
   | { type: 'wallet.updated' }
   /** A cash withdrawal at an agent changed state; sent to the customer and to the agent. */
   | { type: 'cash_out.updated'; transaction_id: string; status: string }

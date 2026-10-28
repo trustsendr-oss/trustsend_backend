@@ -10,6 +10,8 @@ storage/kyc_documents/*
 storage/avatars/*
 # Uploaded business logos — runtime data, like avatars
 storage/business_logos/*
+# Photos and files sent in likiliba conversations — runtime data, like avatars
+storage/likiliba_attachments/*
 
 # Secrets
 .env

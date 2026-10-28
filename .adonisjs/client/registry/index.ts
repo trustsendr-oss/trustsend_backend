@@ -18,6 +18,24 @@ const routes = {
     tokens: [{"old":"/assets/currencies/:file","type":0,"val":"assets","end":""},{"old":"/assets/currencies/:file","type":0,"val":"currencies","end":""},{"old":"/assets/currencies/:file","type":1,"val":"file","end":""}],
     types: placeholder as Registry['assets.currency_logo']['types'],
   },
+  'card_checkout.page': {
+    methods: ["GET","HEAD"],
+    pattern: '/card-checkout/:id',
+    tokens: [{"old":"/card-checkout/:id","type":0,"val":"card-checkout","end":""},{"old":"/card-checkout/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['card_checkout.page']['types'],
+  },
+  'card_checkout.three_ds_return.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/card-checkout/:id/3ds-return',
+    tokens: [{"old":"/card-checkout/:id/3ds-return","type":0,"val":"card-checkout","end":""},{"old":"/card-checkout/:id/3ds-return","type":1,"val":"id","end":""},{"old":"/card-checkout/:id/3ds-return","type":0,"val":"3ds-return","end":""}],
+    types: placeholder as Registry['card_checkout.three_ds_return.show']['types'],
+  },
+  'card_checkout.three_ds_return.store': {
+    methods: ["POST"],
+    pattern: '/card-checkout/:id/3ds-return',
+    tokens: [{"old":"/card-checkout/:id/3ds-return","type":0,"val":"card-checkout","end":""},{"old":"/card-checkout/:id/3ds-return","type":1,"val":"id","end":""},{"old":"/card-checkout/:id/3ds-return","type":0,"val":"3ds-return","end":""}],
+    types: placeholder as Registry['card_checkout.three_ds_return.store']['types'],
+  },
   'auth.new_account.request_otp': {
     methods: ["POST"],
     pattern: '/api/v1/auth/signup/request-otp',
@@ -365,6 +383,30 @@ const routes = {
     pattern: '/api/v1/likilibas/:id/messages',
     tokens: [{"old":"/api/v1/likilibas/:id/messages","type":0,"val":"api","end":""},{"old":"/api/v1/likilibas/:id/messages","type":0,"val":"v1","end":""},{"old":"/api/v1/likilibas/:id/messages","type":0,"val":"likilibas","end":""},{"old":"/api/v1/likilibas/:id/messages","type":1,"val":"id","end":""},{"old":"/api/v1/likilibas/:id/messages","type":0,"val":"messages","end":""}],
     types: placeholder as Registry['likilibas.likilibas.send_message']['types'],
+  },
+  'likilibas.likilibas.create_poll': {
+    methods: ["POST"],
+    pattern: '/api/v1/likilibas/:id/polls',
+    tokens: [{"old":"/api/v1/likilibas/:id/polls","type":0,"val":"api","end":""},{"old":"/api/v1/likilibas/:id/polls","type":0,"val":"v1","end":""},{"old":"/api/v1/likilibas/:id/polls","type":0,"val":"likilibas","end":""},{"old":"/api/v1/likilibas/:id/polls","type":1,"val":"id","end":""},{"old":"/api/v1/likilibas/:id/polls","type":0,"val":"polls","end":""}],
+    types: placeholder as Registry['likilibas.likilibas.create_poll']['types'],
+  },
+  'likilibas.likilibas.message_attachment': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/likilibas/:id/messages/:messageId/attachment',
+    tokens: [{"old":"/api/v1/likilibas/:id/messages/:messageId/attachment","type":0,"val":"api","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/attachment","type":0,"val":"v1","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/attachment","type":0,"val":"likilibas","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/attachment","type":1,"val":"id","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/attachment","type":0,"val":"messages","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/attachment","type":1,"val":"messageId","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/attachment","type":0,"val":"attachment","end":""}],
+    types: placeholder as Registry['likilibas.likilibas.message_attachment']['types'],
+  },
+  'likilibas.likilibas.vote': {
+    methods: ["PUT"],
+    pattern: '/api/v1/likilibas/:id/messages/:messageId/vote',
+    tokens: [{"old":"/api/v1/likilibas/:id/messages/:messageId/vote","type":0,"val":"api","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/vote","type":0,"val":"v1","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/vote","type":0,"val":"likilibas","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/vote","type":1,"val":"id","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/vote","type":0,"val":"messages","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/vote","type":1,"val":"messageId","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/vote","type":0,"val":"vote","end":""}],
+    types: placeholder as Registry['likilibas.likilibas.vote']['types'],
+  },
+  'likilibas.likilibas.close_poll': {
+    methods: ["POST"],
+    pattern: '/api/v1/likilibas/:id/messages/:messageId/close',
+    tokens: [{"old":"/api/v1/likilibas/:id/messages/:messageId/close","type":0,"val":"api","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/close","type":0,"val":"v1","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/close","type":0,"val":"likilibas","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/close","type":1,"val":"id","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/close","type":0,"val":"messages","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/close","type":1,"val":"messageId","end":""},{"old":"/api/v1/likilibas/:id/messages/:messageId/close","type":0,"val":"close","end":""}],
+    types: placeholder as Registry['likilibas.likilibas.close_poll']['types'],
   },
   'likilibas.likilibas.delete_message': {
     methods: ["DELETE"],
@@ -1020,6 +1062,48 @@ const routes = {
     tokens: [{"old":"/api/v1/webhooks/alchemy","type":0,"val":"api","end":""},{"old":"/api/v1/webhooks/alchemy","type":0,"val":"v1","end":""},{"old":"/api/v1/webhooks/alchemy","type":0,"val":"webhooks","end":""},{"old":"/api/v1/webhooks/alchemy","type":0,"val":"alchemy","end":""}],
     types: placeholder as Registry['webhooks.alchemy']['types'],
   },
+  'card_deposits.card_deposits.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/card-deposits',
+    tokens: [{"old":"/api/v1/card-deposits","type":0,"val":"api","end":""},{"old":"/api/v1/card-deposits","type":0,"val":"v1","end":""},{"old":"/api/v1/card-deposits","type":0,"val":"card-deposits","end":""}],
+    types: placeholder as Registry['card_deposits.card_deposits.store']['types'],
+  },
+  'card_deposits.card_deposits.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/card-deposits/:id',
+    tokens: [{"old":"/api/v1/card-deposits/:id","type":0,"val":"api","end":""},{"old":"/api/v1/card-deposits/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/card-deposits/:id","type":0,"val":"card-deposits","end":""},{"old":"/api/v1/card-deposits/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['card_deposits.card_deposits.show']['types'],
+  },
+  'card_checkout.card_checkout.context': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/card-checkout/:id',
+    tokens: [{"old":"/api/v1/card-checkout/:id","type":0,"val":"api","end":""},{"old":"/api/v1/card-checkout/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/card-checkout/:id","type":0,"val":"card-checkout","end":""},{"old":"/api/v1/card-checkout/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['card_checkout.card_checkout.context']['types'],
+  },
+  'card_checkout.card_checkout.setup': {
+    methods: ["POST"],
+    pattern: '/api/v1/card-checkout/:id/setup',
+    tokens: [{"old":"/api/v1/card-checkout/:id/setup","type":0,"val":"api","end":""},{"old":"/api/v1/card-checkout/:id/setup","type":0,"val":"v1","end":""},{"old":"/api/v1/card-checkout/:id/setup","type":0,"val":"card-checkout","end":""},{"old":"/api/v1/card-checkout/:id/setup","type":1,"val":"id","end":""},{"old":"/api/v1/card-checkout/:id/setup","type":0,"val":"setup","end":""}],
+    types: placeholder as Registry['card_checkout.card_checkout.setup']['types'],
+  },
+  'card_checkout.card_checkout.enroll': {
+    methods: ["POST"],
+    pattern: '/api/v1/card-checkout/:id/enroll',
+    tokens: [{"old":"/api/v1/card-checkout/:id/enroll","type":0,"val":"api","end":""},{"old":"/api/v1/card-checkout/:id/enroll","type":0,"val":"v1","end":""},{"old":"/api/v1/card-checkout/:id/enroll","type":0,"val":"card-checkout","end":""},{"old":"/api/v1/card-checkout/:id/enroll","type":1,"val":"id","end":""},{"old":"/api/v1/card-checkout/:id/enroll","type":0,"val":"enroll","end":""}],
+    types: placeholder as Registry['card_checkout.card_checkout.enroll']['types'],
+  },
+  'card_checkout.card_checkout.charge': {
+    methods: ["POST"],
+    pattern: '/api/v1/card-checkout/:id/charge',
+    tokens: [{"old":"/api/v1/card-checkout/:id/charge","type":0,"val":"api","end":""},{"old":"/api/v1/card-checkout/:id/charge","type":0,"val":"v1","end":""},{"old":"/api/v1/card-checkout/:id/charge","type":0,"val":"card-checkout","end":""},{"old":"/api/v1/card-checkout/:id/charge","type":1,"val":"id","end":""},{"old":"/api/v1/card-checkout/:id/charge","type":0,"val":"charge","end":""}],
+    types: placeholder as Registry['card_checkout.card_checkout.charge']['types'],
+  },
+  'webhooks.gofreshpay': {
+    methods: ["POST"],
+    pattern: '/api/v1/webhooks/gofreshpay',
+    tokens: [{"old":"/api/v1/webhooks/gofreshpay","type":0,"val":"api","end":""},{"old":"/api/v1/webhooks/gofreshpay","type":0,"val":"v1","end":""},{"old":"/api/v1/webhooks/gofreshpay","type":0,"val":"webhooks","end":""},{"old":"/api/v1/webhooks/gofreshpay","type":0,"val":"gofreshpay","end":""}],
+    types: placeholder as Registry['webhooks.gofreshpay']['types'],
+  },
   'counter.counter_sessions.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/counter/sessions',
@@ -1667,6 +1751,12 @@ const routes = {
     pattern: '/api/v1/admin/likilibas/messages/:messageId/hide',
     tokens: [{"old":"/api/v1/admin/likilibas/messages/:messageId/hide","type":0,"val":"api","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/hide","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/hide","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/hide","type":0,"val":"likilibas","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/hide","type":0,"val":"messages","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/hide","type":1,"val":"messageId","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/hide","type":0,"val":"hide","end":""}],
     types: placeholder as Registry['admin.likilibas.admin_likilibas.hide_message']['types'],
+  },
+  'admin.likilibas.admin_likilibas.message_attachment': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/likilibas/messages/:messageId/attachment',
+    tokens: [{"old":"/api/v1/admin/likilibas/messages/:messageId/attachment","type":0,"val":"api","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/attachment","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/attachment","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/attachment","type":0,"val":"likilibas","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/attachment","type":0,"val":"messages","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/attachment","type":1,"val":"messageId","end":""},{"old":"/api/v1/admin/likilibas/messages/:messageId/attachment","type":0,"val":"attachment","end":""}],
+    types: placeholder as Registry['admin.likilibas.admin_likilibas.message_attachment']['types'],
   },
   'admin.likilibas.admin_likilibas.messages': {
     methods: ["GET","HEAD"],

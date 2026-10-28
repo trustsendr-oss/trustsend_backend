@@ -6,6 +6,19 @@ export interface ApiDefinition {
     usdFlag: typeof routes['assets.usd_flag']
     currencyLogo: typeof routes['assets.currency_logo']
   }
+  cardCheckout: {
+    page: typeof routes['card_checkout.page']
+    threeDsReturn: {
+      show: typeof routes['card_checkout.three_ds_return.show']
+      store: typeof routes['card_checkout.three_ds_return.store']
+    }
+    cardCheckout: {
+      context: typeof routes['card_checkout.card_checkout.context']
+      setup: typeof routes['card_checkout.card_checkout.setup']
+      enroll: typeof routes['card_checkout.card_checkout.enroll']
+      charge: typeof routes['card_checkout.card_checkout.charge']
+    }
+  }
   auth: {
     newAccount: {
       requestOtp: typeof routes['auth.new_account.request_otp']
@@ -124,6 +137,10 @@ export interface ApiDefinition {
       draw: typeof routes['likilibas.likilibas.draw']
       feed: typeof routes['likilibas.likilibas.feed']
       sendMessage: typeof routes['likilibas.likilibas.send_message']
+      createPoll: typeof routes['likilibas.likilibas.create_poll']
+      messageAttachment: typeof routes['likilibas.likilibas.message_attachment']
+      vote: typeof routes['likilibas.likilibas.vote']
+      closePoll: typeof routes['likilibas.likilibas.close_poll']
       deleteMessage: typeof routes['likilibas.likilibas.delete_message']
       reportMessage: typeof routes['likilibas.likilibas.report_message']
       reactToMessage: typeof routes['likilibas.likilibas.react_to_message']
@@ -288,6 +305,7 @@ export interface ApiDefinition {
       cards: typeof routes['webhooks.payscribe.cards']
     }
     alchemy: typeof routes['webhooks.alchemy']
+    gofreshpay: typeof routes['webhooks.gofreshpay']
   }
   mobileMoney: {
     mobileMoneyDeposits: {
@@ -317,6 +335,12 @@ export interface ApiDefinition {
       index: typeof routes['crypto.crypto_payouts.index']
       store: typeof routes['crypto.crypto_payouts.store']
       show: typeof routes['crypto.crypto_payouts.show']
+    }
+  }
+  cardDeposits: {
+    cardDeposits: {
+      store: typeof routes['card_deposits.card_deposits.store']
+      show: typeof routes['card_deposits.card_deposits.show']
     }
   }
   counter: {
@@ -717,6 +741,7 @@ export interface ApiDefinition {
         index: typeof routes['admin.likilibas.admin_likilibas.index']
         waivePenalty: typeof routes['admin.likilibas.admin_likilibas.waive_penalty']
         hideMessage: typeof routes['admin.likilibas.admin_likilibas.hide_message']
+        messageAttachment: typeof routes['admin.likilibas.admin_likilibas.message_attachment']
         messages: typeof routes['admin.likilibas.admin_likilibas.messages']
         show: typeof routes['admin.likilibas.admin_likilibas.show']
         history: typeof routes['admin.likilibas.admin_likilibas.history']

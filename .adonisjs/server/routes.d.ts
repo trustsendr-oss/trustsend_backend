@@ -6,6 +6,9 @@ export type ScannedRoutes = {
   ALL: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
     'assets.currency_logo': { paramsTuple: [ParamValue]; params: {'file': ParamValue} }
+    'card_checkout.page': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.three_ds_return.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.three_ds_return.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.new_account.request_otp': { paramsTuple?: []; params?: {} }
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
@@ -64,6 +67,10 @@ export type ScannedRoutes = {
     'likilibas.likilibas.draw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'likilibas.likilibas.feed': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'likilibas.likilibas.send_message': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.create_poll': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.message_attachment': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
+    'likilibas.likilibas.vote': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
+    'likilibas.likilibas.close_poll': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
     'likilibas.likilibas.delete_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
     'likilibas.likilibas.report_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
     'likilibas.likilibas.react_to_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
@@ -173,6 +180,13 @@ export type ScannedRoutes = {
     'crypto.crypto_payouts.store': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'webhooks.alchemy': { paramsTuple?: []; params?: {} }
+    'card_deposits.card_deposits.store': { paramsTuple?: []; params?: {} }
+    'card_deposits.card_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.card_checkout.context': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.card_checkout.setup': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.card_checkout.enroll': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.card_checkout.charge': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'webhooks.gofreshpay': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.store': { paramsTuple?: []; params?: {} }
@@ -281,6 +295,7 @@ export type ScannedRoutes = {
     'admin.likilibas.admin_likilibas.index': { paramsTuple?: []; params?: {} }
     'admin.likilibas.admin_likilibas.waive_penalty': { paramsTuple: [ParamValue]; params: {'penaltyId': ParamValue} }
     'admin.likilibas.admin_likilibas.hide_message': { paramsTuple: [ParamValue]; params: {'messageId': ParamValue} }
+    'admin.likilibas.admin_likilibas.message_attachment': { paramsTuple: [ParamValue]; params: {'messageId': ParamValue} }
     'admin.likilibas.admin_likilibas.messages': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.likilibas.admin_likilibas.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.likilibas.admin_likilibas.history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -472,6 +487,8 @@ export type ScannedRoutes = {
   GET: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
     'assets.currency_logo': { paramsTuple: [ParamValue]; params: {'file': ParamValue} }
+    'card_checkout.page': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.three_ds_return.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'profile.profile.avatar': { paramsTuple?: []; params?: {} }
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
@@ -498,6 +515,7 @@ export type ScannedRoutes = {
     'likilibas.likilibas.contributions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'likilibas.likilibas.draw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'likilibas.likilibas.feed': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.message_attachment': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
     'likilibas.likilibas.member_avatar': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'memberId': ParamValue} }
     'likilibas.likilibas.photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.image': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -543,6 +561,8 @@ export type ScannedRoutes = {
     'crypto.crypto_payouts.options': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.index': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_deposits.card_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.card_checkout.context': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
     'counter.counter_cash.pending': { paramsTuple?: []; params?: {} }
@@ -587,6 +607,7 @@ export type ScannedRoutes = {
     'admin.lending.admin_lending.savings': { paramsTuple?: []; params?: {} }
     'admin.lending.admin_lending.position': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.likilibas.admin_likilibas.index': { paramsTuple?: []; params?: {} }
+    'admin.likilibas.admin_likilibas.message_attachment': { paramsTuple: [ParamValue]; params: {'messageId': ParamValue} }
     'admin.likilibas.admin_likilibas.messages': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.likilibas.admin_likilibas.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.likilibas.admin_likilibas.history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -675,6 +696,8 @@ export type ScannedRoutes = {
   HEAD: {
     'assets.usd_flag': { paramsTuple?: []; params?: {} }
     'assets.currency_logo': { paramsTuple: [ParamValue]; params: {'file': ParamValue} }
+    'card_checkout.page': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.three_ds_return.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'profile.profile.avatar': { paramsTuple?: []; params?: {} }
     'notifications.notifications.index': { paramsTuple?: []; params?: {} }
@@ -701,6 +724,7 @@ export type ScannedRoutes = {
     'likilibas.likilibas.contributions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'likilibas.likilibas.draw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'likilibas.likilibas.feed': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.message_attachment': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
     'likilibas.likilibas.member_avatar': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'memberId': ParamValue} }
     'likilibas.likilibas.photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'card_products.image': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -746,6 +770,8 @@ export type ScannedRoutes = {
     'crypto.crypto_payouts.options': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.index': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_deposits.card_deposits.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.card_checkout.context': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_sessions.index': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.current': { paramsTuple?: []; params?: {} }
     'counter.counter_cash.pending': { paramsTuple?: []; params?: {} }
@@ -790,6 +816,7 @@ export type ScannedRoutes = {
     'admin.lending.admin_lending.savings': { paramsTuple?: []; params?: {} }
     'admin.lending.admin_lending.position': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.likilibas.admin_likilibas.index': { paramsTuple?: []; params?: {} }
+    'admin.likilibas.admin_likilibas.message_attachment': { paramsTuple: [ParamValue]; params: {'messageId': ParamValue} }
     'admin.likilibas.admin_likilibas.messages': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.likilibas.admin_likilibas.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.likilibas.admin_likilibas.history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -876,6 +903,7 @@ export type ScannedRoutes = {
     'event_stream': { paramsTuple?: []; params?: {} }
   }
   POST: {
+    'card_checkout.three_ds_return.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.new_account.request_otp': { paramsTuple?: []; params?: {} }
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
@@ -903,6 +931,8 @@ export type ScannedRoutes = {
     'likilibas.likilibas.admit_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
     'likilibas.likilibas.reject_invitation': { paramsTuple: [ParamValue]; params: {'invitationId': ParamValue} }
     'likilibas.likilibas.send_message': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.create_poll': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'likilibas.likilibas.close_poll': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
     'likilibas.likilibas.report_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
     'likilibas.likilibas.mark_read': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'likilibas.likilibas.update_photo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -955,6 +985,11 @@ export type ScannedRoutes = {
     'crypto.crypto_deposits.address': { paramsTuple?: []; params?: {} }
     'crypto.crypto_payouts.store': { paramsTuple?: []; params?: {} }
     'webhooks.alchemy': { paramsTuple?: []; params?: {} }
+    'card_deposits.card_deposits.store': { paramsTuple?: []; params?: {} }
+    'card_checkout.card_checkout.setup': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.card_checkout.enroll': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'card_checkout.card_checkout.charge': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'webhooks.gofreshpay': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.store': { paramsTuple?: []; params?: {} }
     'counter.counter_sessions.close': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'counter.counter_sessions.reconcile': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -1143,6 +1178,7 @@ export type ScannedRoutes = {
     'business.dashboard.business_dashboard_staff.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   PUT: {
+    'likilibas.likilibas.vote': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
     'likilibas.likilibas.react_to_message': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'messageId': ParamValue} }
     'likilibas.likilibas.mandate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }

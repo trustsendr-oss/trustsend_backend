@@ -10,7 +10,7 @@ import LikilibaMessage from '#models/likiliba_message'
 import LikilibaMessageReport from '#models/likiliba_message_report'
 import { displayName } from '#services/likiliba/likiliba_service'
 import { LikilibaException } from '#services/likiliba/shared'
-import { likilibaError } from '#controllers/likiliba/likiliba_http'
+import { likilibaError, serveAttachment } from '#controllers/likiliba/likiliba_http'
 
 /**
  * Reemite oversight of likiliba groups — internal_user only. Support reads everything, can
@@ -135,7 +135,17 @@ export default class AdminLikilibasController {
             name: displayName(m.member.user),
             user_id: m.member.userId,
           },
+          kind: m.kind,
           body: m.body,
+          // Support sees what was sent even once deleted or hidden — that is what it moderates.
+          attachment: m.attachmentRef
+            ? {
+                url: `/api/v1/admin/likilibas/messages/${m.id}/attachment`,
+                name: m.attachmentName,
+                mime_type: m.attachmentMimeType,
+                size: m.attachmentSize,
+              }
+            : null,
           created_at: m.createdAt,
           deleted_at: m.deletedAt,
           hidden_at: m.hiddenAt,
@@ -168,6 +178,19 @@ export default class AdminLikilibasController {
         correlationId
       )
       return response.ok({ data: { id: message.id, hidden_at: message.hiddenAt } })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** GET /admin/likilibas/messages/:messageId/attachment — deleted or hidden ones included. */
+  async messageAttachment({ params, response }: HttpContext) {
+    try {
+      const message = await LikilibaMessage.find(Number(params.messageId))
+      if (!message?.attachmentRef) {
+        throw new LikilibaException('This message has no file', 'NOT_FOUND', 404)
+      }
+      return serveAttachment(response, message)
     } catch (error) {
       return likilibaError(error, response)
     }

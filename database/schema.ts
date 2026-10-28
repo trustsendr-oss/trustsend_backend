@@ -514,6 +514,55 @@ export class CardCustomerSchema extends BaseModel {
   declare userId: number | null
 }
 
+export class CardDepositSessionSchema extends BaseModel {
+  static $columns = ['amount', 'authenticationTransactionId', 'cardBinCountry', 'cardIssuer', 'cardLast4', 'cardScheme', 'checkoutTokenHash', 'completedAt', 'createdAt', 'currencyCode', 'expiresAt', 'failureCode', 'failureMessage', 'gatewayTransactionUuid', 'id', 'ledgerTransactionId', 'merchantReference', 'metadata', 'status', 'updatedAt', 'userId', 'walletId'] as const
+  $columns = CardDepositSessionSchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column()
+  declare authenticationTransactionId: string | null
+  @column()
+  declare cardBinCountry: string | null
+  @column()
+  declare cardIssuer: string | null
+  @column()
+  declare cardLast4: string | null
+  @column()
+  declare cardScheme: string | null
+  @column()
+  declare checkoutTokenHash: string
+  @column.dateTime()
+  declare completedAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare currencyCode: string
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column()
+  declare failureCode: string | null
+  @column()
+  declare failureMessage: string | null
+  @column()
+  declare gatewayTransactionUuid: string | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare ledgerTransactionId: string | null
+  @column()
+  declare merchantReference: string
+  @column()
+  declare metadata: any
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+  @column()
+  declare userId: number
+  @column()
+  declare walletId: number
+}
+
 export class CardProductSchema extends BaseModel {
   static $columns = ['code', 'createdAt', 'currencyCode', 'dailyTopupLimit', 'description', 'id', 'imageMimeType', 'imageRef', 'issuancePrice', 'maxActiveCards', 'maxBalance', 'monthlyTopupLimit', 'name', 'perTopupLimit', 'status', 'updatedAt'] as const
   $columns = CardProductSchema.$columns
@@ -1382,8 +1431,18 @@ export class LikilibaMessageReportSchema extends BaseModel {
 }
 
 export class LikilibaMessageSchema extends BaseModel {
-  static $columns = ['body', 'createdAt', 'deletedAt', 'hiddenAt', 'hiddenByInternalUserId', 'hideReason', 'id', 'likilibaId', 'memberId'] as const
+  static $columns = ['attachmentDurationMs', 'attachmentMimeType', 'attachmentName', 'attachmentRef', 'attachmentSize', 'body', 'createdAt', 'deletedAt', 'hiddenAt', 'hiddenByInternalUserId', 'hideReason', 'id', 'kind', 'likilibaId', 'memberId', 'pollClosedAt', 'replyToId'] as const
   $columns = LikilibaMessageSchema.$columns
+  @column()
+  declare attachmentDurationMs: number | null
+  @column()
+  declare attachmentMimeType: string | null
+  @column()
+  declare attachmentName: string | null
+  @column()
+  declare attachmentRef: string | null
+  @column()
+  declare attachmentSize: number | null
   @column()
   declare body: string
   @column.dateTime({ autoCreate: true })
@@ -1399,9 +1458,15 @@ export class LikilibaMessageSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column()
+  declare kind: string
+  @column()
   declare likilibaId: number
   @column()
   declare memberId: number
+  @column.dateTime()
+  declare pollClosedAt: DateTime | null
+  @column()
+  declare replyToId: number | null
 }
 
 export class LikilibaPenaltySchema extends BaseModel {
@@ -1441,6 +1506,34 @@ export class LikilibaPenaltySchema extends BaseModel {
   declare waiveReason: string | null
   @column()
   declare waivedByInternalUserId: number | null
+}
+
+export class LikilibaPollOptionSchema extends BaseModel {
+  static $columns = ['id', 'label', 'messageId', 'position'] as const
+  $columns = LikilibaPollOptionSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare label: string
+  @column()
+  declare messageId: number
+  @column()
+  declare position: number
+}
+
+export class LikilibaPollVoteSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'memberId', 'messageId', 'optionId'] as const
+  $columns = LikilibaPollVoteSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare memberId: number
+  @column()
+  declare messageId: number
+  @column()
+  declare optionId: number
 }
 
 export class LikilibaRoundSchema extends BaseModel {

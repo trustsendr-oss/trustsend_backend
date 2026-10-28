@@ -139,7 +139,7 @@ export class WalletStatementService {
         w.id AS wallet_id,
         lt.type,
         lt.status,
-        CASE WHEN lt.type = 'mobile_money_deposit' THEN 'in' ELSE 'out' END AS direction,
+        CASE WHEN lt.type IN ('mobile_money_deposit', 'card_deposit') THEN 'in' ELSE 'out' END AS direction,
         COALESCE(lt.amount::text, '0') AS amount,
         COALESCE(lt.currency_code, w.currency_code) AS currency_code,
         lt.fee::text AS fee,
@@ -220,11 +220,29 @@ export class WalletStatementService {
 
     const statement = this.statement(walletIds.length)
 
-    const found = await db.rawQuery(
-      `SELECT * FROM (${statement}) AS statement WHERE id = ? OR uuid::text = ? LIMIT 1`,
-      [...walletIds, ...walletIds, transactionId, transactionId]
-    )
+    const lookup = async (id: string) => {
+      const found = await db.rawQuery(
+        `SELECT * FROM (${statement}) AS statement WHERE id = ? OR uuid::text = ? LIMIT 1`,
+        [...walletIds, ...walletIds, id, id]
+      )
+      return (found.rows[0] as StatementRow | undefined) ?? null
+    }
 
-    return found.rows[0] ?? null
+    const row = await lookup(transactionId)
+    if (row) return row
+
+    // A mobile money or card operation is two rows (see the class comment), and notifications,
+    // e-mails and support all quote the TRACKING row's id. Once the money has moved, the
+    // statement shows the posted row instead and hides the tracking one — so that id found
+    // nothing and the receipt opened from a notification was a 404. The two rows point at each
+    // other through related_transaction_id: follow the link once, still scoped to the caller's
+    // wallets, so nothing outside them can be reached this way.
+    const linked = await db
+      .from('ledger_transactions')
+      .where((q) => q.where('id', transactionId).orWhereRaw('uuid::text = ?', [transactionId]))
+      .whereNotNull('related_transaction_id')
+      .select('related_transaction_id')
+      .first()
+    return linked ? lookup(linked.related_transaction_id) : null
   }
 }

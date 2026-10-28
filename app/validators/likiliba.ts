@@ -117,7 +117,35 @@ export const noteValidator = vine.compile(
 )
 
 export const messageValidator = vine.compile(
-  vine.object({ body: vine.string().trim().minLength(1).maxLength(1000) })
+  vine.object({
+    body: vine.string().trim().minLength(1).maxLength(1000),
+    reply_to: vine.number().withoutDecimals().positive().nullable().optional(),
+  })
+)
+
+/** The caption sent with a photo or file, multipart alongside `attachment`; it may be empty. */
+export const attachmentMessageValidator = vine.compile(
+  vine.object({
+    kind: vine.enum(['image', 'file', 'audio'] as const),
+    body: vine.string().trim().maxLength(1000).nullable().optional(),
+    /** Voice messages: their length as recorded, at most 5 minutes. */
+    duration_ms: vine.number().withoutDecimals().min(0).max(300_000).nullable().optional(),
+    reply_to: vine.number().withoutDecimals().positive().nullable().optional(),
+  })
+)
+
+export const pollValidator = vine.compile(
+  vine.object({
+    question: vine.string().trim().minLength(1).maxLength(300),
+    options: vine
+      .array(vine.string().trim().minLength(1).maxLength(100))
+      .minLength(2)
+      .maxLength(10),
+  })
+)
+
+export const voteValidator = vine.compile(
+  vine.object({ option_id: vine.number().withoutDecimals().positive() })
 )
 
 export const feedValidator = vine.compile(

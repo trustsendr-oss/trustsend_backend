@@ -275,6 +275,217 @@ test.group('Likiliba HTTP', () => {
     assert.equal(fromGuest.author_avatar_url, guestMember.avatar_url)
   })
 
+  test('photos, files and polls in the conversation', async ({ client, assert }) => {
+    const organiser = await person()
+    const guest = await person()
+    const outsider = await person()
+    const created = await client
+      .post('/api/v1/likilibas')
+      .loginAs(organiser)
+      .json(body({ size: 3 }))
+    const id = json(created).data.id
+    const invite = await client
+      .post(`/api/v1/likilibas/${id}/invitations`)
+      .loginAs(organiser)
+      .json({ channel: 'account', user_code: guest.code })
+    const invitationId = json(invite).data.id
+    await client.post(`/api/v1/likilibas/invitations/${invitationId}/accept`).loginAs(guest)
+    await client.post(`/api/v1/likilibas/invitations/${invitationId}/admit`).loginAs(organiser)
+
+    // A photo, with a caption; served to members only, with the type read from its bytes.
+    const png = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+      'base64'
+    )
+    const photo = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(guest)
+      .field('kind', 'image')
+      .field('body', 'Le reçu')
+      .file('attachment', png, { filename: 'recu.png' })
+    assert.equal(photo.status(), 201)
+    assert.equal(json(photo).data.message_kind, 'image')
+    assert.equal(json(photo).data.body, 'Le reçu')
+    const photoUrl = json(photo).data.attachment.url
+    assert.match(photoUrl, /\/messages\/\d+\/attachment$/)
+    const seen = await client.get(photoUrl).loginAs(organiser)
+    assert.equal(seen.status(), 200)
+    assert.equal(seen.header('content-type'), 'image/png')
+    const stranger = await client.get(photoUrl).loginAs(outsider)
+    assert.equal(stranger.status(), 404)
+
+    // A file is a download, and its bytes must match its extension.
+    const pdf = Buffer.from('%PDF-1.4\n%âãÏÓ\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF')
+    const file = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(guest)
+      .field('kind', 'file')
+      .file('attachment', pdf, { filename: 'Règlement.pdf' })
+    assert.equal(file.status(), 201)
+    assert.equal(json(file).data.attachment.name, 'Règlement.pdf')
+    assert.equal(json(file).data.body, '')
+    const download = await client.get(json(file).data.attachment.url).loginAs(organiser)
+    assert.equal(download.header('content-type'), 'application/pdf')
+    assert.match(download.header('content-disposition') ?? '', /^attachment;/)
+    const fake = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(guest)
+      .field('kind', 'file')
+      .file('attachment', png, { filename: 'piege.pdf' })
+    assert.equal(fake.status(), 422)
+    const script = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(guest)
+      .field('kind', 'file')
+      .file('attachment', Buffer.from('<script>alert(1)</script>'), { filename: 'page.html' })
+    assert.equal(script.status(), 422)
+
+    // A voice message: an M4A as the app records it, played inline; anything else refused.
+    const m4a = Buffer.concat([
+      Buffer.from([0x00, 0x00, 0x00, 0x20]),
+      Buffer.from('ftypM4A \u0000\u0000\u0002\u0000M4A isommp42', 'latin1'),
+      Buffer.alloc(64),
+    ])
+    const voice = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(guest)
+      .field('kind', 'audio')
+      .field('duration_ms', '4200')
+      .file('attachment', m4a, { filename: 'vocal.m4a' })
+    assert.equal(voice.status(), 201)
+    assert.equal(json(voice).data.message_kind, 'audio')
+    assert.equal(json(voice).data.attachment.duration_ms, 4200)
+    const played = await client.get(json(voice).data.attachment.url).loginAs(organiser)
+    assert.equal(played.header('content-type'), 'audio/mp4')
+    assert.match(played.header('content-disposition') ?? '', /^inline;/)
+    const notAudio = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(guest)
+      .field('kind', 'audio')
+      .file('attachment', png, { filename: 'vocal.m4a' })
+    assert.equal(notAudio.status(), 422)
+
+    // A poll: one vote per member, the same choice again withdraws it, closed by its author.
+    const tooFew = await client
+      .post(`/api/v1/likilibas/${id}/polls`)
+      .loginAs(organiser)
+      .json({ question: 'Quand ?', options: ['Samedi'] })
+    assert.equal(tooFew.status(), 422)
+    const twice = await client
+      .post(`/api/v1/likilibas/${id}/polls`)
+      .loginAs(organiser)
+      .json({ question: 'Quand ?', options: ['Samedi', ' samedi '] })
+    assert.equal(twice.status(), 422)
+    const poll = await client
+      .post(`/api/v1/likilibas/${id}/polls`)
+      .loginAs(organiser)
+      .json({ question: 'Réunion samedi ou dimanche ?', options: ['Samedi', 'Dimanche'] })
+    assert.equal(poll.status(), 201)
+    assert.equal(json(poll).data.message_kind, 'poll')
+    const pollId = Number(String(json(poll).data.id).slice(2))
+    const [saturday, sunday] = json(poll).data.poll.options
+    assert.equal(saturday.label, 'Samedi')
+
+    const vote = await client
+      .put(`/api/v1/likilibas/${id}/messages/${pollId}/vote`)
+      .loginAs(guest)
+      .json({ option_id: saturday.id })
+    assert.equal(vote.status(), 200)
+    assert.equal(json(vote).data.poll.total_votes, 1)
+    assert.isTrue(json(vote).data.poll.options[0].mine)
+    const changed = await client
+      .put(`/api/v1/likilibas/${id}/messages/${pollId}/vote`)
+      .loginAs(guest)
+      .json({ option_id: sunday.id })
+    assert.deepEqual(
+      json(changed).data.poll.options.map((o: any) => o.votes),
+      [0, 1]
+    )
+    const withdrawn = await client
+      .put(`/api/v1/likilibas/${id}/messages/${pollId}/vote`)
+      .loginAs(guest)
+      .json({ option_id: sunday.id })
+    assert.equal(json(withdrawn).data.poll.total_votes, 0)
+    await client
+      .put(`/api/v1/likilibas/${id}/messages/${pollId}/vote`)
+      .loginAs(organiser)
+      .json({ option_id: sunday.id })
+
+    const feed = await client.get(`/api/v1/likilibas/${id}/feed`).loginAs(guest)
+    const inFeed = json(feed).data.find((i: any) => i.id === `m:${pollId}`)
+    assert.equal(inFeed.body, 'Réunion samedi ou dimanche ?')
+    assert.deepEqual(
+      inFeed.poll.options.map((o: any) => [o.votes, o.mine]),
+      [
+        [0, false],
+        [1, false],
+      ]
+    )
+
+    const notAuthor = await client
+      .post(`/api/v1/likilibas/${id}/messages/${pollId}/close`)
+      .loginAs(guest)
+    assert.equal(notAuthor.status(), 403)
+    const closed = await client
+      .post(`/api/v1/likilibas/${id}/messages/${pollId}/close`)
+      .loginAs(organiser)
+    assert.isTrue(json(closed).data.poll.closed)
+    const late = await client
+      .put(`/api/v1/likilibas/${id}/messages/${pollId}/vote`)
+      .loginAs(guest)
+      .json({ option_id: saturday.id })
+    assert.equal(late.status(), 409)
+
+    // Replies quote the message they answer, and follow it if it is taken back.
+    const question = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(organiser)
+      .json({ body: 'Qui a le reçu de samedi ?' })
+    const questionId = Number(String(json(question).data.id).slice(2))
+    const answer = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(guest)
+      .json({ body: 'Moi, je l’envoie', reply_to: questionId })
+    assert.equal(answer.status(), 201)
+    assert.equal(json(answer).data.reply_to.id, `m:${questionId}`)
+    assert.equal(json(answer).data.reply_to.body, 'Qui a le reçu de samedi ?')
+    assert.equal(json(answer).data.reply_to.author_name, organiser.fullName)
+    const photoReply = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(guest)
+      .field('kind', 'image')
+      .field('reply_to', String(questionId))
+      .file('attachment', png, { filename: 'recu.png' })
+    assert.equal(json(photoReply).data.reply_to.id, `m:${questionId}`)
+    const elsewhere = await client
+      .post('/api/v1/likilibas')
+      .loginAs(guest)
+      .json(body({ size: 3 }))
+    const foreign = await client
+      .post(`/api/v1/likilibas/${json(elsewhere).data.id}/messages`)
+      .loginAs(guest)
+      .json({ body: 'Ailleurs', reply_to: questionId })
+    assert.equal(foreign.status(), 404)
+    await client.delete(`/api/v1/likilibas/${id}/messages/${questionId}`).loginAs(organiser)
+    const quotedFeed = await client.get(`/api/v1/likilibas/${id}/feed`).loginAs(guest)
+    const reply = json(quotedFeed).data.find((i: any) => i.id === json(answer).data.id)
+    assert.equal(reply.reply_to.state, 'deleted')
+    assert.isNull(reply.reply_to.body)
+    const toDeleted = await client
+      .post(`/api/v1/likilibas/${id}/messages`)
+      .loginAs(guest)
+      .json({ body: 'Trop tard', reply_to: questionId })
+    assert.equal(toDeleted.status(), 409)
+
+    // A deleted photo is no longer served to members; support still sees it.
+    const photoId = Number(String(json(photo).data.id).slice(2))
+    await client.delete(`/api/v1/likilibas/${id}/messages/${photoId}`).loginAs(guest)
+    const gone = await client.get(photoUrl).loginAs(organiser)
+    assert.equal(gone.status(), 404)
+    const after = await client.get(`/api/v1/likilibas/${id}/feed`).loginAs(organiser)
+    assert.isNull(json(after).data.find((i: any) => i.id === `m:${photoId}`).attachment)
+  })
+
   test('the organiser edits the group profile: name, description, photo', async ({
     client,
     assert,

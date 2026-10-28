@@ -402,6 +402,40 @@ function buildEmail(template: string, data: Record<string, any>, brand: string):
         },
       })
 
+    case 'card_deposit_completed':
+      return movement(brand, data, {
+        title: 'Recharge par carte créditée',
+        preheader: `${data.amount} crédités depuis votre carte.`,
+        sentence: `Votre recharge depuis ${data.channel ?? 'votre carte'} a bien été créditée sur votre compte.`,
+        caption: 'Montant payé',
+        direction: 'in',
+        status: 'completed',
+        rows: [
+          ['Carte', data.channel],
+          ['Frais', feeRow(data.fee)],
+          ['Montant crédité', feeRow(data.fee) ? data.net : null],
+          ['Crédité sur', data.account],
+          ['Référence', data.provider_reference],
+        ],
+      })
+
+    case 'card_deposit_failed':
+      return movement(brand, data, {
+        title: "Votre recharge par carte n'a pas abouti",
+        preheader: "Votre carte n'a pas été débitée.",
+        sentence: `Votre recharge depuis ${data.channel ?? 'votre carte'} n'a pas abouti.`,
+        caption: 'Montant demandé',
+        status: 'failed',
+        rows: [
+          ['Carte', data.channel],
+          ['Motif', data.reason],
+        ],
+        notice: {
+          tone: 'info',
+          text: "Votre carte n'a pas été débitée. Vous pouvez réessayer depuis l'application.",
+        },
+      })
+
     case 'deposit_failed':
       return movement(brand, data, {
         title: "Votre recharge n'a pas abouti",
@@ -631,6 +665,8 @@ export const EMAIL_TEMPLATES = [
   'crypto_payout_completed',
   'crypto_payout_failed',
   'deposit_failed',
+  'card_deposit_completed',
+  'card_deposit_failed',
   'payout_completed',
   'payout_failed',
   'cash_in_pending',

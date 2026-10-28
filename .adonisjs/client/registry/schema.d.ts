@@ -31,6 +31,42 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/assets_controller').default['currencyLogo']>>>
     }
   }
+  'card_checkout.page': {
+    methods: ["GET","HEAD"]
+    pattern: '/card-checkout/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['page']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['page']>>>
+    }
+  }
+  'card_checkout.three_ds_return.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/card-checkout/:id/3ds-return'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['threeDsReturn']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['threeDsReturn']>>>
+    }
+  }
+  'card_checkout.three_ds_return.store': {
+    methods: ["POST"]
+    pattern: '/card-checkout/:id/3ds-return'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['threeDsReturn']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['threeDsReturn']>>>
+    }
+  }
   'auth.new_account.request_otp': {
     methods: ["POST"]
     pattern: '/api/v1/auth/signup/request-otp'
@@ -725,6 +761,54 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').messageValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['sendMessage']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['sendMessage']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.create_poll': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/polls'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').pollValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').pollValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['createPoll']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['createPoll']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.message_attachment': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/likilibas/:id/messages/:messageId/attachment'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; messageId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['messageAttachment']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['messageAttachment']>>>
+    }
+  }
+  'likilibas.likilibas.vote': {
+    methods: ["PUT"]
+    pattern: '/api/v1/likilibas/:id/messages/:messageId/vote'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/likiliba').voteValidator)>>
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; messageId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').voteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['vote']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['vote']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'likilibas.likilibas.close_poll': {
+    methods: ["POST"]
+    pattern: '/api/v1/likilibas/:id/messages/:messageId/close'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; messageId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['closePoll']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/likiliba/likilibas_controller').default['closePoll']>>>
     }
   }
   'likilibas.likilibas.delete_message': {
@@ -2035,6 +2119,90 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/crypto/crypto_webhooks_controller').default['alchemy']>>>
     }
   }
+  'card_deposits.card_deposits.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/card-deposits'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/card_deposits').createCardDepositValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/card_deposits').createCardDepositValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/card_deposits_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/card_deposits_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'card_deposits.card_deposits.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/card-deposits/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/card_deposits_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/card_deposits_controller').default['show']>>>
+    }
+  }
+  'card_checkout.card_checkout.context': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/card-checkout/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['context']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['context']>>>
+    }
+  }
+  'card_checkout.card_checkout.setup': {
+    methods: ["POST"]
+    pattern: '/api/v1/card-checkout/:id/setup'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/card_deposits').cardCheckoutSetupValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/card_deposits').cardCheckoutSetupValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['setup']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['setup']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'card_checkout.card_checkout.enroll': {
+    methods: ["POST"]
+    pattern: '/api/v1/card-checkout/:id/enroll'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/card_deposits').cardCheckoutEnrollValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/card_deposits').cardCheckoutEnrollValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['enroll']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['enroll']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'card_checkout.card_checkout.charge': {
+    methods: ["POST"]
+    pattern: '/api/v1/card-checkout/:id/charge'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/card_deposits').cardCheckoutChargeValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/card_deposits').cardCheckoutChargeValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['charge']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/card_checkout_controller').default['charge']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'webhooks.gofreshpay': {
+    methods: ["POST"]
+    pattern: '/api/v1/webhooks/gofreshpay'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/card_payments/gofreshpay_webhooks_controller').default['handle']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/card_payments/gofreshpay_webhooks_controller').default['handle']>>>
+    }
+  }
   'counter.counter_sessions.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/counter/sessions'
@@ -3329,6 +3497,18 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/likiliba').reasonValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['hideMessage']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['hideMessage']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.likilibas.admin_likilibas.message_attachment': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/likilibas/messages/:messageId/attachment'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { messageId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['messageAttachment']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/likilibas_controller').default['messageAttachment']>>>
     }
   }
   'admin.likilibas.admin_likilibas.messages': {

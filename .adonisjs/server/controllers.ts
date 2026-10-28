@@ -58,6 +58,12 @@ export const controllers = {
     Webhooks: () => import('#controllers/business/webhooks_controller'),
   },
   Businesses: () => import('#controllers/businesses_controller'),
+  cardPayments: {
+    CardCheckout: () => import('#controllers/card_payments/card_checkout_controller'),
+    CardDepositResource: () => import('#controllers/card_payments/card_deposit_resource'),
+    CardDeposits: () => import('#controllers/card_payments/card_deposits_controller'),
+    GofreshpayWebhooks: () => import('#controllers/card_payments/gofreshpay_webhooks_controller'),
+  },
   CardProducts: () => import('#controllers/card_products_controller'),
   Cards: () => import('#controllers/cards_controller'),
   cards: {

@@ -4,8 +4,11 @@ import LikilibaMember from '#models/likiliba_member'
 import type User from '#models/user'
 import {
   acceptLinkValidator,
+  attachmentMessageValidator,
   feedValidator,
   messageValidator,
+  pollValidator,
+  voteValidator,
   profileValidator,
   reactionValidator,
   reasonValidator,
@@ -34,13 +37,23 @@ import {
   InvalidAvatarException,
   MAX_AVATAR_SIZE_BYTES,
 } from '#services/users/avatar_storage_service'
+import {
+  ALLOWED_IMAGE_EXTENSIONS,
+  InvalidAttachmentException,
+  LikilibaAttachmentStorageService,
+  MAX_AUDIO_SIZE_BYTES,
+  MAX_FILE_SIZE_BYTES,
+  MAX_IMAGE_SIZE_BYTES,
+} from '#services/likiliba/attachment_storage_service'
 import { readFile } from 'node:fs/promises'
+import { extname } from 'node:path'
 import { LikilibaException, sha256 } from '#services/likiliba/shared'
 import {
   assertPin,
   idempotent,
   likilibaError,
   parseDate,
+  serveAttachment,
 } from '#controllers/likiliba/likiliba_http'
 
 /**
@@ -104,15 +117,152 @@ export default class LikilibasController {
     }
   }
 
-  /** POST /likilibas/:id/messages */
-  async sendMessage({ auth, params, request, response, correlationId }: HttpContext) {
+  /**
+   * POST /likilibas/:id/messages — JSON `{ body }` for text, or multipart with an `attachment`
+   * file, `kind` ('image' | 'file' | 'audio'), an optional caption in `body`, and the length of a
+   * voice message in `duration_ms`.
+   */
+  async sendMessage(ctx: HttpContext) {
+    const { auth, params, request, response, correlationId } = ctx
+    if (request.file('attachment')) return this.sendAttachment(ctx)
     const user = auth.getUserOrFail() as User
-    const { body } = await request.validateUsing(messageValidator)
+    const { body, reply_to: replyTo } = await request.validateUsing(messageValidator)
     try {
       const likiliba = await this.visible(params.id, user)
       const member = await LikilibaService.memberOf(likiliba, user.id)
-      const item = await LikilibaChatService.send(user, likiliba, member, body, correlationId)
+      const item = await LikilibaChatService.send(
+        user,
+        likiliba,
+        member,
+        body,
+        correlationId,
+        replyTo
+      )
       return response.created({ data: item })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  private async sendAttachment({ auth, params, request, response, correlationId }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    const {
+      kind,
+      body,
+      reply_to: replyTo,
+      duration_ms: durationMs,
+    } = await request.validateUsing(attachmentMessageValidator)
+    // Files are typed by LikilibaAttachmentStorageService, from their name and bytes together:
+    // the extension Adonis reads from the bytes alone sees a .docx as a .zip.
+    const file = request.file(
+      'attachment',
+      kind === 'image'
+        ? { size: MAX_IMAGE_SIZE_BYTES, extnames: [...ALLOWED_IMAGE_EXTENSIONS] }
+        : { size: kind === 'audio' ? MAX_AUDIO_SIZE_BYTES : MAX_FILE_SIZE_BYTES }
+    )!
+    let storedRef: string | null = null
+    try {
+      if (!file.isValid) {
+        throw new InvalidAttachmentException(file.errors.map((error) => error.message).join(', '))
+      }
+      const likiliba = await this.visible(params.id, user)
+      const member = await LikilibaService.memberOf(likiliba, user.id)
+      const bytes = await readFile(file.tmpPath!)
+      const stored =
+        kind === 'image'
+          ? await LikilibaAttachmentStorageService.storeImage(bytes)
+          : kind === 'audio'
+            ? await LikilibaAttachmentStorageService.storeAudio(bytes)
+            : // The extension of the name the member sees, not the one Adonis reads from the
+              // bytes: a PNG named `devis.pdf` must be refused, not shown as a PDF.
+              await LikilibaAttachmentStorageService.storeFile(
+                bytes,
+                extname(file.clientName).slice(1)
+              )
+      storedRef = stored.ref
+      const item = await LikilibaChatService.sendAttachment(
+        user,
+        likiliba,
+        member,
+        kind,
+        {
+          ...stored,
+          name: file.clientName || { image: 'photo', audio: 'vocal', file: 'fichier' }[kind],
+          durationMs: kind === 'audio' ? (durationMs ?? null) : null,
+        },
+        body,
+        correlationId,
+        replyTo
+      )
+      return response.created({ data: item })
+    } catch (error) {
+      if (storedRef) await LikilibaAttachmentStorageService.remove(storedRef)
+      if (error instanceof InvalidAttachmentException) {
+        return response.unprocessableEntity({ code: 'ATTACHMENT_INVALID', message: error.message })
+      }
+      return likilibaError(error, response)
+    }
+  }
+
+  /** POST /likilibas/:id/polls — a question and 2 to 10 choices. */
+  async createPoll({ auth, params, request, response, correlationId }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    const { question, options } = await request.validateUsing(pollValidator)
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await LikilibaService.memberOf(likiliba, user.id)
+      const item = await LikilibaChatService.createPoll(
+        user,
+        likiliba,
+        member,
+        question,
+        options,
+        correlationId
+      )
+      return response.created({ data: item })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** PUT /likilibas/:id/messages/:messageId/vote — the same choice again withdraws the vote. */
+  async vote({ auth, params, request, response }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    const { option_id: optionId } = await request.validateUsing(voteValidator)
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await LikilibaService.memberOf(likiliba, user.id)
+      const poll = await LikilibaChatService.vote(member, Number(params.messageId), optionId)
+      return response.ok({ data: { poll } })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /** POST /likilibas/:id/messages/:messageId/close — its author ends a poll. */
+  async closePoll({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await LikilibaService.memberOf(likiliba, user.id)
+      const poll = await LikilibaChatService.closePoll(member, Number(params.messageId))
+      return response.ok({ data: { poll } })
+    } catch (error) {
+      return likilibaError(error, response)
+    }
+  }
+
+  /**
+   * GET /likilibas/:id/messages/:messageId/attachment — the photo or file of a message, for the
+   * group's members only. Files are always downloaded, never rendered by a browser.
+   */
+  async messageAttachment({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail() as User
+    try {
+      const likiliba = await this.visible(params.id, user)
+      const member = await this.anyMembership(likiliba, user)
+      const message = await LikilibaChatService.attachmentOf(member, Number(params.messageId))
+      return serveAttachment(response, message)
     } catch (error) {
       return likilibaError(error, response)
     }

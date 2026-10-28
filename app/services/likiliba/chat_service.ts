@@ -3,7 +3,9 @@ import db from '@adonisjs/lucid/services/db'
 import type Likiliba from '#models/likiliba'
 import LikilibaEvent from '#models/likiliba_event'
 import LikilibaMember from '#models/likiliba_member'
-import LikilibaMessage from '#models/likiliba_message'
+import LikilibaMessage, { type LikilibaMessageKind } from '#models/likiliba_message'
+import LikilibaPollOption from '#models/likiliba_poll_option'
+import LikilibaPollVote from '#models/likiliba_poll_vote'
 import { LikilibaRealtime } from '#services/likiliba/likiliba_realtime'
 import LikilibaMessageReport from '#models/likiliba_message_report'
 import LikilibaMessageReaction from '#models/likiliba_message_reaction'
@@ -50,6 +52,61 @@ const PAGE_SIZE = 40
 /** The reactions a member can leave on a message. */
 export const REACTIONS = ['👍', '❤️', '😂', '🙏', '👏', '😮'] as const
 
+export const POLL_MIN_OPTIONS = 2
+export const POLL_MAX_OPTIONS = 10
+
+/** The stored file of an image or file message, as LikilibaAttachmentStorageService saved it. */
+export type StoredAttachment = {
+  ref: string
+  mimeType: string
+  size: number
+  name: string
+  /** Voice messages only. */
+  durationMs?: number | null
+}
+
+export type AttachmentKind = 'image' | 'file' | 'audio'
+
+export type FeedAttachment = {
+  kind: AttachmentKind
+  /** Served to the group's members only, with the session token. */
+  url: string
+  name: string | null
+  mime_type: string
+  size: number
+  /** Voice messages: their length. */
+  duration_ms: number | null
+}
+
+export type FeedPoll = {
+  options: { id: number; label: string; votes: number; mine: boolean }[]
+  total_votes: number
+  closed: boolean
+}
+
+/**
+ * The message a reply answers, as shown above it. Its text is cut short, and gone once the
+ * quoted message was deleted or hidden — a reply never keeps alive what was taken back.
+ */
+export type FeedQuote = {
+  id: string
+  member_id: number
+  author_name: string | null
+  message_kind: LikilibaMessageKind
+  body: string | null
+  attachment_name: string | null
+  state: 'visible' | 'deleted' | 'hidden'
+}
+
+/** What a member posts: text, a photo or file with an optional caption, or a poll. */
+type Content = (
+  | { kind: 'text'; body: string }
+  | { kind: AttachmentKind; body: string; attachment: StoredAttachment }
+  | { kind: 'poll'; body: string; options: string[] }
+) & { replyToId?: number | null }
+
+const QUOTE_LENGTH = 200
+
 export type FeedItem = {
   id: string
   kind: 'message' | 'event'
@@ -58,8 +115,16 @@ export type FeedItem = {
   author_name: string | null
   author_avatar_url: string | null
   mine: boolean
-  /** Messages only; null once deleted or hidden. */
+  /** Messages only; null once deleted or hidden. The caption of a photo, the question of a poll. */
   body: string | null
+  /** Messages only: what the member posted. Null for events. */
+  message_kind: LikilibaMessageKind | null
+  /** Photo and file messages, while shown. */
+  attachment: FeedAttachment | null
+  /** Poll messages, while shown. */
+  poll: FeedPoll | null
+  /** Messages answering another one: that message, quoted. */
+  reply_to: FeedQuote | null
   state: 'visible' | 'deleted' | 'hidden'
   event_type: string | null
   data: Record<string, string | number | boolean | null> | null
@@ -112,6 +177,7 @@ export class LikilibaChatService {
     const hasMore = messages.length === take || events.length === take || items.length > page.length
 
     await this.decorate(likiliba, viewer, page)
+    await this.quote(page, names)
     return { data: page, meta: { has_more: hasMore, before: page.at(-1)?.created_at ?? null } }
   }
 
@@ -120,22 +186,158 @@ export class LikilibaChatService {
     likiliba: Likiliba,
     member: LikilibaMember,
     text: string,
-    correlationId: string
+    correlationId: string,
+    replyToId?: number | null
   ) {
     const body = text.trim()
     if (body.length === 0 || body.length > 1000) {
       throw new LikilibaException('A message is 1 to 1000 characters long', 'INVALID_MESSAGE')
     }
+    return this.post(user, likiliba, member, { kind: 'text', body, replyToId }, correlationId)
+  }
+
+  /** A photo or a file, already stored, with an optional caption. */
+  static async sendAttachment(
+    user: User,
+    likiliba: Likiliba,
+    member: LikilibaMember,
+    kind: AttachmentKind,
+    attachment: StoredAttachment,
+    caption: string | null | undefined,
+    correlationId: string,
+    replyToId?: number | null
+  ) {
+    const body = (caption ?? '').trim()
+    if (body.length > 1000) {
+      throw new LikilibaException('A caption is at most 1000 characters long', 'INVALID_MESSAGE')
+    }
+    return this.post(user, likiliba, member, { kind, body, attachment, replyToId }, correlationId)
+  }
+
+  /** A question and its 2 to 10 distinct choices; each member then votes for one. */
+  static async createPoll(
+    user: User,
+    likiliba: Likiliba,
+    member: LikilibaMember,
+    question: string,
+    choices: string[],
+    correlationId: string
+  ) {
+    const body = question.trim()
+    const options = choices.map((c) => c.trim()).filter((c) => c.length > 0)
+    if (body.length === 0 || body.length > 300) {
+      throw new LikilibaException('A poll question is 1 to 300 characters long', 'INVALID_POLL')
+    }
+    if (options.length < POLL_MIN_OPTIONS || options.length > POLL_MAX_OPTIONS) {
+      throw new LikilibaException('A poll has 2 to 10 choices', 'INVALID_POLL')
+    }
+    if (new Set(options.map((o) => o.toLocaleLowerCase())).size !== options.length) {
+      throw new LikilibaException('Two choices of a poll are the same', 'INVALID_POLL')
+    }
+    if (options.some((o) => o.length > 100)) {
+      throw new LikilibaException('A poll choice is at most 100 characters long', 'INVALID_POLL')
+    }
+    return this.post(user, likiliba, member, { kind: 'poll', body, options }, correlationId)
+  }
+
+  /**
+   * Sets the member's vote: another choice replaces theirs, the same one again withdraws it.
+   * Returns the poll afterwards.
+   */
+  static async vote(member: LikilibaMember, messageId: number, optionId: number) {
+    const message = await this.pollOf(member, messageId)
+    if (message.pollClosedAt) {
+      throw new LikilibaException('This poll is closed', 'POLL_CLOSED', 409)
+    }
+    const option = await LikilibaPollOption.query()
+      .where('id', optionId)
+      .where('messageId', message.id)
+      .first()
+    if (!option) throw new LikilibaException('This choice does not exist', 'INVALID_CHOICE')
+
+    const existing = await LikilibaPollVote.query()
+      .where('messageId', message.id)
+      .where('memberId', member.id)
+      .first()
+    if (existing && existing.optionId === option.id) {
+      await existing.delete()
+    } else if (existing) {
+      existing.optionId = option.id
+      await existing.save()
+    } else {
+      await LikilibaPollVote.create({
+        messageId: message.id,
+        optionId: option.id,
+        memberId: member.id,
+      })
+    }
+    await LikilibaRealtime.changed(message.likilibaId)
+    const polls = await this.pollsFor([message.id], member)
+    return polls.get(message.id)!
+  }
+
+  /** The author ends the vote; the results stay shown. */
+  static async closePoll(member: LikilibaMember, messageId: number) {
+    const message = await this.pollOf(member, messageId)
+    if (message.memberId !== member.id) {
+      throw new LikilibaException('Only its author can close a poll', 'NOT_AUTHOR', 403)
+    }
+    if (!message.pollClosedAt) {
+      message.pollClosedAt = DateTime.now()
+      await message.save()
+      await LikilibaRealtime.changed(message.likilibaId)
+    }
+    const polls = await this.pollsFor([message.id], member)
+    return polls.get(message.id)!
+  }
+
+  /** The photo or file of a message, for a member of its group, while the message is shown. */
+  static async attachmentOf(member: LikilibaMember, messageId: number) {
+    const message = await this.messageOf(member, messageId)
+    if (!message.attachmentRef || !message.isVisible) {
+      throw new LikilibaException('This message has no file', 'NOT_FOUND', 404)
+    }
+    return message
+  }
+
+  private static async post(
+    user: User,
+    likiliba: Likiliba,
+    member: LikilibaMember,
+    content: Content,
+    correlationId: string
+  ) {
     if (likiliba.status === 'cancelled') {
       throw new LikilibaException('This likiliba was cancelled', 'GROUP_CLOSED', 409)
     }
+    if (content.replyToId) {
+      const quoted = await this.messageOf(member, content.replyToId)
+      if (!quoted.isVisible) {
+        throw new LikilibaException('This message is no longer shown', 'MESSAGE_REMOVED', 409)
+      }
+    }
 
-    return db.transaction(async (trx) => {
+    const posted = await db.transaction(async (trx) => {
       const message = new LikilibaMessage()
       message.likilibaId = likiliba.id
       message.memberId = member.id
-      message.body = body
+      message.kind = content.kind
+      message.body = content.body
+      message.replyToId = content.replyToId ?? null
+      if (content.kind === 'image' || content.kind === 'file' || content.kind === 'audio') {
+        message.attachmentRef = content.attachment.ref
+        message.attachmentMimeType = content.attachment.mimeType
+        message.attachmentName = content.attachment.name.slice(0, 255)
+        message.attachmentSize = content.attachment.size
+        message.attachmentDurationMs = content.attachment.durationMs ?? null
+      }
       await message.useTransaction(trx).save()
+      if (content.kind === 'poll') {
+        await LikilibaPollOption.createMany(
+          content.options.map((label, position) => ({ messageId: message.id, label, position })),
+          { client: trx }
+        )
+      }
 
       member.lastReadAt = DateTime.now()
       await member.useTransaction(trx).save()
@@ -146,7 +348,12 @@ export class LikilibaChatService {
         action: 'likiliba.message.sent',
         resourceType: 'likiliba_message',
         resourceId: message.id,
-        after: { likiliba_id: likiliba.id, member_id: member.id, length: body.length },
+        after: {
+          likiliba_id: likiliba.id,
+          member_id: member.id,
+          kind: content.kind,
+          length: content.body.length,
+        },
         correlationId,
         trx,
       })
@@ -164,7 +371,7 @@ export class LikilibaChatService {
       event.payload = {
         user_ids: recipients.map((r) => r.userId),
         title: likiliba.name,
-        body: `${displayName(user)} : ${body.length > 140 ? `${body.slice(0, 139)}…` : body}`,
+        body: `${displayName(user)} : ${pushText(content)}`,
         data: { likiliba_id: likiliba.id, type: LIKILIBA_MESSAGE_EVENT },
         correlation_id: correlationId,
       }
@@ -183,8 +390,21 @@ export class LikilibaChatService {
           },
         ],
       ])
-      return this.messageItem(message, member, names)
+      const item = this.messageItem(message, member, names)
+      if (content.kind === 'poll') {
+        const options = await LikilibaPollOption.query({ client: trx })
+          .where('messageId', message.id)
+          .orderBy('position')
+        item.poll = {
+          options: options.map((o) => ({ id: o.id, label: o.label, votes: 0, mine: false })),
+          total_votes: 0,
+          closed: false,
+        }
+      }
+      return item
     })
+    if (posted.reply_to) await this.quote([posted], await this.namesOf(likiliba))
+    return posted
   }
 
   /**
@@ -376,6 +596,10 @@ export class LikilibaChatService {
     const ids = items.filter((i) => i.kind === 'message').map((i) => Number(i.id.slice(2)))
     if (ids.length === 0) return
     const reactions = await this.reactionsFor(ids, viewer)
+    const pollIds = items
+      .filter((i) => i.message_kind === 'poll' && i.state === 'visible')
+      .map((i) => Number(i.id.slice(2)))
+    const polls = await this.pollsFor(pollIds, viewer)
 
     const others = await LikilibaMember.query()
       .where('likilibaId', likiliba.id)
@@ -387,9 +611,44 @@ export class LikilibaChatService {
 
     for (const item of items) {
       if (item.kind !== 'message') continue
-      item.reactions =
-        item.state === 'visible' ? (reactions.get(Number(item.id.slice(2))) ?? []) : []
+      const messageId = Number(item.id.slice(2))
+      item.reactions = item.state === 'visible' ? (reactions.get(messageId) ?? []) : []
+      item.poll = polls.get(messageId) ?? null
       item.read_by_all = item.mine && everyoneReadUpTo !== '' && everyoneReadUpTo >= item.created_at
+    }
+  }
+
+  /** Fills the quote of every reply, from the quoted messages as they are now. */
+  private static async quote(
+    items: FeedItem[],
+    names: Map<number, { name: string; avatar: string | null }>
+  ) {
+    const ids = items.filter((i) => i.reply_to).map((i) => Number(i.reply_to!.id.slice(2)))
+    if (ids.length === 0) return
+    const rows = await LikilibaMessage.query().whereIn('id', ids)
+    const quoted = new Map(rows.map((m) => [m.id, m]))
+    for (const item of items) {
+      if (!item.reply_to) continue
+      const m = quoted.get(Number(item.reply_to.id.slice(2)))
+      if (!m) {
+        item.reply_to = null
+        continue
+      }
+      const state = m.hiddenAt ? 'hidden' : m.deletedAt ? 'deleted' : 'visible'
+      const visible = state === 'visible'
+      item.reply_to = {
+        id: `m:${m.id}`,
+        member_id: m.memberId,
+        author_name: names.get(m.memberId)?.name ?? null,
+        message_kind: m.kind,
+        body: visible
+          ? m.body.length > QUOTE_LENGTH
+            ? `${m.body.slice(0, QUOTE_LENGTH - 1)}…`
+            : m.body
+          : null,
+        attachment_name: visible ? m.attachmentName : null,
+        state,
+      }
     }
   }
 
@@ -409,6 +668,45 @@ export class LikilibaChatService {
     }
     for (const list of result.values()) list.sort((a, b) => b.count - a.count)
     return result
+  }
+
+  /** Each poll's choices in order, their votes, and the viewer's own. */
+  private static async pollsFor(messageIds: number[], viewer: LikilibaMember) {
+    const result = new Map<number, FeedPoll>()
+    if (messageIds.length === 0) return result
+    const [messages, options, votes] = await Promise.all([
+      LikilibaMessage.query().whereIn('id', messageIds).select('id', 'pollClosedAt'),
+      LikilibaPollOption.query().whereIn('messageId', messageIds).orderBy('position'),
+      LikilibaPollVote.query().whereIn('messageId', messageIds),
+    ])
+    for (const message of messages) {
+      const mine = votes.find((v) => v.messageId === message.id && v.memberId === viewer.id)
+      const own = votes.filter((v) => v.messageId === message.id)
+      result.set(message.id, {
+        options: options
+          .filter((o) => o.messageId === message.id)
+          .map((o) => ({
+            id: o.id,
+            label: o.label,
+            votes: own.filter((v) => v.optionId === o.id).length,
+            mine: mine?.optionId === o.id,
+          })),
+        total_votes: own.length,
+        closed: !!message.pollClosedAt,
+      })
+    }
+    return result
+  }
+
+  private static async pollOf(member: LikilibaMember, messageId: number) {
+    const message = await this.messageOf(member, messageId)
+    if (message.kind !== 'poll') {
+      throw new LikilibaException('This message is not a poll', 'NOT_A_POLL', 409)
+    }
+    if (!message.isVisible) {
+      throw new LikilibaException('This message is no longer shown', 'MESSAGE_REMOVED', 409)
+    }
+    return message
   }
 
   private static async messageOf(member: LikilibaMember, messageId: number) {
@@ -446,6 +744,33 @@ export class LikilibaChatService {
       author_avatar_url: names.get(m.memberId)?.avatar ?? null,
       mine: m.memberId === viewer.id,
       body: state === 'visible' ? m.body : null,
+      message_kind: m.kind,
+      attachment:
+        state === 'visible' &&
+        m.attachmentRef &&
+        (m.kind === 'image' || m.kind === 'file' || m.kind === 'audio')
+          ? {
+              kind: m.kind,
+              url: `/api/v1/likilibas/${m.likilibaId}/messages/${m.id}/attachment`,
+              name: m.attachmentName,
+              mime_type: m.attachmentMimeType ?? 'application/octet-stream',
+              size: m.attachmentSize ?? 0,
+              duration_ms: m.attachmentDurationMs,
+            }
+          : null,
+      poll: null,
+      // Only the link here; `quote` fills it from the quoted message.
+      reply_to: m.replyToId
+        ? {
+            id: `m:${m.replyToId}`,
+            member_id: 0,
+            author_name: null,
+            message_kind: 'text',
+            body: null,
+            attachment_name: null,
+            state: 'visible',
+          }
+        : null,
       state,
       event_type: null,
       data: null,
@@ -477,6 +802,10 @@ export class LikilibaChatService {
       author_avatar_url: e.memberId ? (names.get(e.memberId)?.avatar ?? null) : null,
       mine: !!e.memberId && e.memberId === viewer.id,
       body: null,
+      message_kind: null,
+      attachment: null,
+      poll: null,
+      reply_to: null,
       state: 'visible',
       event_type: e.eventType,
       data: {
@@ -496,5 +825,23 @@ export class LikilibaChatService {
       reactions: [],
       read_by_all: false,
     }
+  }
+}
+
+/** The line a push notification shows for a new message. */
+function pushText(content: Content): string {
+  const clip = (text: string, max = 140) =>
+    text.length > max ? `${text.slice(0, max - 1)}…` : text
+  switch (content.kind) {
+    case 'image':
+      return content.body ? `📷 ${clip(content.body, 120)}` : '📷 Photo'
+    case 'file':
+      return `📎 ${clip(content.attachment.name, 120)}`
+    case 'audio':
+      return '🎤 Message vocal'
+    case 'poll':
+      return `📊 ${clip(content.body, 120)}`
+    default:
+      return clip(content.body)
   }
 }

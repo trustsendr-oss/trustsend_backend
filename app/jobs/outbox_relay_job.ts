@@ -113,6 +113,10 @@ export async function handleOutboxRelay(): Promise<void> {
         case 'mobile_money_payout.failed':
           await handleMobileMoneyTerminal(event)
           break
+        case 'card_deposit.completed':
+        case 'card_deposit.failed':
+          await handleCardDepositTerminal(event)
+          break
         case 'crypto_deposit.completed':
           await handleCryptoDepositCompleted(event)
           break
@@ -120,6 +124,7 @@ export async function handleOutboxRelay(): Promise<void> {
         case 'crypto_payout.failed':
           await handleCryptoPayoutTerminal(event)
           break
+        case 'card_deposit.initiated':
         case 'mobile_money_deposit.initiated':
         case 'mobile_money_payout.initiated':
           // Nothing to announce yet: the money has not moved, and the terminal event that
@@ -583,6 +588,52 @@ async function handleMobileMoneyTerminal(event: OutboxEvent): Promise<void> {
     date,
     reason,
   })
+}
+
+/**
+ * Receipt e-mail of a card top-up, credited or declined. The in-app notification is written
+ * inline by CardDepositService when it settles, like the mobile money ones.
+ */
+export async function handleCardDepositTerminal(event: OutboxEvent): Promise<void> {
+  const payload = event.payload as any
+  const transaction = await LedgerTransaction.find(payload.transaction_id ?? event.aggregateId)
+  if (!transaction) return
+
+  const recipient = await TransactionNotifier.recipientForActor(
+    transaction.initiatedByType,
+    transaction.initiatedById
+  )
+  if (!recipient) return
+
+  const metadata = (transaction.metadata ?? {}) as Record<string, any>
+  const currency = transaction.currencyCode ?? metadata.currency_code ?? ''
+  const gross = transaction.amount ?? metadata.amount ?? '0'
+  const amount = formatAmount(gross, currency)
+  const feeMinor = transaction.fee ?? metadata.fee ?? null
+  const scheme = transaction.paymentChannel
+  const last4 = metadata.card_last4
+  const channel =
+    scheme && last4 ? `${scheme} •••• ${last4}` : last4 ? `carte •••• ${last4}` : scheme
+  const completed = event.eventType === 'card_deposit.completed'
+
+  await emailSafely(
+    recipient,
+    completed
+      ? `Recharge par carte créditée — ${amount}`
+      : `Recharge par carte échouée — ${amount}`,
+    completed ? 'card_deposit_completed' : 'card_deposit_failed',
+    {
+      amount,
+      fee: feeMinor !== null ? formatAmount(feeMinor, currency) : null,
+      net: feeMinor !== null ? formatDifference(gross, feeMinor, currency) : null,
+      channel: channel ?? null,
+      account: accountLabel(currency),
+      provider_reference: metadata.merchant_reference ?? transaction.providerReferenceId,
+      reference: transaction.uuid,
+      date: formatDate(transaction.completedAt ?? event.createdAt),
+      reason: metadata.failure_reason?.message ?? transaction.failureReason,
+    }
+  )
 }
 
 const CRYPTO_NETWORK_LABEL: Record<string, string> = {

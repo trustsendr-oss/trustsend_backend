@@ -58,6 +58,10 @@ const BusinessWebhooksController = () => import('#controllers/business/webhooks_
 const CryptoDepositsController = () => import('#controllers/crypto/crypto_deposits_controller')
 const CryptoPayoutsController = () => import('#controllers/crypto/crypto_payouts_controller')
 const CryptoWebhooksController = () => import('#controllers/crypto/crypto_webhooks_controller')
+const CardDepositsController = () => import('#controllers/card_payments/card_deposits_controller')
+const CardCheckoutController = () => import('#controllers/card_payments/card_checkout_controller')
+const GoFreshPayWebhooksController = () =>
+  import('#controllers/card_payments/gofreshpay_webhooks_controller')
 const BusinessCryptoController = () => import('#controllers/business/crypto_controller')
 const BusinessToolkitController = () => import('#controllers/business/toolkit_controller')
 const BusinessPlanController = () => import('#controllers/business/plan_controller')
@@ -137,6 +141,17 @@ router.get('/health', () => {
 
 router.get('/assets/flags/usd.svg', [AssetsController, 'usdFlag'])
 router.get('/assets/currencies/:file', [AssetsController, 'currencyLogo'])
+
+// Card top-up checkout (GoFreshPay Microform). Served from our own origin, the one whitelisted
+// with GoFreshPay; no app session in that browser, so authenticated by the checkout token its
+// API calls carry (see card_checkout_controller.ts).
+router.get('/card-checkout/:id', [CardCheckoutController, 'page'])
+router
+  .get('/card-checkout/:id/3ds-return', [CardCheckoutController, 'threeDsReturn'])
+  .as('card_checkout.three_ds_return.show')
+router
+  .post('/card-checkout/:id/3ds-return', [CardCheckoutController, 'threeDsReturn'])
+  .as('card_checkout.three_ds_return.store')
 
 router
   .group(() => {
@@ -326,6 +341,12 @@ router
         router
           .post(':id/messages', [LikilibasController, 'sendMessage'])
           .use(middleware.throttle({ maxRequests: 30, windowMinutes: 1, name: 'likiliba-message' }))
+        router
+          .post(':id/polls', [LikilibasController, 'createPoll'])
+          .use(middleware.throttle({ maxRequests: 30, windowMinutes: 1, name: 'likiliba-message' }))
+        router.get(':id/messages/:messageId/attachment', [LikilibasController, 'messageAttachment'])
+        router.put(':id/messages/:messageId/vote', [LikilibasController, 'vote'])
+        router.post(':id/messages/:messageId/close', [LikilibasController, 'closePoll'])
         router.delete(':id/messages/:messageId', [LikilibasController, 'deleteMessage'])
         router.post(':id/messages/:messageId/report', [LikilibasController, 'reportMessage'])
         router.put(':id/messages/:messageId/reaction', [LikilibasController, 'reactToMessage'])
@@ -632,6 +653,36 @@ router
     // Inbound Alchemy Webhooks — external caller protected by HMAC signature verification
     router.post('webhooks/alchemy', [CryptoWebhooksController, 'alchemy']).as('webhooks.alchemy')
 
+    // Card top-ups (GoFreshPay Microform) — the app starts one and follows it
+    router
+      .group(() => {
+        router.post('/', [CardDepositsController, 'store'])
+        router.get(':id', [CardDepositsController, 'show'])
+      })
+      .prefix('card-deposits')
+      .as('card_deposits')
+      .use(middleware.auth())
+
+    // Its checkout page's calls — NOT behind middleware.auth(): the in-app browser has no app
+    // session. Each call carries the session's one-time checkout token instead.
+    router
+      .group(() => {
+        router.get(':id', [CardCheckoutController, 'context'])
+        router.post(':id/setup', [CardCheckoutController, 'setup'])
+        router.post(':id/enroll', [CardCheckoutController, 'enroll'])
+        router.post(':id/charge', [CardCheckoutController, 'charge'])
+      })
+      .prefix('card-checkout')
+      .as('card_checkout')
+      // Loose on purpose: every call already needs a 256-bit token, and mobile carriers put many
+      // customers behind one IP. This only bounds how hard one IP can drive the gateway calls.
+      .use(middleware.throttle({ maxRequests: 600, windowMinutes: 15, name: 'card-checkout' }))
+
+    // Inbound GoFreshPay webhooks — external caller, HMAC-verified inside the controller
+    router
+      .post('webhooks/gofreshpay', [GoFreshPayWebhooksController, 'handle'])
+      .as('webhooks.gofreshpay')
+
     // Counter operations, for the staff of a partner institution. Authenticated as an ordinary
     // user, then resolved to an institution through their posting — the third door onto
     // ctx.business, see business_staff_middleware.ts.
@@ -879,6 +930,10 @@ router
         router.get('', [AdminLikilibasController, 'index'])
         router.post('penalties/:penaltyId/waive', [AdminLikilibasController, 'waivePenalty'])
         router.post('messages/:messageId/hide', [AdminLikilibasController, 'hideMessage'])
+        router.get('messages/:messageId/attachment', [
+          AdminLikilibasController,
+          'messageAttachment',
+        ])
         router.get(':id/messages', [AdminLikilibasController, 'messages'])
         router.get(':id', [AdminLikilibasController, 'show'])
         router.get(':id/history', [AdminLikilibasController, 'history'])
